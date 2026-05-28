@@ -1,0 +1,13 @@
+{
+  "audioAvailable": true,
+  "new-patient-exam": {
+    "title": "New Patient Exam",
+    "duration": 105.953,
+    "file": "audio/new-patient-exam/new-patient-exam.mp3"
+  },
+  "toothache": {
+    "title": "After-Hours Toothache Emergency",
+    "duration": 84.767,
+    "file": "audio/toothache/toothache.mp3"
+  }
+}

@@ -1,0 +1,5 @@
+.env
+.env.*
+server/node_modules
+scripts/generate_demo_audio.py
+*.aiff

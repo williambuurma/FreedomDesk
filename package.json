@@ -1,0 +1,13 @@
+{
+  "name": "freedomdesk",
+  "private": true,
+  "version": "1.0.0",
+  "description": "FreedomDesk marketing site and lead capture",
+  "scripts": {
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel"
+  },
+  "devDependencies": {
+    "vercel": "^44.0.0"
+  }
+}

@@ -183,6 +183,66 @@
     return `${m}:${s.toString().padStart(2, "0")}`;
   }
 
+  function resolveAudioUrl(file) {
+    try {
+      return new URL(file, window.location.href).href;
+    } catch {
+      return file;
+    }
+  }
+
+  function audioSourceMatches(audio, file) {
+    if (!audio || !file) return false;
+    const target = resolveAudioUrl(file);
+    return audio.src === target || audio.currentSrc === target;
+  }
+
+  function setAudioSource(audio, file) {
+    if (!audio || !file) return;
+    if (!audioSourceMatches(audio, file)) {
+      audio.src = file;
+      audio.load();
+    }
+  }
+
+  function waitForAudioReady(audio) {
+    return new Promise((resolve, reject) => {
+      if (!audio) {
+        reject(new Error("missing audio element"));
+        return;
+      }
+
+      if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !audio.error) {
+        resolve();
+        return;
+      }
+
+      const cleanup = () => {
+        audio.removeEventListener("canplay", onReady);
+        audio.removeEventListener("loadeddata", onReady);
+        audio.removeEventListener("error", onError);
+      };
+
+      const onReady = () => {
+        cleanup();
+        resolve();
+      };
+
+      const onError = () => {
+        cleanup();
+        reject(audio.error || new Error("audio failed to load"));
+      };
+
+      audio.addEventListener("canplay", onReady, { once: true });
+      audio.addEventListener("loadeddata", onReady, { once: true });
+      audio.addEventListener("error", onError, { once: true });
+
+      if (audio.networkState === HTMLMediaElement.NETWORK_EMPTY || audio.error) {
+        audio.load();
+      }
+    });
+  }
+
   function buildTurns(rawTurns, offset) {
     return rawTurns.map((turn) => ({
       speaker: turn.speaker,
@@ -264,8 +324,8 @@
     card._setDemoState = setState;
 
     if (audio && meta.file) {
-      audio.src = meta.file;
       audio.preload = "metadata";
+      setAudioSource(audio, meta.file);
     } else {
       console.error(`FreedomDesk demo "${meta.title}": missing audio element or file path.`);
     }
@@ -406,7 +466,7 @@
       }
 
       if (wasPlayingBeforeScrub) {
-        startPlayback();
+        void startPlayback();
         return;
       }
 
@@ -445,14 +505,11 @@
       playBtn?.setAttribute("aria-label", playing ? `Pause ${meta.title}` : `Play ${meta.title}`);
     }
 
-    function startPlayback() {
+    async function startPlayback() {
       if (!audio) return;
 
       pauseOthers();
-
-      if (audio.getAttribute("src") !== meta.file) {
-        audio.src = meta.file;
-      }
+      setAudioSource(audio, meta.file);
 
       if (audio.currentTime >= getDuration() - 0.05) {
         audio.currentTime = 0;
@@ -460,13 +517,23 @@
         updateProgress(0);
       }
 
-      const playPromise = audio.play();
-      if (playPromise?.catch) {
-        playPromise.catch(() => {
-          setState("idle");
-          setPlayingUi(false);
-          stopRaf();
+      try {
+        if (audio.readyState < HTMLMediaElement.HAVE_FUTURE_DATA || audio.error) {
+          await waitForAudioReady(audio);
+        }
+        await audio.play();
+      } catch (err) {
+        const mediaError = audio.error;
+        console.error(`FreedomDesk demo "${meta.title}": playback failed`, {
+          file: meta.file,
+          currentSrc: audio.currentSrc,
+          code: mediaError?.code ?? null,
+          error: err,
         });
+        setState("idle");
+        setPlayingUi(false);
+        stopRaf();
+        return;
       }
 
       setState("playing");
@@ -489,7 +556,7 @@
       audio.currentTime = 0;
       resetTranscript();
       updateProgress(0);
-      startPlayback();
+      void startPlayback();
     }
 
     function finishPlayback() {
@@ -505,12 +572,8 @@
     }
 
     playBtn?.addEventListener("click", () => {
-      if (state === "playing") {
-        if (audio?.paused) {
-          startPlayback();
-        } else {
-          pausePlayback();
-        }
+      if (state === "playing" && audio && !audio.paused) {
+        pausePlayback();
         return;
       }
 
@@ -520,7 +583,7 @@
       }
 
       if (state === "paused") {
-        startPlayback();
+        void startPlayback();
         return;
       }
 

@@ -4358,6 +4358,148 @@ h1 {
   display: none;
 }
 
+/* Sample Calls — proof section (#hear only) */
+#hear.hear-action {
+  padding-bottom: calc(var(--section-pad) - 12px);
+}
+
+#hear .section-header {
+  margin-bottom: 28px;
+}
+
+#hear .proof-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+#hear .proof-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+#hear .proof-card.demo-card.is-playing {
+  border-color: rgba(53, 104, 173, 0.2);
+}
+
+#hear .proof-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  line-height: 1.35;
+}
+
+#hear .patient-summary {
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid rgba(24, 53, 98, 0.1);
+  border-left: 3px solid rgba(24, 53, 98, 0.22);
+  border-radius: 4px;
+}
+
+#hear .patient-summary-heading {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+#hear .patient-summary-note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#hear .patient-summary-line {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+#hear .patient-summary-key {
+  display: block;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+#hear .patient-summary-value {
+  display: block;
+  color: var(--navy);
+}
+
+#hear .proof-audio-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+#hear .demo-card-player {
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(24, 53, 98, 0.08);
+  border-radius: 0;
+  margin-top: 4px;
+}
+
+#hear .demo-card-play.demo-play {
+  width: 36px;
+  height: 36px;
+}
+
+#hear .demo-card-play.demo-play svg {
+  width: 14px;
+  height: 14px;
+}
+
+#hear .demo-card-play-hint {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+#hear .demo-card-time {
+  font-size: 0.6875rem;
+}
+
+#hear .demo-card-transcript {
+  margin-top: 0;
+  min-height: 0;
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  border: none;
+  transition: max-height 0.25s var(--ease), opacity 0.2s var(--ease), padding 0.25s var(--ease);
+}
+
+#hear .proof-card.demo-card.is-playing .demo-card-transcript {
+  min-height: 180px;
+  max-height: 220px;
+  padding: 12px 0 0;
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  #hear .proof-grid {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+}
+
 .demo-call-frame {
   padding: 0;
   overflow: hidden;
@@ -5137,6 +5279,18 @@ h1 {
 
   .pricing-compare-amount {
     font-size: 1.5rem;
+  }
+
+  #hear .proof-grid {
+    gap: 16px;
+  }
+
+  #hear .proof-card {
+    padding: 18px 20px;
+  }
+
+  #hear .patient-summary {
+    padding: 14px 16px;
   }
 
   .demo-grid {

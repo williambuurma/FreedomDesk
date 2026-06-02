@@ -101,24 +101,32 @@
     <section class="hear hear-action" id="hear">
       <div class="container">
         <div class="section-header" data-reveal="up">
-          <h2 class="section-title section-title-plain">Hear a sample call</h2>
-          <p class="section-sub">Two common situations — press play to hear how FreedomDesk handles them on your office line.</p>
+          <h2 class="section-title section-title-plain">Your Team Is Prepared Before The Patient Arrives</h2>
+          <p class="section-sub">Aly answers calls, gathers the right details, and prepares your team before the patient arrives.</p>
         </div>
-        <div class="demo-grid" data-reveal="up" data-reveal-delay="40">
-          <article class="demo-card" data-demo="new-patient-exam">
-            <header class="demo-card-header">
-              <h3 class="demo-card-title">New Patient Exam</h3>
-              <p class="demo-card-description">FreedomDesk collects insurance information, schedules appropriately, and prepares your team before the patient even arrives.</p>
-            </header>
-            <div class="demo-card-player" aria-label="New Patient Exam audio player">
-              <button class="demo-card-play demo-play" type="button" aria-label="Play New Patient Exam sample call">
+        <div class="proof-grid" data-reveal="up" data-reveal-delay="40">
+
+          <article class="proof-card demo-card" data-demo="new-patient-exam">
+            <h3 class="proof-card-title">New Patient With Insurance</h3>
+            <div class="patient-summary" aria-label="Patient summary for New Patient With Insurance">
+              <p class="patient-summary-heading">Patient Summary</p>
+              <div class="patient-summary-note">
+                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">New patient exam and cleaning</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">Delta Dental</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Routine</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">New patient evaluation</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">Sensitive lower right tooth.</span></p>
+              </div>
+            </div>
+            <p class="proof-audio-label">How Aly Gathered This Information</p>
+            <div class="demo-card-player" aria-label="New Patient With Insurance audio player">
+              <button class="demo-card-play demo-play" type="button" aria-label="Play New Patient With Insurance sample call">
                 <svg class="demo-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
                 <svg class="demo-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6h2.5v12H8V6zm5.5 0h2.5v12h-2.5V6z"/></svg>
               </button>
               <div class="demo-card-player-body">
-                <p class="demo-card-play-hint">Tap play to listen</p>
                 <div class="demo-card-progress-wrap">
-                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="New Patient Exam playback timeline" aria-valuemin="0" aria-valuemax="106" aria-valuenow="0" aria-valuetext="0:00">
+                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="New Patient With Insurance playback timeline" aria-valuemin="0" aria-valuemax="106" aria-valuenow="0" aria-valuetext="0:00">
                     <div class="demo-card-progress-rail">
                       <span class="demo-card-progress-bar"></span>
                     </div>
@@ -131,18 +139,26 @@
             <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
             <audio preload="metadata" src="audio/new-patient-exam/new-patient-exam.mp3"></audio>
           </article>
-          <article class="demo-card" data-demo="toothache">
-            <header class="demo-card-header">
-              <h3 class="demo-card-title">Toothache Emergency</h3>
-              <p class="demo-card-description">FreedomDesk gathers symptoms, identifies urgency, and alerts your team when immediate attention may be needed.</p>
-            </header>
+
+          <article class="proof-card demo-card" data-demo="toothache">
+            <h3 class="proof-card-title">Toothache Emergency</h3>
+            <div class="patient-summary" aria-label="Patient summary for Toothache Emergency">
+              <p class="patient-summary-heading">Patient Summary</p>
+              <div class="patient-summary-note">
+                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">Toothache with facial swelling</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">On file</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Same-day emergency</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">Emergency limited exam</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">On-call doctor notified. No difficulty breathing.</span></p>
+              </div>
+            </div>
+            <p class="proof-audio-label">How Aly Gathered This Information</p>
             <div class="demo-card-player" aria-label="Toothache Emergency audio player">
               <button class="demo-card-play demo-play" type="button" aria-label="Play Toothache Emergency sample call">
                 <svg class="demo-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
                 <svg class="demo-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6h2.5v12H8V6zm5.5 0h2.5v12h-2.5V6z"/></svg>
               </button>
               <div class="demo-card-player-body">
-                <p class="demo-card-play-hint">Tap play to listen</p>
                 <div class="demo-card-progress-wrap">
                   <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Toothache Emergency playback timeline" aria-valuemin="0" aria-valuemax="85" aria-valuenow="0" aria-valuetext="0:00">
                     <div class="demo-card-progress-rail">
@@ -155,8 +171,51 @@
               </div>
             </div>
             <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
-            <audio preload="metadata" src="audio/Toothache/Toothache.mp3"></audio>
+            <audio preload="metadata" src="audio/toothache/toothache.mp3"></audio>
           </article>
+
+          <article class="proof-card">
+            <h3 class="proof-card-title">Implant Consultation</h3>
+            <div class="patient-summary" aria-label="Patient summary for Implant Consultation">
+              <p class="patient-summary-heading">Patient Summary</p>
+              <div class="patient-summary-note">
+                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">Implant consult, upper left</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">MetLife</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Routine</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">Implant consultation</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">Prior quote elsewhere. Wants cost estimate first.</span></p>
+              </div>
+            </div>
+          </article>
+
+          <article class="proof-card">
+            <h3 class="proof-card-title">Broken Tooth</h3>
+            <div class="patient-summary" aria-label="Patient summary for Broken Tooth">
+              <p class="patient-summary-heading">Patient Summary</p>
+              <div class="patient-summary-note">
+                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">Chipped front tooth</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">Self-pay</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Same day if available</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">Limited emergency exam</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">Can come at lunch. Mild sensitivity.</span></p>
+              </div>
+            </div>
+          </article>
+
+          <article class="proof-card">
+            <h3 class="proof-card-title">Delta Dental Coverage Question</h3>
+            <div class="patient-summary" aria-label="Patient summary for Delta Dental Coverage Question">
+              <p class="patient-summary-heading">Patient Summary</p>
+              <div class="patient-summary-note">
+                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">Insurance coverage question</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">Delta Dental</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Routine</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">New patient exam requested</span></p>
+                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">Patient seeking a provider that accepts Delta Dental and would like to schedule a cleaning and exam.</span></p>
+              </div>
+            </div>
+          </article>
+
         </div>
       </div>
     </section>

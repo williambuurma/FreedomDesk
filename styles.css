@@ -4379,23 +4379,99 @@ h1 {
   text-wrap: balance;
 }
 
-#hear .proof-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  max-width: 920px;
+#hear .demo-tabs {
+  max-width: 720px;
   margin: 0 auto;
+}
+
+#hear .demo-tabs-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+#hear .demo-tab {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 9px 14px;
+  border: 1px solid rgba(24, 53, 98, 0.14);
+  border-radius: 999px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--navy-mid);
+  cursor: pointer;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+#hear .demo-tab:hover {
+  border-color: rgba(53, 104, 173, 0.35);
+  color: var(--navy);
+}
+
+#hear .demo-tab[aria-selected="true"] {
+  border-color: var(--navy-soft);
+  background: var(--navy);
+  color: #fff;
+}
+
+#hear .demo-tab:focus {
+  outline: none;
+}
+
+#hear .demo-tab:focus-visible {
+  box-shadow: 0 0 0 3px rgba(53, 104, 173, 0.28);
+}
+
+#hear .demo-tabs-panels {
+  position: relative;
+}
+
+#hear .demo-tab-panel {
+  display: none;
+}
+
+#hear .demo-tab-panel.is-active {
+  display: block;
+}
+
+#hear .demo-tab-panel .proof-card {
+  max-width: none;
+}
+
+#hear .proof-card-title--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 #hear .proof-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   padding: 20px 22px;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: none;
+}
+
+#hear .proof-card.demo-card {
+  gap: 0;
 }
 
 #hear .proof-card.demo-card.is-playing {
@@ -4411,59 +4487,138 @@ h1 {
   line-height: 1.35;
 }
 
-#hear .patient-summary {
-  padding: 16px 18px;
-  background: #fff;
-  border: 1px solid rgba(24, 53, 98, 0.1);
-  border-left: 3px solid rgba(24, 53, 98, 0.22);
-  border-radius: 4px;
+#hear .patient-summary.aly-note {
+  padding: 12px 14px;
+  margin-bottom: 4px;
+  background: linear-gradient(180deg, rgba(238, 244, 252, 0.95) 0%, rgba(243, 247, 253, 0.85) 100%);
+  border: 1px solid rgba(53, 104, 173, 0.12);
+  border-radius: 6px;
+  box-shadow: none;
 }
 
-#hear .patient-summary-heading {
-  margin: 0 0 12px;
-  font-size: 0.875rem;
-  font-weight: 600;
+#hear .aly-note-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
+  align-items: start;
+}
+
+#hear .aly-note-row-secondary {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(24, 53, 98, 0.08);
+}
+
+#hear .aly-note-label {
+  margin: 0 0 5px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--navy-soft);
+  line-height: 1.2;
+}
+
+#hear .aly-note-concern {
+  margin: 0 0 5px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   color: var(--navy);
 }
 
-#hear .patient-summary-note {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-#hear .patient-summary-line {
+#hear .aly-note-lines,
+#hear .aly-note-checks,
+#hear .aly-note-codes {
   margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.45;
-}
-
-#hear .patient-summary-key {
-  display: block;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-#hear .patient-summary-value {
-  display: block;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  line-height: 1.4;
   color: var(--navy);
+}
+
+#hear .aly-note-lines li + li,
+#hear .aly-note-checks li + li,
+#hear .aly-note-codes li + li {
+  margin-top: 2px;
+}
+
+#hear .aly-note-checks li::before {
+  content: "✓ ";
+  color: var(--navy-soft);
+  font-weight: 600;
+}
+
+#hear .aly-note-codes li {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 768px) {
+  #hear .aly-note-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  #hear .aly-note-row-secondary {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  #hear .patient-summary.aly-note {
+    padding: 11px 12px;
+  }
+}
+
+#hear .proof-audio-intro {
+  margin-top: 22px;
+  padding-top: 20px;
+  margin-bottom: 14px;
+  border-top: 1px solid rgba(24, 53, 98, 0.12);
+}
+
+#hear .proof-audio-intro-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#hear .proof-audio-intro-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(53, 104, 173, 0.1);
+  color: var(--navy);
+}
+
+#hear .proof-audio-intro-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 #hear .proof-audio-label {
   margin: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--navy);
 }
 
 #hear .demo-card-player {
   padding: 10px 12px;
   background: transparent;
   border: none;
-  border-top: 1px solid rgba(24, 53, 98, 0.08);
   border-radius: 0;
-  margin-top: 4px;
+  margin-top: 0;
+  margin-bottom: 16px;
 }
 
 #hear .demo-card-play.demo-play {
@@ -4498,17 +4653,53 @@ h1 {
   transition: max-height 0.25s var(--ease), opacity 0.2s var(--ease), padding 0.25s var(--ease);
 }
 
-#hear .proof-card.demo-card.is-playing .demo-card-transcript {
-  min-height: 180px;
-  max-height: 220px;
-  padding: 12px 0 0;
+#hear .proof-card.demo-card.is-playing .demo-card-transcript,
+#hear .proof-card.demo-card.demo-transcript-open .demo-card-transcript {
+  min-height: 260px;
+  max-height: 300px;
+  margin-top: 4px;
+  padding: 16px 14px 14px;
   opacity: 1;
+  background: #f3f5f8;
+  border: 1px solid rgba(24, 53, 98, 0.06);
+  border-radius: 14px;
+}
+
+#hear .demo-card-transcript.chat-transcript {
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  #hear .demo-tabs-list {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  #hear .demo-tab {
+    font-size: 0.8125rem;
+  }
 }
 
 @media (max-width: 768px) {
-  #hear .proof-grid {
-    grid-template-columns: 1fr;
+  #hear .demo-tabs {
     max-width: 520px;
+  }
+
+  #hear .proof-audio-intro {
+    margin-top: 18px;
+    padding-top: 16px;
+    margin-bottom: 12px;
+  }
+
+  #hear .demo-card-player {
+    margin-bottom: 14px;
+  }
+
+  #hear .proof-card.demo-card.is-playing .demo-card-transcript,
+  #hear .proof-card.demo-card.demo-transcript-open .demo-card-transcript {
+    min-height: 220px;
+    max-height: 260px;
+    padding: 14px 12px 12px;
   }
 }
 
@@ -5293,16 +5484,16 @@ h1 {
     font-size: 1.5rem;
   }
 
-  #hear .proof-grid {
-    gap: 16px;
+  #hear .demo-tabs-list {
+    margin-bottom: 14px;
   }
 
   #hear .proof-card {
     padding: 18px 20px;
   }
 
-  #hear .patient-summary {
-    padding: 14px 16px;
+  #hear .patient-summary.aly-note {
+    padding: 11px 12px;
   }
 
   .demo-grid {

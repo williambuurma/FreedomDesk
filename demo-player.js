@@ -6,6 +6,9 @@
   const DEMO_OFFSETS = {
     "new-patient-exam": newPatientOffset,
     toothache: toothacheOffset,
+    "broken-tooth": 0,
+    "implant-consultation": 0,
+    "delta-dental": 0,
   };
 
   // Manual full-turn transcripts — edit start times here
@@ -100,78 +103,164 @@
     toothache: [
       {
         speaker: "aly",
-        start: 0.0,
-        text: "Thank you for calling Buurma Family Dentistry. This is Aly, the after-hours assistant. What is your reason for the emergency call?",
+        start: 0,
+        text: "Thank you for calling Buurma Family Dentistry. This is Aly. How can I help you today?",
       },
       {
         speaker: "patient",
-        start: 7.44,
-        text: "Hi, I've had a really bad toothache since yesterday.",
+        start: 4.76,
+        text: "Hey, I have an awful toothache that's kept me up all night. Are you open?",
       },
       {
         speaker: "aly",
-        start: 11.46,
-        text: "I'm sorry you're dealing with that. The practice is closed, but let me collect a few details for the on-call team. Are you having trouble breathing or swallowing, a fever, or swelling that's spreading toward your eye or neck?",
+        start: 10.18,
+        text: "I'm sorry to hear that. Unfortunately, our office is closed until Monday morning.",
+      },
+      {
+        speaker: "aly",
+        start: 14.9,
+        text: "But we do have an on-call team that reviews urgent situations like this, and someone will follow up with you as soon as possible.",
+      },
+      {
+        speaker: "aly",
+        start: 21.98,
+        text: "I'm going to gather a little information so I can pass it along to our on-call team. Let's start with your name and date of birth.",
       },
       {
         speaker: "patient",
-        start: 24.38,
-        text: "No trouble breathing or any of those things, but my right cheek is pretty swollen.",
+        start: 28.6,
+        text: "My name is Finn Leo. My birthday is May 10, 1997.",
       },
       {
         speaker: "aly",
-        start: 30.08,
-        text: "Okay, when did the swelling start?",
+        start: 34.0,
+        text: "Perfect. What is a good phone number to reach you at?",
       },
       {
         speaker: "patient",
-        start: 32.72,
-        text: "It started yesterday, but it got worse now and I don't know what to do.",
+        start: 39.0,
+        text: "616-123-1356.",
       },
       {
         speaker: "aly",
-        start: 37.4,
-        text: "Is the pain staying with you? What would you rate it 10 out of 10 right now?",
+        start: 42.6,
+        text: "Do you have dental insurance?",
       },
       {
         speaker: "patient",
-        start: 42.48,
-        text: "Right now it's probably an 8 out of 10.",
+        start: 44.68,
+        text: "Yeah, I have Delta Dental.",
       },
       {
         speaker: "aly",
-        start: 45.18,
-        text: "Are you a current existing patient with our office?",
+        start: 47.14,
+        text: "Great. Thank you. Can you tell me where the pain is coming from and when it started?",
       },
       {
         speaker: "patient",
-        start: 48.48,
-        text: "Yeah, I am.",
+        start: 52.24,
+        text: "It's my bottom molar on the right side. I noticed it a couple days ago, but it's gotten worse today and it's starting to spread into my jaw.",
       },
       {
         speaker: "aly",
-        start: 50.08,
-        text: "Can you tell me your date of birth and the best phone number to reach you?",
+        start: 60.34,
+        text: "I'll make a note of that. On a scale from 1 to 10, how bad is it right now, and how bad was it at its worst?",
       },
       {
         speaker: "patient",
-        start: 54.26,
-        text: "May 12, 1996 and 515-555-0348.",
+        start: 67.86,
+        text: "Before it was only a 1 or 2, but today it's climbed up to about a 6.",
       },
       {
         speaker: "aly",
-        start: 63.18,
-        text: "Thank you. I'm marking this as an after-hours emergency and sending it to the on-call doctor. If you develop trouble breathing or swallowing, rapidly spreading swelling, or heavy bleeding that won't stop, please go to the emergency room right away.",
+        start: 72.58,
+        text: "Okay. Have you noticed any facial swelling, fever, or difficulty swallowing?",
       },
       {
         speaker: "patient",
-        start: 77.72,
-        text: "Okay, thank you.",
+        start: 77.88,
+        text: "No, I don't think so.",
       },
       {
         speaker: "aly",
-        start: 79.22,
-        text: "You're welcome. Keep your phone nearby. The doctor or team will reach out as soon as possible.",
+        start: 80.16,
+        text: "Okay, that's good. I'm sending your information to the on-call team now.",
+      },
+      {
+        speaker: "aly",
+        start: 84.22,
+        text: "Keep your phone nearby because one of our staff members will be calling you shortly.",
+      },
+      {
+        speaker: "aly",
+        start: 89.14,
+        text: "If you develop difficulty swallowing, difficulty breathing, significant facial swelling, or feel like the swelling is spreading, please seek immediate medical attention or call 911.",
+      },
+      {
+        speaker: "patient",
+        start: 100.84,
+        text: "Okay, thank you so much. And what was your name again?",
+      },
+      {
+        speaker: "aly",
+        start: 104.86,
+        text: "My name is Aly. You're very welcome, Finn. Take care.",
+      },
+      {
+        speaker: "patient",
+        start: 108.74,
+        text: "Goodbye, Aly.",
+      },
+    ],
+    "broken-tooth": [
+      {
+        speaker: "aly",
+        start: 0,
+        text: "Thank you for calling Buurma Family Dentistry. This is Aly. How can I help you today?",
+      },
+      {
+        speaker: "patient",
+        start: 4,
+        text: "Hi, I chipped a front tooth and wanted to see if someone could take a look today.",
+      },
+      {
+        speaker: "aly",
+        start: 10,
+        text: "[Placeholder transcript — update timings when final audio is added.]",
+      },
+    ],
+    "implant-consultation": [
+      {
+        speaker: "aly",
+        start: 0,
+        text: "Thank you for calling Buurma Family Dentistry. This is Aly. How can I help you today?",
+      },
+      {
+        speaker: "patient",
+        start: 4,
+        text: "Hi, I'm interested in an implant consultation for an upper left tooth.",
+      },
+      {
+        speaker: "aly",
+        start: 10,
+        text: "[Placeholder transcript — update timings when final audio is added.]",
+      },
+    ],
+    "delta-dental": [
+      {
+        speaker: "aly",
+        start: 0,
+        text: "Thank you for calling Buurma Family Dentistry. This is Aly. How can I help you today?",
+      },
+      {
+        speaker: "patient",
+        start: 4,
+        text: "Hi, I have Delta Dental and wanted to ask if you're in-network and can schedule a cleaning.",
+      },
+      {
+        speaker: "aly",
+        start: 10,
+        text: "[Placeholder transcript — update timings when final audio is added.]",
       },
     ],
   };
@@ -322,6 +411,7 @@
 
     card._stopDemoRaf = stopRaf;
     card._setDemoState = setState;
+    card._resetDemo = hardResetDemo;
 
     if (audio && meta.file) {
       audio.preload = "metadata";
@@ -337,6 +427,10 @@
 
     if (timeEl) {
       timeEl.textContent = `0:00 / ${formatTime(duration)}`;
+    }
+
+    function syncTranscriptPanel() {
+      card.classList.toggle("demo-transcript-open", lastVisibleCount > 0);
     }
 
     function applyTranscriptState(currentTime, { scroll = false } = {}) {
@@ -360,10 +454,12 @@
       });
 
       bubbles.forEach((bubble, index) => {
-        bubble.classList.toggle("is-speaking", index === activeIndex && currentTime >= turns[index].start);
+        const isActive = index === activeIndex && currentTime >= turns[index].start;
+        bubble.classList.toggle("is-speaking", state === "playing" && isActive);
       });
 
       lastVisibleCount = visibleCount;
+      syncTranscriptPanel();
 
       const shouldScroll = scroll ? activeIndex >= 0 : visibleCount > prevVisibleCount;
       if (shouldScroll && activeIndex >= 0) {
@@ -377,11 +473,29 @@
         bubble.classList.remove("is-speaking");
       });
       lastVisibleCount = turns.length;
+      syncTranscriptPanel();
     }
 
     function resetTranscript() {
       bubbles.forEach((bubble) => bubble.classList.remove("visible", "is-speaking"));
       lastVisibleCount = 0;
+      syncTranscriptPanel();
+    }
+
+    function hardResetDemo() {
+      if (!audio) return;
+
+      audio.pause();
+      audio.currentTime = 0;
+      isScrubbing = false;
+      scrubPointerId = null;
+      progressTrack?.classList.remove("is-scrubbing");
+      card.classList.remove("is-scrubbing");
+      stopRaf();
+      resetTranscript();
+      updateProgress(0);
+      setState("idle");
+      setPlayingUi(false);
     }
 
     function updateProgress(currentTime) {
@@ -487,14 +601,10 @@
         if (other === card) return;
 
         const otherAudio = other.querySelector("audio");
-        const otherBtn = other.querySelector(".demo-card-play");
+        const hasProgress = otherAudio && otherAudio.currentTime > 0;
 
-        if (otherAudio && !otherAudio.paused) {
-          otherAudio.pause();
-          other._stopDemoRaf?.();
-          other._setDemoState?.("paused");
-          otherBtn?.classList.remove("is-playing");
-          other.classList.remove("is-playing");
+        if (otherAudio && (!otherAudio.paused || hasProgress)) {
+          other._resetDemo?.();
         }
       });
     }
@@ -547,6 +657,9 @@
     function pausePlayback() {
       audio?.pause();
       stopRaf();
+      if (audio) {
+        applyTranscriptState(audio.currentTime, { scroll: false });
+      }
       setState("paused");
       setPlayingUi(false);
     }
@@ -706,8 +819,62 @@
     });
   }
 
+  function initDemoTabs(cards) {
+    const tabRoot = document.querySelector("#hear .demo-tabs");
+    if (!tabRoot) return;
+
+    const tabs = [...tabRoot.querySelectorAll("[data-demo-tab]")];
+    const panels = [...tabRoot.querySelectorAll("[data-demo-panel]")];
+    if (!tabs.length || !panels.length) return;
+
+    function activate(demoId) {
+      tabs.forEach((tab) => {
+        const selected = tab.dataset.demoTab === demoId;
+        tab.setAttribute("aria-selected", selected ? "true" : "false");
+        tab.classList.toggle("is-active", selected);
+        tab.tabIndex = selected ? 0 : -1;
+      });
+
+      panels.forEach((panel) => {
+        const active = panel.dataset.demoPanel === demoId;
+        panel.classList.toggle("is-active", active);
+        panel.hidden = !active;
+      });
+
+      cards.forEach((card) => {
+        if (card.dataset.demo !== demoId) {
+          card._resetDemo?.();
+        }
+      });
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => activate(tab.dataset.demoTab));
+      tab.addEventListener("keydown", (event) => {
+        const index = tabs.indexOf(tab);
+        let nextIndex = -1;
+
+        if (event.key === "ArrowRight") {
+          nextIndex = (index + 1) % tabs.length;
+        } else if (event.key === "ArrowLeft") {
+          nextIndex = (index - 1 + tabs.length) % tabs.length;
+        } else if (event.key === "Home") {
+          nextIndex = 0;
+        } else if (event.key === "End") {
+          nextIndex = tabs.length - 1;
+        }
+
+        if (nextIndex < 0) return;
+
+        event.preventDefault();
+        tabs[nextIndex].focus();
+        activate(tabs[nextIndex].dataset.demoTab);
+      });
+    });
+  }
+
   async function initCallDemo() {
-    const cards = [...document.querySelectorAll(".demo-card")];
+    const cards = [...document.querySelectorAll("#hear .demo-card")];
     if (!cards.length) return;
 
     let manifest = {};
@@ -737,6 +904,8 @@
 
       initDemoCard(card, meta, buildTurns(rawTurns, offset), cards);
     });
+
+    initDemoTabs(cards);
   }
 
   if (document.readyState === "loading") {

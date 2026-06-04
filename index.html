@@ -104,118 +104,366 @@
           <h2 class="section-title section-title-plain">Your Team Is Prepared Before The Patient Arrives</h2>
           <p class="section-sub">Aly answers calls, gathers the right details, and prepares your team before the patient arrives.</p>
         </div>
-        <div class="proof-grid" data-reveal="up" data-reveal-delay="40">
-
-          <article class="proof-card demo-card" data-demo="new-patient-exam">
-            <h3 class="proof-card-title">New Patient With Insurance</h3>
-            <div class="patient-summary" aria-label="Patient summary for New Patient With Insurance">
-              <p class="patient-summary-heading">Patient Summary</p>
-              <div class="patient-summary-note">
-                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">New patient exam and cleaning</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">Delta Dental</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Routine</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">New patient evaluation</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">Sensitive lower right tooth.</span></p>
+        <div class="demo-tabs" data-reveal="up" data-reveal-delay="40">
+          <div class="demo-tabs-list" role="tablist" aria-label="Sample call demonstrations">
+            <button type="button" class="demo-tab is-active" role="tab" id="hear-tab-new-patient-exam" aria-selected="true" aria-controls="hear-panel-new-patient-exam" data-demo-tab="new-patient-exam">Demo: New Patient</button>
+            <button type="button" class="demo-tab" role="tab" id="hear-tab-toothache" aria-selected="false" aria-controls="hear-panel-toothache" data-demo-tab="toothache" tabindex="-1">Demo: Weekend Toothache</button>
+            <button type="button" class="demo-tab" role="tab" id="hear-tab-broken-tooth" aria-selected="false" aria-controls="hear-panel-broken-tooth" data-demo-tab="broken-tooth" tabindex="-1">Demo: Broken Tooth</button>
+            <button type="button" class="demo-tab" role="tab" id="hear-tab-delta-dental" aria-selected="false" aria-controls="hear-panel-delta-dental" data-demo-tab="delta-dental" tabindex="-1">Demo: Delta Dental</button>
+            <button type="button" class="demo-tab" role="tab" id="hear-tab-implant-consultation" aria-selected="false" aria-controls="hear-panel-implant-consultation" data-demo-tab="implant-consultation" tabindex="-1">Demo: Implant Consult</button>
+          </div>
+          <div class="demo-tabs-panels">
+            <div class="demo-tab-panel is-active" role="tabpanel" id="hear-panel-new-patient-exam" aria-labelledby="hear-tab-new-patient-exam" data-demo-panel="new-patient-exam">
+              <article class="proof-card demo-card" data-demo="new-patient-exam">
+                <h3 class="proof-card-title proof-card-title--hidden">Demo: New Patient</h3>
+            <div class="patient-summary aly-note" aria-label="Aly intake note for New Patient">
+              <div class="aly-note-row">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Patient</h4>
+                  <ul class="aly-note-lines">
+                    <li>Finn Leo</li>
+                    <li>Delta Dental</li>
+                    <li>Routine visit</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col aly-note-col-concern">
+                  <h4 class="aly-note-label">Concern</h4>
+                  <p class="aly-note-concern">Exam and Cleaning</p>
+                  <ul class="aly-note-lines">
+                    <li>First visit requested</li>
+                    <li>Sensitive lower right tooth</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="aly-note-row aly-note-row-secondary">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Scheduling</h4>
+                  <ul class="aly-note-lines">
+                    <li>Routine urgency</li>
+                    <li>New patient evaluation</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Likely Visit</h4>
+                  <ul class="aly-note-codes">
+                    <li>D0150</li>
+                    <li>D1110</li>
+                    <li>D0274</li>
+                    <li>D0220 if needed</li>
+                  </ul>
+                </div>
               </div>
             </div>
-            <p class="proof-audio-label">How Aly Gathered This Information</p>
-            <div class="demo-card-player" aria-label="New Patient With Insurance audio player">
-              <button class="demo-card-play demo-play" type="button" aria-label="Play New Patient With Insurance sample call">
+            <div class="proof-audio-intro" aria-label="How Aly gathered this information">
+              <div class="proof-audio-intro-head">
+                <span class="proof-audio-intro-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4l4 4 4-4h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+                </span>
+                <p class="proof-audio-label">How Aly Gathered This Information</p>
+              </div>
+            </div>
+            <div class="demo-card-player" aria-label="New Patient audio player">
+              <button class="demo-card-play demo-play" type="button" aria-label="Play New Patient sample call">
                 <svg class="demo-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
                 <svg class="demo-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6h2.5v12H8V6zm5.5 0h2.5v12h-2.5V6z"/></svg>
               </button>
               <div class="demo-card-player-body">
                 <div class="demo-card-progress-wrap">
-                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="New Patient With Insurance playback timeline" aria-valuemin="0" aria-valuemax="106" aria-valuenow="0" aria-valuetext="0:00">
+                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="New Patient playback timeline" aria-valuemin="0" aria-valuemax="106" aria-valuenow="0" aria-valuetext="0:00">
                     <div class="demo-card-progress-rail">
                       <span class="demo-card-progress-bar"></span>
                     </div>
                     <span class="demo-card-progress-handle" aria-hidden="true"></span>
                   </div>
-                  <span class="demo-card-time">0:00 / 1:46</span>
+                  <span class="demo-card-time">0:00 / 0:00</span>
                 </div>
               </div>
             </div>
             <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
             <audio preload="metadata" src="audio/new-patient-exam/new-patient-exam.mp3"></audio>
-          </article>
+              </article>
+            </div>
 
-          <article class="proof-card demo-card" data-demo="toothache">
-            <h3 class="proof-card-title">Toothache Emergency</h3>
-            <div class="patient-summary" aria-label="Patient summary for Toothache Emergency">
-              <p class="patient-summary-heading">Patient Summary</p>
-              <div class="patient-summary-note">
-                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">Toothache with facial swelling</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">On file</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Same-day emergency</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">Emergency limited exam</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">On-call doctor notified. No difficulty breathing.</span></p>
+            <div class="demo-tab-panel" role="tabpanel" id="hear-panel-toothache" aria-labelledby="hear-tab-toothache" data-demo-panel="toothache" hidden>
+              <article class="proof-card demo-card" data-demo="toothache">
+                <h3 class="proof-card-title proof-card-title--hidden">Demo: Weekend Toothache</h3>
+            <div class="patient-summary aly-note" aria-label="Aly intake note for Weekend Toothache">
+              <div class="aly-note-row">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Patient</h4>
+                  <ul class="aly-note-lines">
+                    <li>Finn Leo</li>
+                    <li>Delta Dental</li>
+                    <li>(616) 123-1356</li>
+                    <li>Pain: 6/10</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col aly-note-col-concern">
+                  <h4 class="aly-note-label">Concern</h4>
+                  <p class="aly-note-concern">LR molar toothache</p>
+                  <ul class="aly-note-lines">
+                    <li>Worsening x 2 days</li>
+                    <li>Pain radiating into jaw</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="aly-note-row aly-note-row-secondary">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Screening</h4>
+                  <ul class="aly-note-checks">
+                    <li>No swelling</li>
+                    <li>No fever</li>
+                    <li>No swallowing difficulty</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Likely Visit</h4>
+                  <ul class="aly-note-codes">
+                    <li>D0140</li>
+                    <li>D0220</li>
+                    <li>D0230 if needed</li>
+                    <li>D0270</li>
+                  </ul>
+                </div>
               </div>
             </div>
-            <p class="proof-audio-label">How Aly Gathered This Information</p>
-            <div class="demo-card-player" aria-label="Toothache Emergency audio player">
-              <button class="demo-card-play demo-play" type="button" aria-label="Play Toothache Emergency sample call">
+            <div class="proof-audio-intro" aria-label="How Aly gathered this information">
+              <div class="proof-audio-intro-head">
+                <span class="proof-audio-intro-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4l4 4 4-4h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+                </span>
+                <p class="proof-audio-label">How Aly Gathered This Information</p>
+              </div>
+            </div>
+            <div class="demo-card-player" aria-label="Weekend Toothache audio player">
+              <button class="demo-card-play demo-play" type="button" aria-label="Play Weekend Toothache sample call">
                 <svg class="demo-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
                 <svg class="demo-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6h2.5v12H8V6zm5.5 0h2.5v12h-2.5V6z"/></svg>
               </button>
               <div class="demo-card-player-body">
                 <div class="demo-card-progress-wrap">
-                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Toothache Emergency playback timeline" aria-valuemin="0" aria-valuemax="85" aria-valuenow="0" aria-valuetext="0:00">
+                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Weekend Toothache playback timeline" aria-valuemin="0" aria-valuemax="110" aria-valuenow="0" aria-valuetext="0:00">
                     <div class="demo-card-progress-rail">
                       <span class="demo-card-progress-bar"></span>
                     </div>
                     <span class="demo-card-progress-handle" aria-hidden="true"></span>
                   </div>
-                  <span class="demo-card-time">0:00 / 1:25</span>
+                  <span class="demo-card-time">0:00 / 1:50</span>
                 </div>
               </div>
             </div>
             <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
-            <audio preload="metadata" src="audio/toothache/toothache.mp3"></audio>
-          </article>
+            <audio preload="metadata" src="audio/Toothache/Toothache.mp3"></audio>
+              </article>
+            </div>
 
-          <article class="proof-card">
-            <h3 class="proof-card-title">Implant Consultation</h3>
-            <div class="patient-summary" aria-label="Patient summary for Implant Consultation">
-              <p class="patient-summary-heading">Patient Summary</p>
-              <div class="patient-summary-note">
-                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">Implant consult, upper left</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">MetLife</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Routine</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">Implant consultation</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">Prior quote elsewhere. Wants cost estimate first.</span></p>
+            <div class="demo-tab-panel" role="tabpanel" id="hear-panel-broken-tooth" aria-labelledby="hear-tab-broken-tooth" data-demo-panel="broken-tooth" hidden>
+              <article class="proof-card demo-card" data-demo="broken-tooth">
+                <h3 class="proof-card-title proof-card-title--hidden">Demo: Broken Tooth</h3>
+            <div class="patient-summary aly-note" aria-label="Aly intake note for Broken Tooth">
+              <div class="aly-note-row">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Patient</h4>
+                  <ul class="aly-note-lines">
+                    <li>Self-pay</li>
+                    <li>Same day preferred</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col aly-note-col-concern">
+                  <h4 class="aly-note-label">Concern</h4>
+                  <p class="aly-note-concern">Chipped front tooth</p>
+                  <ul class="aly-note-lines">
+                    <li>Can come at lunch</li>
+                    <li>Mild sensitivity</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="aly-note-row aly-note-row-secondary">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Scheduling</h4>
+                  <ul class="aly-note-lines">
+                    <li>Same day if available</li>
+                    <li>Limited emergency exam</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Likely Visit</h4>
+                  <ul class="aly-note-codes">
+                    <li>D0140</li>
+                    <li>D0220</li>
+                  </ul>
+                </div>
               </div>
             </div>
-          </article>
-
-          <article class="proof-card">
-            <h3 class="proof-card-title">Broken Tooth</h3>
-            <div class="patient-summary" aria-label="Patient summary for Broken Tooth">
-              <p class="patient-summary-heading">Patient Summary</p>
-              <div class="patient-summary-note">
-                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">Chipped front tooth</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">Self-pay</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Same day if available</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">Limited emergency exam</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">Can come at lunch. Mild sensitivity.</span></p>
+            <div class="proof-audio-intro" aria-label="How Aly gathered this information">
+              <div class="proof-audio-intro-head">
+                <span class="proof-audio-intro-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4l4 4 4-4h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+                </span>
+                <p class="proof-audio-label">How Aly Gathered This Information</p>
               </div>
             </div>
-          </article>
-
-          <article class="proof-card">
-            <h3 class="proof-card-title">Delta Dental Coverage Question</h3>
-            <div class="patient-summary" aria-label="Patient summary for Delta Dental Coverage Question">
-              <p class="patient-summary-heading">Patient Summary</p>
-              <div class="patient-summary-note">
-                <p class="patient-summary-line"><span class="patient-summary-key">Reason:</span><span class="patient-summary-value">Insurance coverage question</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Insurance:</span><span class="patient-summary-value">Delta Dental</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Urgency:</span><span class="patient-summary-value">Routine</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Appointment:</span><span class="patient-summary-value">New patient exam requested</span></p>
-                <p class="patient-summary-line"><span class="patient-summary-key">Notes:</span><span class="patient-summary-value">Patient seeking a provider that accepts Delta Dental and would like to schedule a cleaning and exam.</span></p>
+            <div class="demo-card-player" aria-label="Broken Tooth audio player">
+              <button class="demo-card-play demo-play" type="button" aria-label="Play Broken Tooth sample call">
+                <svg class="demo-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="demo-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6h2.5v12H8V6zm5.5 0h2.5v12h-2.5V6z"/></svg>
+              </button>
+              <div class="demo-card-player-body">
+                <div class="demo-card-progress-wrap">
+                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Broken Tooth playback timeline" aria-valuemin="0" aria-valuemax="110" aria-valuenow="0" aria-valuetext="0:00">
+                    <div class="demo-card-progress-rail">
+                      <span class="demo-card-progress-bar"></span>
+                    </div>
+                    <span class="demo-card-progress-handle" aria-hidden="true"></span>
+                  </div>
+                  <span class="demo-card-time">0:00 / 0:00</span>
+                </div>
               </div>
             </div>
-          </article>
+            <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
+            <audio preload="metadata" src="audio/broken-tooth/broken-tooth.mp3"></audio>
+              </article>
+            </div>
 
+            <div class="demo-tab-panel" role="tabpanel" id="hear-panel-delta-dental" aria-labelledby="hear-tab-delta-dental" data-demo-panel="delta-dental" hidden>
+              <article class="proof-card demo-card" data-demo="delta-dental">
+                <h3 class="proof-card-title proof-card-title--hidden">Demo: Delta Dental Coverage Question</h3>
+            <div class="patient-summary aly-note" aria-label="Aly intake note for Delta Dental Coverage Question">
+              <div class="aly-note-row">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Patient</h4>
+                  <ul class="aly-note-lines">
+                    <li>Delta Dental</li>
+                    <li>Routine visit</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col aly-note-col-concern">
+                  <h4 class="aly-note-label">Concern</h4>
+                  <p class="aly-note-concern">Insurance coverage question</p>
+                  <ul class="aly-note-lines">
+                    <li>In-network provider search</li>
+                    <li>Cleaning &amp; exam requested</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="aly-note-row aly-note-row-secondary">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Scheduling</h4>
+                  <ul class="aly-note-lines">
+                    <li>New patient exam requested</li>
+                    <li>Verify benefits</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Likely Visit</h4>
+                  <ul class="aly-note-codes">
+                    <li>D0150</li>
+                    <li>D1110</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="proof-audio-intro" aria-label="How Aly gathered this information">
+              <div class="proof-audio-intro-head">
+                <span class="proof-audio-intro-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4l4 4 4-4h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+                </span>
+                <p class="proof-audio-label">How Aly Gathered This Information</p>
+              </div>
+            </div>
+            <div class="demo-card-player" aria-label="Delta Dental Coverage Question audio player">
+              <button class="demo-card-play demo-play" type="button" aria-label="Play Delta Dental Coverage Question sample call">
+                <svg class="demo-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="demo-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6h2.5v12H8V6zm5.5 0h2.5v12h-2.5V6z"/></svg>
+              </button>
+              <div class="demo-card-player-body">
+                <div class="demo-card-progress-wrap">
+                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Delta Dental Coverage Question playback timeline" aria-valuemin="0" aria-valuemax="110" aria-valuenow="0" aria-valuetext="0:00">
+                    <div class="demo-card-progress-rail">
+                      <span class="demo-card-progress-bar"></span>
+                    </div>
+                    <span class="demo-card-progress-handle" aria-hidden="true"></span>
+                  </div>
+                  <span class="demo-card-time">0:00 / 0:00</span>
+                </div>
+              </div>
+            </div>
+            <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
+            <audio preload="metadata" src="audio/delta-dental/delta-dental.mp3"></audio>
+              </article>
+            </div>
+
+            <div class="demo-tab-panel" role="tabpanel" id="hear-panel-implant-consultation" aria-labelledby="hear-tab-implant-consultation" data-demo-panel="implant-consultation" hidden>
+              <article class="proof-card demo-card" data-demo="implant-consultation">
+                <h3 class="proof-card-title proof-card-title--hidden">Demo: Implant Consultation</h3>
+            <div class="patient-summary aly-note" aria-label="Aly intake note for Implant Consultation">
+              <div class="aly-note-row">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Patient</h4>
+                  <ul class="aly-note-lines">
+                    <li>MetLife</li>
+                    <li>New patient</li>
+                    <li>Routine visit</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col aly-note-col-concern">
+                  <h4 class="aly-note-label">Concern</h4>
+                  <p class="aly-note-concern">Implant consult, upper left</p>
+                  <ul class="aly-note-lines">
+                    <li>Prior quote elsewhere</li>
+                    <li>Wants cost estimate first</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="aly-note-row aly-note-row-secondary">
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Scheduling</h4>
+                  <ul class="aly-note-lines">
+                    <li>Implant consultation</li>
+                    <li>Routine urgency</li>
+                  </ul>
+                </div>
+                <div class="aly-note-col">
+                  <h4 class="aly-note-label">Likely Visit</h4>
+                  <ul class="aly-note-codes">
+                    <li>D0140</li>
+                    <li>D0220</li>
+                    <li>Implant consult</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="proof-audio-intro" aria-label="How Aly gathered this information">
+              <div class="proof-audio-intro-head">
+                <span class="proof-audio-intro-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4l4 4 4-4h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+                </span>
+                <p class="proof-audio-label">How Aly Gathered This Information</p>
+              </div>
+            </div>
+            <div class="demo-card-player" aria-label="Implant Consultation audio player">
+              <button class="demo-card-play demo-play" type="button" aria-label="Play Implant Consultation sample call">
+                <svg class="demo-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="demo-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6h2.5v12H8V6zm5.5 0h2.5v12h-2.5V6z"/></svg>
+              </button>
+              <div class="demo-card-player-body">
+                <div class="demo-card-progress-wrap">
+                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Implant Consultation playback timeline" aria-valuemin="0" aria-valuemax="110" aria-valuenow="0" aria-valuetext="0:00">
+                    <div class="demo-card-progress-rail">
+                      <span class="demo-card-progress-bar"></span>
+                    </div>
+                    <span class="demo-card-progress-handle" aria-hidden="true"></span>
+                  </div>
+                  <span class="demo-card-time">0:00 / 0:00</span>
+                </div>
+              </div>
+            </div>
+            <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
+            <audio preload="metadata" src="audio/implant-consultation/implant-consultation.mp3"></audio>
+              </article>
+            </div>
+
+          </div>
         </div>
       </div>
     </section>

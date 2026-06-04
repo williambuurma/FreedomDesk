@@ -1,13 +1,28 @@
 {
   "audioAvailable": true,
   "new-patient-exam": {
-    "title": "New Patient Exam",
-    "duration": 105.953,
+    "title": "New Patient",
+    "duration": 106,
     "file": "audio/new-patient-exam/new-patient-exam.mp3"
   },
   "toothache": {
-    "title": "Toothache Emergency",
-    "duration": 84.767,
+    "title": "Weekend Toothache",
+    "duration": 110.368,
     "file": "audio/Toothache/Toothache.mp3"
+  },
+  "broken-tooth": {
+    "title": "Broken Tooth",
+    "duration": 110,
+    "file": "audio/broken-tooth/broken-tooth.mp3"
+  },
+  "implant-consultation": {
+    "title": "Implant Consultation",
+    "duration": 110,
+    "file": "audio/implant-consultation/implant-consultation.mp3"
+  },
+  "delta-dental": {
+    "title": "Delta Dental Coverage Question",
+    "duration": 110,
+    "file": "audio/delta-dental/delta-dental.mp3"
   }
 }

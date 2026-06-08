@@ -21,177 +21,177 @@
       },
       {
         speaker: "patient",
-        start: 4.54,
+        start: 4.59,
         text: "Hey, I just moved to the Grand Rapids area and I need a new dentist. I read your reviews and figured I'd call to see if I can book an appointment.",
       },
       {
         speaker: "aly",
-        start: 13.08,
+        start: 13.13,
         text: "Absolutely. We can definitely help you out. And welcome to Grand Rapids.",
       },
       {
         speaker: "aly",
-        start: 17.72,
+        start: 17.77,
         text: "Our front desk team is busy helping patients in the office right now, but I can get everything started for you and send your appointment request over for review.",
       },
       {
         speaker: "aly",
-        start: 25.9,
+        start: 25.95,
         text: "Can I start with your first and last name and date of birth?",
       },
       {
         speaker: "patient",
-        start: 29.4,
+        start: 29.45,
         text: "My name is Finn Leo and my birthday is May 11, 1995.",
       },
       {
         speaker: "aly",
-        start: 35.7,
+        start: 35.75,
         text: "Got it. What's the best phone number and email address to contact you?",
       },
       {
         speaker: "patient",
-        start: 40.3,
+        start: 40.35,
         text: "My phone number is 616-555-0198 and my email is fin123@gmail.com.",
       },
       {
         speaker: "aly",
-        start: 52.18,
+        start: 52.23,
         text: "And what are you hoping to do during this appointment? Just a routine exam and cleaning?",
       },
       {
         speaker: "aly",
-        start: 57,
+        start: 57.05,
         text: "Or is there anything specific you'd like the doctor to take a look at?",
       },
       {
         speaker: "patient",
-        start: 61.1,
+        start: 61.15,
         text: "Mostly a cleaning and check-up. I'm also wondering if there's anything we can do to make my smile better because I'm a sales rep and first impressions are everything for my job.",
       },
       {
         speaker: "aly",
-        start: 71.66,
+        start: 71.71,
         text: "Got it. I'll make a note for the doctor. Our doctors take pride in creating beautiful smiles for our patient family.",
       },
       {
         speaker: "aly",
-        start: 78.68,
+        start: 78.73,
         text: "Do you have dental insurance?",
       },
       {
         speaker: "patient",
-        start: 80.56,
+        start: 80.61,
         text: "I have Delta Dental.",
       },
       {
         speaker: "aly",
-        start: 82.18,
+        start: 82.23,
         text: "Can I get your member ID?",
       },
       {
         speaker: "patient",
-        start: 84.36,
+        start: 84.41,
         text: "DD48291.",
       },
       {
         speaker: "aly",
-        start: 89.02,
+        start: 89.07,
         text: "Got it. We'll verify your benefits before your appointment so everything is ready when you arrive.",
       },
       {
         speaker: "aly",
-        start: 94.56,
+        start: 94.61,
         text: "Give me just a moment while I check availability.",
       },
       {
         speaker: "aly",
-        start: 97.56,
+        start: 97.61,
         text: "I have an opening this Friday June 7th at 3pm with Dr. Buurma. Would that time work for you?",
       },
       {
         speaker: "patient",
-        start: 103.76,
+        start: 103.81,
         text: "Ah, I can't make that time.",
       },
       {
         speaker: "patient",
-        start: 106.12,
+        start: 106.17,
         text: "What about Monday?",
       },
       {
         speaker: "aly",
-        start: 107.8,
+        start: 107.85,
         text: "Let me take a look. I have an opening at 4pm on Monday June 10th with Dr. Buurma and we will be able to move you over to Hygiene right after. Would you like me to request 4pm?",
       },
       {
         speaker: "patient",
-        start: 119.54,
+        start: 119.59,
         text: "Yes, that would be great.",
       },
       {
         speaker: "aly",
-        start: 121.4,
+        start: 121.45,
         text: "Perfect. I've submitted your request.",
       },
       {
         speaker: "aly",
-        start: 124.08,
+        start: 124.13,
         text: "Our front desk team will review it shortly and send a confirmation email.",
       },
       {
         speaker: "aly",
-        start: 128.24,
+        start: 128.29,
         text: "If any adjustments need to be made, someone from the office will reach out to you directly.",
       },
       {
         speaker: "patient",
-        start: 133.14,
+        start: 133.19,
         text: "Great. Thank you.",
       },
       {
         speaker: "aly",
-        start: 134.94,
+        start: 134.99,
         text: "Please plan to arrive about 10 minutes early and bring your photo ID, insurance card, and a form of payment.",
       },
       {
         speaker: "aly",
-        start: 141.8,
+        start: 141.85,
         text: "One more thing. Once your request is reviewed, you'll receive new patient forms electronically. Please fill it out 24 hours ahead of time for our staff to update your patient chart.",
       },
       {
         speaker: "patient",
-        start: 152.9,
+        start: 152.95,
         text: "Okay, no problem.",
       },
       {
         speaker: "aly",
-        start: 155.06,
+        start: 154.91,
         text: "Is there anything else I can help you with today?",
       },
       {
         speaker: "patient",
-        start: 157.5,
+        start: 157.55,
         text: "No, I think that's everything.",
       },
       {
         speaker: "aly",
-        start: 159.7,
+        start: 159.75,
         text: "Great. Welcome to the practice, Finn. We're looking forward to meeting you.",
       },
       {
         speaker: "patient",
-        start: 164.44,
+        start: 164.49,
         text: "Thank you. Oh, one more question. What was your name again?",
       },
       {
         speaker: "aly",
-        start: 168.96,
+        start: 169.01,
         text: "My name is Aly. Have a wonderful day. Bye.",
       },
       {
         speaker: "patient",
-        start: 172.46,
+        start: 172.51,
         text: "Same to you, Aly. Bye.",
       },
     ],
@@ -369,7 +369,11 @@
 
   function resolveAudioUrl(file) {
     try {
-      return new URL(file, window.location.href).href;
+      const encoded = file
+        .split("/")
+        .map((segment) => encodeURIComponent(segment))
+        .join("/");
+      return new URL(encoded, window.location.href).href;
     } catch {
       return file;
     }
@@ -383,8 +387,9 @@
 
   function setAudioSource(audio, file) {
     if (!audio || !file) return;
+    const target = resolveAudioUrl(file);
     if (!audioSourceMatches(audio, file)) {
-      audio.src = file;
+      audio.src = target;
       audio.load();
     }
   }

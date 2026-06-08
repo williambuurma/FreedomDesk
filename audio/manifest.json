@@ -3,16 +3,15 @@
   "new-patient-exam": {
     "title": "New Patient",
     "duration": 174.759,
-    "file": "audio/new patient.mp3"
+    "file": "audio/New Patient/New Patient.mp3"
   },
   "toothache": {
     "title": "Weekend Toothache",
     "duration": 110.368,
-    "file": "audio/Toothache/Toothache.mp3"
+    "file": "audio/Weekend Toothache/Toothache.mp3"
   },
   "broken-tooth": {
     "title": "Broken Tooth",
-    "duration": 110,
-    "file": "audio/broken-tooth/broken-tooth.mp3"
+    "audioAvailable": false
   }
 }

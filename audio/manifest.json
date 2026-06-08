@@ -2,8 +2,8 @@
   "audioAvailable": true,
   "new-patient-exam": {
     "title": "New Patient",
-    "duration": 106,
-    "file": "audio/new-patient-exam/new-patient-exam.mp3"
+    "duration": 174.759,
+    "file": "audio/new patient.mp3"
   },
   "toothache": {
     "title": "Weekend Toothache",

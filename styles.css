@@ -4487,89 +4487,172 @@ h1 {
   line-height: 1.35;
 }
 
-#hear .patient-summary.aly-note {
-  padding: 12px 14px;
-  margin-bottom: 4px;
+#hear .patient-summary {
+  padding: 14px 16px;
   background: linear-gradient(180deg, rgba(238, 244, 252, 0.95) 0%, rgba(243, 247, 253, 0.85) 100%);
   border: 1px solid rgba(53, 104, 173, 0.12);
   border-radius: 6px;
   box-shadow: none;
 }
 
-#hear .aly-note-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 18px;
-  align-items: start;
+#hear .patient-summary--end {
+  margin-top: 18px;
 }
 
-#hear .aly-note-row-secondary {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(24, 53, 98, 0.08);
-}
-
-#hear .aly-note-label {
-  margin: 0 0 5px;
+#hear .patient-summary-title {
+  margin: 0 0 12px;
   font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--navy-soft);
   line-height: 1.2;
 }
 
-#hear .aly-note-concern {
-  margin: 0 0 5px;
-  font-size: 0.9375rem;
+#hear .patient-summary-priority {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(24, 53, 98, 0.1);
+}
+
+#hear .patient-summary-item {
+  margin: 0;
+  min-width: 0;
+}
+
+#hear .patient-summary-item dt,
+#hear .patient-summary-outcome dt {
+  margin: 0 0 3px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(24, 53, 98, 0.55);
+  line-height: 1.2;
+}
+
+#hear .patient-summary-item dd,
+#hear .patient-summary-outcome dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: rgba(24, 53, 98, 0.82);
+}
+
+#hear .patient-summary-item--high dt {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--navy-soft);
+}
+
+#hear .patient-summary-item--high dd {
+  font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.25;
   color: var(--navy);
 }
 
-#hear .aly-note-lines,
-#hear .aly-note-checks,
-#hear .aly-note-codes {
+#hear .patient-summary-item--concern {
+  grid-column: 1 / -1;
+}
+
+#hear .patient-summary-item--concern dd {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+#hear .patient-summary-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 20px;
+  margin: 0;
+}
+
+#hear .patient-summary-list--medium {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(24, 53, 98, 0.08);
+}
+
+#hear .patient-summary-item--wide {
+  grid-column: 1 / -1;
+}
+
+#hear .patient-summary-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#hear .patient-summary-lines li + li {
+  margin-top: 3px;
+}
+
+#hear .patient-summary-not-collected {
+  font-style: italic;
+  font-weight: 400 !important;
+  color: rgba(24, 53, 98, 0.5) !important;
+}
+
+#hear .patient-summary-lower {
+  display: grid;
+  gap: 10px;
+}
+
+#hear .patient-summary-codes-title {
+  margin: 0 0 6px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(24, 53, 98, 0.5);
+  line-height: 1.2;
+}
+
+#hear .patient-summary-codes-list {
   margin: 0;
   padding: 0;
   list-style: none;
   font-size: 0.75rem;
-  line-height: 1.4;
-  color: var(--navy);
+  line-height: 1.45;
+  color: rgba(24, 53, 98, 0.78);
 }
 
-#hear .aly-note-lines li + li,
-#hear .aly-note-checks li + li,
-#hear .aly-note-codes li + li {
+#hear .patient-summary-codes-list li + li {
   margin-top: 2px;
 }
 
-#hear .aly-note-checks li::before {
-  content: "✓ ";
-  color: var(--navy-soft);
-  font-weight: 600;
-}
-
-#hear .aly-note-codes li {
+#hear .patient-summary-codes-list li {
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
+}
+
+#hear .patient-summary-outcome dt {
+  color: rgba(24, 53, 98, 0.5);
+}
+
+#hear .patient-summary-outcome dd {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(24, 53, 98, 0.78);
 }
 
 @media (max-width: 768px) {
-  #hear .aly-note-row {
+  #hear .patient-summary {
+    padding: 12px 14px;
+  }
+
+  #hear .patient-summary-priority,
+  #hear .patient-summary-list {
     grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  #hear .aly-note-row-secondary {
-    margin-top: 8px;
-    padding-top: 8px;
-  }
-
-  #hear .patient-summary.aly-note {
-    padding: 11px 12px;
+    gap: 8px;
   }
 }
 
@@ -5492,7 +5575,7 @@ h1 {
     padding: 18px 20px;
   }
 
-  #hear .patient-summary.aly-note {
+  #hear .patient-summary {
     padding: 11px 12px;
   }
 

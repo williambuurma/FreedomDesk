@@ -14,15 +14,5 @@
     "title": "Broken Tooth",
     "duration": 110,
     "file": "audio/broken-tooth/broken-tooth.mp3"
-  },
-  "implant-consultation": {
-    "title": "Implant Consultation",
-    "duration": 110,
-    "file": "audio/implant-consultation/implant-consultation.mp3"
-  },
-  "delta-dental": {
-    "title": "Delta Dental Coverage Question",
-    "duration": 110,
-    "file": "audio/delta-dental/delta-dental.mp3"
   }
 }

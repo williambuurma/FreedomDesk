@@ -101,7 +101,7 @@
     <section class="hear hear-action" id="hear">
       <div class="container">
         <div class="section-header" data-reveal="up">
-          <h2 class="section-title section-title-plain">Your Team Is Prepared Before The Patient Arrives</h2>
+          <h2 class="section-title section-title-plain">Sample Calls</h2>
           <p class="section-sub">Aly answers calls, gathers the right details, and prepares your team before the patient arrives.</p>
         </div>
         <div class="demo-tabs" data-reveal="up" data-reveal-delay="40">
@@ -109,51 +109,11 @@
             <button type="button" class="demo-tab is-active" role="tab" id="hear-tab-new-patient-exam" aria-selected="true" aria-controls="hear-panel-new-patient-exam" data-demo-tab="new-patient-exam">Demo: New Patient</button>
             <button type="button" class="demo-tab" role="tab" id="hear-tab-toothache" aria-selected="false" aria-controls="hear-panel-toothache" data-demo-tab="toothache" tabindex="-1">Demo: Weekend Toothache</button>
             <button type="button" class="demo-tab" role="tab" id="hear-tab-broken-tooth" aria-selected="false" aria-controls="hear-panel-broken-tooth" data-demo-tab="broken-tooth" tabindex="-1">Demo: Broken Tooth</button>
-            <button type="button" class="demo-tab" role="tab" id="hear-tab-delta-dental" aria-selected="false" aria-controls="hear-panel-delta-dental" data-demo-tab="delta-dental" tabindex="-1">Demo: Delta Dental</button>
-            <button type="button" class="demo-tab" role="tab" id="hear-tab-implant-consultation" aria-selected="false" aria-controls="hear-panel-implant-consultation" data-demo-tab="implant-consultation" tabindex="-1">Demo: Implant Consult</button>
           </div>
           <div class="demo-tabs-panels">
             <div class="demo-tab-panel is-active" role="tabpanel" id="hear-panel-new-patient-exam" aria-labelledby="hear-tab-new-patient-exam" data-demo-panel="new-patient-exam">
               <article class="proof-card demo-card" data-demo="new-patient-exam">
                 <h3 class="proof-card-title proof-card-title--hidden">Demo: New Patient</h3>
-            <div class="patient-summary aly-note" aria-label="Aly intake note for New Patient">
-              <div class="aly-note-row">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Patient</h4>
-                  <ul class="aly-note-lines">
-                    <li>Finn Leo</li>
-                    <li>Delta Dental</li>
-                    <li>Routine visit</li>
-                  </ul>
-                </div>
-                <div class="aly-note-col aly-note-col-concern">
-                  <h4 class="aly-note-label">Concern</h4>
-                  <p class="aly-note-concern">Exam and Cleaning</p>
-                  <ul class="aly-note-lines">
-                    <li>First visit requested</li>
-                    <li>Sensitive lower right tooth</li>
-                  </ul>
-                </div>
-              </div>
-              <div class="aly-note-row aly-note-row-secondary">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Scheduling</h4>
-                  <ul class="aly-note-lines">
-                    <li>Routine urgency</li>
-                    <li>New patient evaluation</li>
-                  </ul>
-                </div>
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Likely Visit</h4>
-                  <ul class="aly-note-codes">
-                    <li>D0150</li>
-                    <li>D1110</li>
-                    <li>D0274</li>
-                    <li>D0220 if needed</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
             <div class="proof-audio-intro" aria-label="How Aly gathered this information">
               <div class="proof-audio-intro-head">
                 <span class="proof-audio-intro-icon" aria-hidden="true">
@@ -181,52 +141,80 @@
             </div>
             <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
             <audio preload="metadata" src="audio/new%20patient.mp3"></audio>
+            <div class="patient-summary patient-summary--end" aria-label="Patient summary for New Patient">
+              <h4 class="patient-summary-title">Patient Summary</h4>
+              <div class="patient-summary-priority">
+                <div class="patient-summary-item patient-summary-item--high">
+                  <dt>Patient Name</dt>
+                  <dd>Finn Leo</dd>
+                </div>
+                <div class="patient-summary-item patient-summary-item--high">
+                  <dt>Phone Number</dt>
+                  <dd>(616) 555-0198</dd>
+                </div>
+                <div class="patient-summary-item patient-summary-item--high patient-summary-item--concern">
+                  <dt>Chief Concern</dt>
+                  <dd>
+                    <ul class="patient-summary-lines">
+                      <li>New patient exam and cleaning.</li>
+                      <li>Interested in improving smile appearance.</li>
+                    </ul>
+                  </dd>
+                </div>
+              </div>
+              <dl class="patient-summary-list patient-summary-list--medium">
+                <div class="patient-summary-item">
+                  <dt>Date of Birth</dt>
+                  <dd>May 11, 1995</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Email Address (If Collected)</dt>
+                  <dd>fin123@gmail.com</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Address (If Collected)</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Insurance Information (If Collected)</dt>
+                  <dd>Delta Dental — DD48291</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Occupation (If Collected)</dt>
+                  <dd>Sales Representative</dd>
+                </div>
+                <div class="patient-summary-item patient-summary-item--wide">
+                  <dt>Requested Appointment</dt>
+                  <dd>
+                    <ul class="patient-summary-lines">
+                      <li>Monday at 4:00 PM with Dr. Buurma, DDS</li>
+                      <li>Monday at 5:00 PM with Clara B., RDH</li>
+                    </ul>
+                  </dd>
+                </div>
+              </dl>
+              <div class="patient-summary-lower">
+                <div class="patient-summary-codes">
+                  <h5 class="patient-summary-codes-title">Proposed Dental Codes</h5>
+                  <ul class="patient-summary-codes-list">
+                    <li>D0150 – Comprehensive Oral Evaluation</li>
+                    <li>D0210 – Full Mouth Series</li>
+                    <li>D0330 – Panoramic Radiograph</li>
+                    <li>TBD – Cleaning Type</li>
+                  </ul>
+                </div>
+                <div class="patient-summary-outcome">
+                  <dt>Call Outcome</dt>
+                  <dd>Appointment Request Submitted</dd>
+                </div>
+              </div>
+            </div>
               </article>
             </div>
 
             <div class="demo-tab-panel" role="tabpanel" id="hear-panel-toothache" aria-labelledby="hear-tab-toothache" data-demo-panel="toothache" hidden>
               <article class="proof-card demo-card" data-demo="toothache">
                 <h3 class="proof-card-title proof-card-title--hidden">Demo: Weekend Toothache</h3>
-            <div class="patient-summary aly-note" aria-label="Aly intake note for Weekend Toothache">
-              <div class="aly-note-row">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Patient</h4>
-                  <ul class="aly-note-lines">
-                    <li>Finn Leo</li>
-                    <li>Delta Dental</li>
-                    <li>(616) 123-1356</li>
-                    <li>Pain: 6/10</li>
-                  </ul>
-                </div>
-                <div class="aly-note-col aly-note-col-concern">
-                  <h4 class="aly-note-label">Concern</h4>
-                  <p class="aly-note-concern">LR molar toothache</p>
-                  <ul class="aly-note-lines">
-                    <li>Worsening x 2 days</li>
-                    <li>Pain radiating into jaw</li>
-                  </ul>
-                </div>
-              </div>
-              <div class="aly-note-row aly-note-row-secondary">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Screening</h4>
-                  <ul class="aly-note-checks">
-                    <li>No swelling</li>
-                    <li>No fever</li>
-                    <li>No swallowing difficulty</li>
-                  </ul>
-                </div>
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Likely Visit</h4>
-                  <ul class="aly-note-codes">
-                    <li>D0140</li>
-                    <li>D0220</li>
-                    <li>D0230 if needed</li>
-                    <li>D0270</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
             <div class="proof-audio-intro" aria-label="How Aly gathered this information">
               <div class="proof-audio-intro-head">
                 <span class="proof-audio-intro-icon" aria-hidden="true">
@@ -254,47 +242,77 @@
             </div>
             <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
             <audio preload="metadata" src="audio/Toothache/Toothache.mp3"></audio>
+            <div class="patient-summary patient-summary--end" aria-label="Patient summary for Weekend Toothache">
+              <h4 class="patient-summary-title">Patient Summary</h4>
+              <div class="patient-summary-priority">
+                <div class="patient-summary-item patient-summary-item--high">
+                  <dt>Patient Name</dt>
+                  <dd>Finn Leo</dd>
+                </div>
+                <div class="patient-summary-item patient-summary-item--high">
+                  <dt>Phone Number</dt>
+                  <dd>(616) 123-1356</dd>
+                </div>
+                <div class="patient-summary-item patient-summary-item--high patient-summary-item--concern">
+                  <dt>Chief Concern</dt>
+                  <dd>
+                    <ul class="patient-summary-lines">
+                      <li>Severe lower right tooth pain.</li>
+                      <li>Symptoms began approximately 2 days ago.</li>
+                      <li>Pain is worsening and beginning to radiate into the jaw.</li>
+                    </ul>
+                  </dd>
+                </div>
+              </div>
+              <dl class="patient-summary-list patient-summary-list--medium">
+                <div class="patient-summary-item">
+                  <dt>Date of Birth</dt>
+                  <dd>May 10, 1997</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Email Address (If Collected)</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Address (If Collected)</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Insurance Information (If Collected)</dt>
+                  <dd>Delta Dental</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Occupation (If Collected)</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item patient-summary-item--wide">
+                  <dt>Requested Appointment</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+              </dl>
+              <div class="patient-summary-lower">
+                <div class="patient-summary-codes">
+                  <h5 class="patient-summary-codes-title">Proposed Dental Codes</h5>
+                  <ul class="patient-summary-codes-list">
+                    <li>D0140 – Limited Oral Evaluation</li>
+                    <li>D0274 – Bitewing Radiographs</li>
+                    <li>D0220 – Periapical Radiograph</li>
+                    <li>D0230 – Additional Periapical Images</li>
+                    <li>CBCT – Lower Right Quadrant Imaging</li>
+                  </ul>
+                </div>
+                <div class="patient-summary-outcome">
+                  <dt>Call Outcome</dt>
+                  <dd>Urgent Review Requested</dd>
+                </div>
+              </div>
+            </div>
               </article>
             </div>
 
             <div class="demo-tab-panel" role="tabpanel" id="hear-panel-broken-tooth" aria-labelledby="hear-tab-broken-tooth" data-demo-panel="broken-tooth" hidden>
               <article class="proof-card demo-card" data-demo="broken-tooth">
                 <h3 class="proof-card-title proof-card-title--hidden">Demo: Broken Tooth</h3>
-            <div class="patient-summary aly-note" aria-label="Aly intake note for Broken Tooth">
-              <div class="aly-note-row">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Patient</h4>
-                  <ul class="aly-note-lines">
-                    <li>Self-pay</li>
-                    <li>Same day preferred</li>
-                  </ul>
-                </div>
-                <div class="aly-note-col aly-note-col-concern">
-                  <h4 class="aly-note-label">Concern</h4>
-                  <p class="aly-note-concern">Chipped front tooth</p>
-                  <ul class="aly-note-lines">
-                    <li>Can come at lunch</li>
-                    <li>Mild sensitivity</li>
-                  </ul>
-                </div>
-              </div>
-              <div class="aly-note-row aly-note-row-secondary">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Scheduling</h4>
-                  <ul class="aly-note-lines">
-                    <li>Same day if available</li>
-                    <li>Limited emergency exam</li>
-                  </ul>
-                </div>
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Likely Visit</h4>
-                  <ul class="aly-note-codes">
-                    <li>D0140</li>
-                    <li>D0220</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
             <div class="proof-audio-intro" aria-label="How Aly gathered this information">
               <div class="proof-audio-intro-head">
                 <span class="proof-audio-intro-icon" aria-hidden="true">
@@ -322,144 +340,70 @@
             </div>
             <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
             <audio preload="metadata" src="audio/broken-tooth/broken-tooth.mp3"></audio>
-              </article>
-            </div>
-
-            <div class="demo-tab-panel" role="tabpanel" id="hear-panel-delta-dental" aria-labelledby="hear-tab-delta-dental" data-demo-panel="delta-dental" hidden>
-              <article class="proof-card demo-card" data-demo="delta-dental">
-                <h3 class="proof-card-title proof-card-title--hidden">Demo: Delta Dental Coverage Question</h3>
-            <div class="patient-summary aly-note" aria-label="Aly intake note for Delta Dental Coverage Question">
-              <div class="aly-note-row">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Patient</h4>
-                  <ul class="aly-note-lines">
-                    <li>Delta Dental</li>
-                    <li>Routine visit</li>
-                  </ul>
+            <div class="patient-summary patient-summary--end" aria-label="Patient summary for Broken Tooth">
+              <h4 class="patient-summary-title">Patient Summary</h4>
+              <div class="patient-summary-priority">
+                <div class="patient-summary-item patient-summary-item--high">
+                  <dt>Patient Name</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
                 </div>
-                <div class="aly-note-col aly-note-col-concern">
-                  <h4 class="aly-note-label">Concern</h4>
-                  <p class="aly-note-concern">Insurance coverage question</p>
-                  <ul class="aly-note-lines">
-                    <li>In-network provider search</li>
-                    <li>Cleaning &amp; exam requested</li>
-                  </ul>
+                <div class="patient-summary-item patient-summary-item--high">
+                  <dt>Phone Number</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item patient-summary-item--high patient-summary-item--concern">
+                  <dt>Chief Concern</dt>
+                  <dd>
+                    <ul class="patient-summary-lines">
+                      <li>Chipped front tooth.</li>
+                      <li>Mild sensitivity reported.</li>
+                      <li>Wants same-day evaluation.</li>
+                    </ul>
+                  </dd>
                 </div>
               </div>
-              <div class="aly-note-row aly-note-row-secondary">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Scheduling</h4>
-                  <ul class="aly-note-lines">
-                    <li>New patient exam requested</li>
-                    <li>Verify benefits</li>
+              <dl class="patient-summary-list patient-summary-list--medium">
+                <div class="patient-summary-item">
+                  <dt>Date of Birth</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Email Address (If Collected)</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Address (If Collected)</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Insurance Information (If Collected)</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item">
+                  <dt>Occupation (If Collected)</dt>
+                  <dd class="patient-summary-not-collected">Not Collected</dd>
+                </div>
+                <div class="patient-summary-item patient-summary-item--wide">
+                  <dt>Requested Appointment</dt>
+                  <dd>Same day, available at lunch</dd>
+                </div>
+              </dl>
+              <div class="patient-summary-lower">
+                <div class="patient-summary-codes">
+                  <h5 class="patient-summary-codes-title">Proposed Dental Codes</h5>
+                  <ul class="patient-summary-codes-list">
+                    <li>D0140 – Limited Oral Evaluation</li>
+                    <li>D0274 – Bitewing Radiographs</li>
+                    <li>D0220 – Periapical Radiograph</li>
+                    <li>D0230 – Additional Periapical Images</li>
                   </ul>
                 </div>
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Likely Visit</h4>
-                  <ul class="aly-note-codes">
-                    <li>D0150</li>
-                    <li>D1110</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div class="proof-audio-intro" aria-label="How Aly gathered this information">
-              <div class="proof-audio-intro-head">
-                <span class="proof-audio-intro-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4l4 4 4-4h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-                </span>
-                <p class="proof-audio-label">How Aly Gathered This Information</p>
-              </div>
-            </div>
-            <div class="demo-card-player" aria-label="Delta Dental Coverage Question audio player">
-              <button class="demo-card-play demo-play" type="button" aria-label="Play Delta Dental Coverage Question sample call">
-                <svg class="demo-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-                <svg class="demo-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6h2.5v12H8V6zm5.5 0h2.5v12h-2.5V6z"/></svg>
-              </button>
-              <div class="demo-card-player-body">
-                <div class="demo-card-progress-wrap">
-                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Delta Dental Coverage Question playback timeline" aria-valuemin="0" aria-valuemax="110" aria-valuenow="0" aria-valuetext="0:00">
-                    <div class="demo-card-progress-rail">
-                      <span class="demo-card-progress-bar"></span>
-                    </div>
-                    <span class="demo-card-progress-handle" aria-hidden="true"></span>
-                  </div>
-                  <span class="demo-card-time">0:00 / 0:00</span>
+                <div class="patient-summary-outcome">
+                  <dt>Call Outcome</dt>
+                  <dd>Appointment Request Submitted</dd>
                 </div>
               </div>
             </div>
-            <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
-            <audio preload="metadata" src="audio/delta-dental/delta-dental.mp3"></audio>
-              </article>
-            </div>
-
-            <div class="demo-tab-panel" role="tabpanel" id="hear-panel-implant-consultation" aria-labelledby="hear-tab-implant-consultation" data-demo-panel="implant-consultation" hidden>
-              <article class="proof-card demo-card" data-demo="implant-consultation">
-                <h3 class="proof-card-title proof-card-title--hidden">Demo: Implant Consultation</h3>
-            <div class="patient-summary aly-note" aria-label="Aly intake note for Implant Consultation">
-              <div class="aly-note-row">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Patient</h4>
-                  <ul class="aly-note-lines">
-                    <li>MetLife</li>
-                    <li>New patient</li>
-                    <li>Routine visit</li>
-                  </ul>
-                </div>
-                <div class="aly-note-col aly-note-col-concern">
-                  <h4 class="aly-note-label">Concern</h4>
-                  <p class="aly-note-concern">Implant consult, upper left</p>
-                  <ul class="aly-note-lines">
-                    <li>Prior quote elsewhere</li>
-                    <li>Wants cost estimate first</li>
-                  </ul>
-                </div>
-              </div>
-              <div class="aly-note-row aly-note-row-secondary">
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Scheduling</h4>
-                  <ul class="aly-note-lines">
-                    <li>Implant consultation</li>
-                    <li>Routine urgency</li>
-                  </ul>
-                </div>
-                <div class="aly-note-col">
-                  <h4 class="aly-note-label">Likely Visit</h4>
-                  <ul class="aly-note-codes">
-                    <li>D0140</li>
-                    <li>D0220</li>
-                    <li>Implant consult</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div class="proof-audio-intro" aria-label="How Aly gathered this information">
-              <div class="proof-audio-intro-head">
-                <span class="proof-audio-intro-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4l4 4 4-4h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-                </span>
-                <p class="proof-audio-label">How Aly Gathered This Information</p>
-              </div>
-            </div>
-            <div class="demo-card-player" aria-label="Implant Consultation audio player">
-              <button class="demo-card-play demo-play" type="button" aria-label="Play Implant Consultation sample call">
-                <svg class="demo-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-                <svg class="demo-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6h2.5v12H8V6zm5.5 0h2.5v12h-2.5V6z"/></svg>
-              </button>
-              <div class="demo-card-player-body">
-                <div class="demo-card-progress-wrap">
-                  <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Implant Consultation playback timeline" aria-valuemin="0" aria-valuemax="110" aria-valuenow="0" aria-valuetext="0:00">
-                    <div class="demo-card-progress-rail">
-                      <span class="demo-card-progress-bar"></span>
-                    </div>
-                    <span class="demo-card-progress-handle" aria-hidden="true"></span>
-                  </div>
-                  <span class="demo-card-time">0:00 / 0:00</span>
-                </div>
-              </div>
-            </div>
-            <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
-            <audio preload="metadata" src="audio/implant-consultation/implant-consultation.mp3"></audio>
               </article>
             </div>
 

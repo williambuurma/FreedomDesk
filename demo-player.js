@@ -7,8 +7,6 @@
     "new-patient-exam": newPatientOffset,
     toothache: toothacheOffset,
     "broken-tooth": 0,
-    "implant-consultation": 0,
-    "delta-dental": 0,
   };
 
   // Manual full-turn transcripts — edit start times here
@@ -317,40 +315,6 @@
         speaker: "patient",
         start: 4,
         text: "Hi, I chipped a front tooth and wanted to see if someone could take a look today.",
-      },
-      {
-        speaker: "aly",
-        start: 10,
-        text: "[Placeholder transcript — update timings when final audio is added.]",
-      },
-    ],
-    "implant-consultation": [
-      {
-        speaker: "aly",
-        start: 0,
-        text: "Thank you for calling Buurma Family Dentistry. This is Aly. How can I help you today?",
-      },
-      {
-        speaker: "patient",
-        start: 4,
-        text: "Hi, I'm interested in an implant consultation for an upper left tooth.",
-      },
-      {
-        speaker: "aly",
-        start: 10,
-        text: "[Placeholder transcript — update timings when final audio is added.]",
-      },
-    ],
-    "delta-dental": [
-      {
-        speaker: "aly",
-        start: 0,
-        text: "Thank you for calling Buurma Family Dentistry. This is Aly. How can I help you today?",
-      },
-      {
-        speaker: "patient",
-        start: 4,
-        text: "Hi, I have Delta Dental and wanted to ask if you're in-network and can schedule a cleaning.",
       },
       {
         speaker: "aly",

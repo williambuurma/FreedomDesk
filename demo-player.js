@@ -497,6 +497,13 @@
       card.classList.toggle("demo-transcript-open", lastVisibleCount > 0);
     }
 
+    const SCROLL_NEAR_BOTTOM_THRESHOLD = 100;
+
+    function isTranscriptNearBottom() {
+      const { scrollTop, scrollHeight, clientHeight } = transcriptEl;
+      return scrollHeight - scrollTop - clientHeight <= SCROLL_NEAR_BOTTOM_THRESHOLD;
+    }
+
     function applyTranscriptState(currentTime, { scroll = false } = {}) {
       let visibleCount = 0;
       let activeIndex = -1;
@@ -526,7 +533,7 @@
       syncTranscriptPanel();
 
       const shouldScroll = scroll ? activeIndex >= 0 : visibleCount > prevVisibleCount;
-      if (shouldScroll && activeIndex >= 0) {
+      if (shouldScroll && activeIndex >= 0 && isTranscriptNearBottom()) {
         bubbles[activeIndex]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
     }

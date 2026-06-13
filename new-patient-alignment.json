@@ -1,0 +1,55 @@
+Use new-patient-alignment.json to update demo-player.js.
+
+Update only the start values inside DEMO_TRANSCRIPTS["new-patient-exam"].
+
+Use the 36 start values in order from new-patient-alignment.json:
+0.0, 4.13, 11.81, 19.65, 24.77, 28.45, 33.73, 38.05, 48.53, 51.01, 61.65, 70.13, 74.77, 76.77, 78.53, 78.53, 84.85, 90.29, 93.81, 100.77, 100.77, 109.89, 115.81, 117.73, 120.69, 125.17, 130.13, 131.49, 145.17, 150.29, 151.89, 154.69, 156.77, 160.93, 164.93, 168.53
+
+Important: before saving, make duplicate times strictly increasing by adding 0.15 seconds to the later duplicate:
+- second 78.53 becomes 78.68
+- second 100.77 becomes 100.92
+
+Do not change transcript text, speakers, audio paths, phone, email, names, Weekend Toothache, or Broken Tooth.
+
+After editing, show git diff.Detected language: English
+{
+  "duration": null,
+  "starts": [
+    0.0,
+    4.13,
+    11.81,
+    19.65,
+    24.77,
+    28.45,
+    33.73,
+    38.05,
+    48.53,
+    51.01,
+    61.65,
+    70.13,
+    74.77,
+    76.77,
+    78.53,
+    78.53,
+    84.85,
+    90.29,
+    93.81,
+    100.77,
+    100.77,
+    109.89,
+    115.81,
+    117.73,
+    120.69,
+    125.17,
+    130.13,
+    131.49,
+    145.17,
+    150.29,
+    151.89,
+    154.69,
+    156.77,
+    160.93,
+    164.93,
+    168.53
+  ]
+}

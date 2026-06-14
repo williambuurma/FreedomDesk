@@ -251,8 +251,10 @@ h1 {
 
 .logo-image {
   display: block;
-  width: 280px;
-  height: auto;
+  height: 91px;
+  width: auto;
+  max-width: 515px;
+  object-fit: contain;
 }
 
 .header.scrolled .logo { color: var(--navy); }
@@ -1719,10 +1721,14 @@ h1 {
   gap: 24px;
   max-width: 760px;
   margin: 0 auto;
+  align-items: stretch;
 }
 
 .price-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 36px 32px;
   background: linear-gradient(165deg, #fff 0%, var(--blue-muted) 100%);
   border: 1px solid var(--border);
@@ -1784,7 +1790,12 @@ h1 {
 .price-amount { margin-bottom: 20px; }
 
 .price-features {
+  flex: 1 1 auto;
   margin-bottom: 24px;
+}
+
+.price-card .btn-block {
+  margin-top: auto;
 }
 
 .price-features li {
@@ -1831,7 +1842,7 @@ h1 {
 
 /* Setup */
 .setup {
-  padding: var(--section-pad) 0;
+  padding: calc(var(--section-pad) + 20px) 0;
   background: var(--bg);
 }
 
@@ -1955,6 +1966,11 @@ h1 {
 
 .setup-cta {
   text-align: center;
+  margin-top: 8px;
+}
+
+.setup-cta .pricing-reassure {
+  margin-top: 0;
 }
 
 .setup-reassure {
@@ -2998,7 +3014,8 @@ h1 {
   .nav-toggle { display: flex; }
 
   .logo-image {
-    width: 210px;
+    height: 73px;
+    max-width: 393px;
   }
 
   .nav-links {
@@ -3107,12 +3124,17 @@ h1 {
 .hero-light {
   position: relative;
   background: linear-gradient(180deg, #f7f9fc 0%, var(--bg) 85%);
-  padding: calc(var(--header-h) + 40px) 0 96px;
+  padding: calc(var(--header-h) + 40px) 0 112px;
   overflow: hidden;
 }
 
-.hero-light + .benefits {
-  padding-top: calc(var(--section-pad) * 0.6);
+#hero.hero-light {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.hero-light + .hear {
+  padding-top: 0;
 }
 
 .hero-light::before {
@@ -3203,12 +3225,53 @@ h1 {
   justify-content: flex-start;
   width: 100%;
   max-width: none;
+  overflow: visible;
+  padding-bottom: 1rem;
 }
 
 #hero .hero-desk-scene {
   margin-left: 0;
   margin-right: auto;
   width: 100%;
+  min-height: 43rem;
+  transform: scale(1.12);
+  transform-origin: left center;
+  margin-bottom: 2rem;
+}
+
+#hero .hero-desk-screen {
+  overflow: visible;
+}
+
+#hero .hero-desk-screen-viewport {
+  min-height: 41rem;
+  padding-bottom: 2rem;
+  overflow: visible;
+}
+
+#hero .hero-notify--summary {
+  top: 15.75rem;
+  bottom: auto;
+}
+
+#hero .hero-desk-flow {
+  top: 12.5rem;
+  right: 15.5rem;
+  height: 4.75rem;
+}
+
+#hero .hero-desk-ui {
+  opacity: 0.88;
+  filter: blur(0.45px);
+}
+
+#hero .hero-desk-screen-viewport::after {
+  background: linear-gradient(
+    90deg,
+    transparent 38%,
+    rgba(238, 243, 248, 0.18) 62%,
+    rgba(238, 243, 248, 0.48) 100%
+  );
 }
 
 .hero-desk-scene {
@@ -4244,6 +4307,27 @@ h1 {
     justify-content: flex-start;
   }
 
+  #hero .hero-desk-scene {
+    min-height: 38rem;
+    margin-bottom: 1.75rem;
+  }
+
+  #hero .hero-desk-screen-viewport {
+    min-height: 36rem;
+    padding-bottom: 1.375rem;
+  }
+
+  #hero .hero-notify--summary {
+    top: 14.5rem;
+    bottom: auto;
+  }
+
+  #hero .hero-desk-flow {
+    top: 11.25rem;
+    right: 14.5rem;
+    height: 4.5rem;
+  }
+
   .hero-desk-scene {
     min-height: 28rem;
   }
@@ -4291,7 +4375,6 @@ h1 {
   }
 
   .hero-notify--summary {
-    top: 12rem;
     max-width: clamp(18rem, 44vw, 28rem);
     padding: 1.0625rem 1.125rem 1rem;
   }
@@ -4337,6 +4420,10 @@ h1 {
     margin-left: auto;
     margin-right: auto;
     max-width: 36rem;
+    min-height: 42rem;
+    transform: scale(1.05);
+    transform-origin: center center;
+    margin-bottom: 1.5rem;
   }
 
   #hero .hero-cta {
@@ -4350,6 +4437,21 @@ h1 {
 
   .hero-desk-screen-viewport {
     min-height: 22rem;
+  }
+
+  #hero .hero-desk-screen-viewport {
+    min-height: 40rem;
+    padding-bottom: 1.5rem;
+  }
+
+  #hero .hero-notify--summary {
+    top: 12.75rem;
+    bottom: auto;
+  }
+
+  #hero .hero-desk-flow {
+    top: 9.75rem;
+    height: 4.25rem;
   }
 
   .hero-desk-flow {
@@ -4366,7 +4468,6 @@ h1 {
   }
 
   .hero-notify--summary {
-    top: 10.75rem;
     right: 0.625rem;
     width: calc(100% - 1.25rem);
     max-width: none;
@@ -4440,6 +4541,25 @@ h1 {
 
   #hero .hero-desk-scene {
     max-width: none;
+    min-height: 38rem;
+    transform: scale(1);
+    margin-bottom: 1.25rem;
+  }
+
+  #hero .hero-desk-screen-viewport {
+    min-height: 36rem;
+    padding-bottom: 1.375rem;
+  }
+
+  #hero .hero-notify--summary {
+    top: 11.75rem;
+    bottom: auto;
+  }
+
+  #hero .hero-desk-flow {
+    top: 8.75rem;
+    right: 10.5rem;
+    height: 4rem;
   }
 
   .hero-desk-scene {
@@ -4492,7 +4612,6 @@ h1 {
   }
 
   .hero-notify--summary {
-    top: 9.75rem;
     padding: 0.9375rem 1rem 0.875rem;
   }
 
@@ -4664,7 +4783,7 @@ h1 {
 }
 
 .benefits {
-  padding: var(--section-pad) 0;
+  padding: calc(var(--section-pad) + 20px) 0;
   background: var(--bg);
 }
 
@@ -4781,7 +4900,7 @@ h1 {
 }
 
 .founder {
-  padding: var(--section-pad) 0;
+  padding: calc(var(--section-pad) + 20px) 0;
   background: var(--bg);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -4834,12 +4953,31 @@ h1 {
   margin-bottom: 8px;
 }
 
-.founder-role {
-  font-size: 0.9375rem;
+.founder-founder-of {
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--navy-mid);
-  margin-bottom: 6px;
   letter-spacing: -0.01em;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.founder-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.founder-credentials-logo {
+  display: block;
+  height: 38px;
+  width: auto;
+  max-width: 158px;
+  margin: 0;
+  object-fit: contain;
+  object-position: center center;
 }
 
 .founder-location {
@@ -5447,8 +5585,8 @@ h1 {
 
 /* Sample Calls — proof section (#hear only) */
 #hear.hear-action {
-  padding-top: calc(var(--section-pad) + 8px);
-  padding-bottom: var(--section-pad);
+  padding-top: calc(var(--section-pad) + 56px);
+  padding-bottom: calc(var(--section-pad) + 24px);
 }
 
 #hear .hear-container {
@@ -6333,17 +6471,21 @@ h1 {
   grid-column: 1 / -1;
 }
 
-.contact-form .form-row:not(.form-row-full):nth-child(3) {
+.contact-form .form-row-email {
   grid-column: 1;
 }
 
-.contact-form .form-row:not(.form-row-full):nth-child(4) {
+.contact-form .form-row-phone {
   grid-column: 2;
 }
 
 .contact-form .btn-block {
   grid-column: 1 / -1;
   margin-top: 8px;
+}
+
+.contact-form .form-row-software-other[hidden] {
+  display: none;
 }
 
 .form-note-left {
@@ -6386,16 +6528,30 @@ h1 {
   padding: 48px 0;
 }
 
-.footer-light .footer-brand .logo-name {
+.footer-light .footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 360px;
+}
+
+.footer-light .footer-logo-image {
   display: block;
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--navy);
-  margin-bottom: 8px;
+  height: 81px;
+  width: auto;
+  max-width: 420px;
+  object-fit: contain;
+  margin-bottom: 12px;
 }
 
 .footer-light .footer-tagline {
   color: var(--text-muted);
+  margin-bottom: 8px;
+  max-width: none;
+  line-height: 1.55;
+}
+
+.footer-light .footer-tagline + .footer-tagline {
   margin-bottom: 12px;
 }
 
@@ -6414,7 +6570,7 @@ h1 {
 
 /* Pricing (homepage) */
 .pricing-home {
-  padding: var(--section-pad) 0;
+  padding: calc(var(--section-pad) + 20px) 0;
   background: var(--bg-warm);
   border-top: 1px solid var(--border);
 }
@@ -6621,6 +6777,24 @@ h1 {
   background: var(--blue-surface);
 }
 
+.pricing-home .pricing-grid {
+  max-width: 880px;
+}
+
+.pricing-home .price-features {
+  margin-bottom: 0;
+}
+
+.pricing-home .price-card--custom {
+  border-color: rgba(36, 80, 143, 0.18);
+  box-shadow: var(--shadow-sm), inset 0 3px 0 rgba(36, 80, 143, 0.22);
+}
+
+.pricing-home .pricing-tier-note {
+  margin-top: 32px;
+  margin-bottom: 12px;
+}
+
 .pricing-home .pricing-reassure {
   margin-top: 28px;
   font-size: 0.875rem;
@@ -6676,6 +6850,16 @@ h1 {
 
   .founder-credentials {
     text-align: center;
+  }
+
+  .founder-brand-row {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .founder-credentials-logo {
+    height: 34px;
+    max-width: 140px;
   }
 
   .founder-headline {
@@ -6877,8 +7061,8 @@ h1 {
     grid-template-columns: 1fr;
   }
 
-  .contact-form .form-row:not(.form-row-full):nth-child(3),
-  .contact-form .form-row:not(.form-row-full):nth-child(4) {
+  .contact-form .form-row-email,
+  .contact-form .form-row-phone {
     grid-column: 1;
   }
 

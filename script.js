@@ -4,6 +4,9 @@
   const navLinks = document.getElementById("navLinks");
   const contactForm = document.getElementById("contactForm");
   const contactSubmitBtn = document.getElementById("contactSubmitBtn");
+  const practiceSoftware = document.getElementById("practiceSoftware");
+  const practiceSoftwareOtherRow = document.getElementById("practiceSoftwareOtherRow");
+  const practiceSoftwareOther = document.getElementById("practiceSoftwareOther");
   const inlineFormError = document.getElementById("inlineFormError");
   const inlineFormErrorText = document.getElementById("inlineFormErrorText");
   const inlineFormSuccess = document.getElementById("inlineFormSuccess");
@@ -14,9 +17,11 @@
   const fieldLabels = {
     fullName: "Full name",
     practiceName: "Practice name",
+    locations: "Number of Locations",
     email: "Work email",
     phone: "Phone number",
     practiceSoftware: "Practice management software",
+    practiceSoftwareOther: "Practice management software",
     callVolume: "Estimated monthly call volume",
   };
 
@@ -82,14 +87,36 @@
     }
   }
 
+  function syncPracticeSoftwareOther() {
+    const isOther = practiceSoftware?.value === "Other";
+    if (practiceSoftwareOtherRow) practiceSoftwareOtherRow.hidden = !isOther;
+    if (!practiceSoftwareOther) return;
+
+    practiceSoftwareOther.required = isOther;
+    if (!isOther) {
+      practiceSoftwareOther.value = "";
+      practiceSoftwareOtherRow?.classList.remove("is-invalid");
+      practiceSoftwareOtherRow?.querySelector(".form-row-error")?.remove();
+    }
+  }
+
   function validateForm(formData) {
     clearFieldErrors(contactForm);
     const errors = {};
     const data = Object.fromEntries(formData.entries());
 
     Object.keys(fieldLabels).forEach((key) => {
+      if (key === "practiceSoftwareOther") return;
       if (!data[key]?.trim()) errors[key] = "This field is required.";
     });
+
+    if (data.practiceSoftware === "Other") {
+      if (!data.practiceSoftwareOther?.trim()) {
+        errors.practiceSoftwareOther = "This field is required.";
+      } else {
+        data.practiceSoftware = data.practiceSoftwareOther.trim();
+      }
+    }
 
     if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
       errors.email = "Enter a valid email address.";
@@ -99,6 +126,8 @@
     if (data.phone && phoneDigits.length < 10) {
       errors.phone = "Enter a valid phone number.";
     }
+
+    delete data.practiceSoftwareOther;
 
     Object.entries(errors).forEach(([key, msg]) => showFieldError(contactForm, key, msg));
     return { valid: Object.keys(errors).length === 0, data, errors };
@@ -134,6 +163,9 @@
     e.target.value = formatPhoneInput(e.target.value);
   });
 
+  practiceSoftware?.addEventListener("change", syncPracticeSoftwareOther);
+  syncPracticeSoftwareOther();
+
   contactForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -151,6 +183,7 @@
     try {
       await submitLead(data);
       contactForm.reset();
+      syncPracticeSoftwareOther();
       clearFieldErrors(contactForm);
       if (inlineFormSuccess) {
         inlineFormSuccess.hidden = false;

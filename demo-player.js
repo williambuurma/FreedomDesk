@@ -406,6 +406,8 @@
 
   function renderTranscript(container, turns) {
     container.innerHTML = "";
+    const bubbles = [];
+
     turns.forEach((turn, index) => {
       const side = turn.speaker === "patient" ? "chat-patient" : "chat-agent";
       const bubble = document.createElement("div");
@@ -419,8 +421,10 @@
       bubble.appendChild(text);
 
       container.appendChild(bubble);
+      bubbles.push(bubble);
     });
-    return [...container.querySelectorAll(".chat-bubble")];
+
+    return { bubbles };
   }
 
   function initDemoCard(card, meta, turns, allCards) {
@@ -430,7 +434,7 @@
       return;
     }
 
-    const bubbles = renderTranscript(transcriptEl, turns);
+    const { bubbles } = renderTranscript(transcriptEl, turns);
     const audio = card.querySelector("audio");
     const playBtn = card.querySelector(".demo-card-play");
     const progressBar = card.querySelector(".demo-card-progress-bar");
@@ -445,6 +449,69 @@
     let scrubPointerId = null;
     let wasPlayingBeforeScrub = false;
     let lastVisibleCount = 0;
+    let lastObservedMediaTime = -1;
+    let lastObservedMediaAt = 0;
+    let playbackAnchor = null;
+    let userDetachedScroll = false;
+    let userScrollIntent = false;
+    let isAutoScrolling = false;
+    let lastActiveIndex = -1;
+
+    const SCROLL_NEAR_BOTTOM_THRESHOLD = 80;
+    const SCROLL_COMFORT_BAND = 0.35;
+
+    function shouldSyncPlayback() {
+      return Boolean(audio && !audio.paused && !audio.ended && !isScrubbing);
+    }
+
+    function resetPlaybackClock() {
+      lastObservedMediaTime = -1;
+      lastObservedMediaAt = 0;
+      playbackAnchor = null;
+    }
+
+    function markPlaybackClock(mediaTime) {
+      lastObservedMediaTime = mediaTime;
+      lastObservedMediaAt = performance.now();
+      playbackAnchor = {
+        mediaTime,
+        wallAt: lastObservedMediaAt,
+      };
+    }
+
+    function getPlaybackTime() {
+      if (!audio) return 0;
+      if (audio.paused || audio.ended) {
+        return audio.currentTime;
+      }
+
+      const mediaTime = audio.currentTime;
+      const now = performance.now();
+
+      if (mediaTime !== lastObservedMediaTime) {
+        markPlaybackClock(mediaTime);
+        return mediaTime;
+      }
+
+      if (playbackAnchor && now - lastObservedMediaAt > 350) {
+        const estimated =
+          playbackAnchor.mediaTime + (now - playbackAnchor.wallAt) / 1000;
+        return Math.min(Math.max(mediaTime, estimated), getDuration());
+      }
+
+      return mediaTime;
+    }
+
+    function scheduleTick() {
+      stopRaf();
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function syncPlaybackFrame(currentTime, { scroll = false } = {}) {
+      const playbackTime = Number.isFinite(currentTime) ? currentTime : getPlaybackTime();
+      applyTranscriptState(playbackTime, { scroll });
+      updateProgress(audio?.currentTime ?? playbackTime);
+    }
 
     function getDuration() {
       if (audio && Number.isFinite(audio.duration) && audio.duration > 0) {
@@ -481,7 +548,8 @@
       audio.preload = "metadata";
       setAudioSource(audio, meta.file);
     } else {
-      console.error(`FreedomDesk demo "${meta.title}": missing audio element or file path.`);
+      console.warn(`FreedomDesk demo "${meta.title}": playback disabled (missing audio file).`);
+      return;
     }
 
     console.info(`FreedomDesk demo "${meta.title}": initialized`, {
@@ -497,12 +565,115 @@
       card.classList.toggle("demo-transcript-open", lastVisibleCount > 0);
     }
 
-    const SCROLL_NEAR_BOTTOM_THRESHOLD = 100;
-
     function isTranscriptNearBottom() {
       const { scrollTop, scrollHeight, clientHeight } = transcriptEl;
       return scrollHeight - scrollTop - clientHeight <= SCROLL_NEAR_BOTTOM_THRESHOLD;
     }
+
+    function getActiveScrollTarget(activeIndex) {
+      if (activeIndex >= 0 && bubbles[activeIndex]?.classList.contains("visible")) {
+        return bubbles[activeIndex];
+      }
+
+      return null;
+    }
+
+    function isElementInComfortZone(element) {
+      if (!element) return true;
+
+      const containerRect = transcriptEl.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
+      const containerMid = containerRect.top + containerRect.height * 0.5;
+      const elementMid = elementRect.top + elementRect.height * 0.5;
+      const tolerance = containerRect.height * SCROLL_COMFORT_BAND;
+
+      return Math.abs(elementMid - containerMid) <= tolerance;
+    }
+
+    function getElementScrollTop(element) {
+      if (!element || !transcriptEl) return 0;
+
+      const containerRect = transcriptEl.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
+      return elementRect.top - containerRect.top + transcriptEl.scrollTop;
+    }
+
+    function scrollTranscriptToElement(element, { smooth = false } = {}) {
+      if (!element || !transcriptEl) return;
+
+      const elementTop = getElementScrollTop(element);
+      const elementHeight = element.offsetHeight;
+      const containerHeight = transcriptEl.clientHeight;
+      const targetTop = elementTop - (containerHeight - elementHeight) / 2;
+      const maxTop = Math.max(0, transcriptEl.scrollHeight - containerHeight);
+      const clampedTop = Math.min(Math.max(0, targetTop), maxTop);
+
+      isAutoScrolling = true;
+
+      const endAutoScrolling = () => {
+        isAutoScrolling = false;
+      };
+
+      if (smooth && transcriptEl.scrollTo) {
+        transcriptEl.scrollTo({ top: clampedTop, behavior: "smooth" });
+        if ("onscrollend" in transcriptEl) {
+          transcriptEl.addEventListener("scrollend", endAutoScrolling, { once: true });
+        }
+        window.setTimeout(endAutoScrolling, 900);
+      } else {
+        transcriptEl.scrollTop = clampedTop;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(endAutoScrolling);
+        });
+      }
+    }
+
+    function updateTranscriptFollowState({ fromUserIntent = false } = {}) {
+      if (isAutoScrolling) return;
+
+      const following =
+        isTranscriptNearBottom() ||
+        isElementInComfortZone(getActiveScrollTarget(lastActiveIndex));
+
+      if (following) {
+        userDetachedScroll = false;
+        return;
+      }
+
+      if (fromUserIntent) {
+        userDetachedScroll = true;
+      }
+    }
+
+    function bindTranscriptScrollHandlers() {
+      const playbackActive = () => shouldSyncPlayback() || state === "playing";
+
+      const markUserScrollIntent = () => {
+        if (!playbackActive()) return;
+        userScrollIntent = true;
+      };
+
+      const onTranscriptScroll = () => {
+        if (isAutoScrolling || !playbackActive()) return;
+
+        if (userScrollIntent) {
+          updateTranscriptFollowState({ fromUserIntent: true });
+          userScrollIntent = false;
+          return;
+        }
+
+        if (userDetachedScroll) {
+          updateTranscriptFollowState({ fromUserIntent: false });
+        }
+      };
+
+      transcriptEl.addEventListener("scroll", onTranscriptScroll, { passive: true });
+      transcriptEl.addEventListener("wheel", markUserScrollIntent, { passive: true });
+      transcriptEl.addEventListener("touchmove", markUserScrollIntent, { passive: true });
+      transcriptEl.addEventListener("pointerdown", markUserScrollIntent, { passive: true });
+    }
+
+    bindTranscriptScrollHandlers();
 
     function applyTranscriptState(currentTime, { scroll = false } = {}) {
       let visibleCount = 0;
@@ -530,11 +701,26 @@
       });
 
       lastVisibleCount = visibleCount;
+      lastActiveIndex = activeIndex;
       syncTranscriptPanel();
 
-      const shouldScroll = scroll ? activeIndex >= 0 : visibleCount > prevVisibleCount;
-      if (shouldScroll && activeIndex >= 0 && isTranscriptNearBottom()) {
-        bubbles[activeIndex]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      const gainedBubble = visibleCount > prevVisibleCount;
+
+      if (scroll && !userDetachedScroll) {
+        const target = getActiveScrollTarget(activeIndex);
+        if (target) {
+          const runScroll = () => {
+            scrollTranscriptToElement(target, { smooth: gainedBubble });
+          };
+
+          if (gainedBubble) {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(runScroll);
+            });
+          } else if (!isElementInComfortZone(target)) {
+            runScroll();
+          }
+        }
       }
     }
 
@@ -550,6 +736,9 @@
     function resetTranscript() {
       bubbles.forEach((bubble) => bubble.classList.remove("visible", "is-speaking"));
       lastVisibleCount = 0;
+      lastActiveIndex = -1;
+      userDetachedScroll = false;
+      userScrollIntent = false;
       syncTranscriptPanel();
     }
 
@@ -564,6 +753,7 @@
       card.classList.remove("is-scrubbing");
       stopRaf();
       resetTranscript();
+      resetPlaybackClock();
       updateProgress(0);
       setState("idle");
       setPlayingUi(false);
@@ -601,6 +791,7 @@
       const nextTime = Math.min(total, Math.max(0, time));
 
       audio.currentTime = nextTime;
+      markPlaybackClock(nextTime);
       updateProgress(nextTime);
       applyTranscriptState(nextTime, { scroll });
 
@@ -609,7 +800,7 @@
           revealAllTurns();
           updateProgress(total);
         } else {
-          finishPlayback();
+          finishPlayback({ force: true });
         }
         return nextTime;
       }
@@ -646,7 +837,7 @@
       if (!audio) return;
 
       if (audio.currentTime >= getDuration() - 0.1) {
-        finishPlayback();
+        finishPlayback({ force: true });
         return;
       }
 
@@ -660,11 +851,15 @@
     }
 
     function tick() {
-      if (!audio || audio.paused || isScrubbing) return;
-      const t = audio.currentTime;
-      applyTranscriptState(t, { scroll: true });
-      updateProgress(t);
-      rafId = requestAnimationFrame(tick);
+      if (!audio || isScrubbing) return;
+
+      if (shouldSyncPlayback()) {
+        syncPlaybackFrame(getPlaybackTime(), { scroll: true });
+      }
+
+      if (!audio.ended && !isScrubbing && (state === "playing" || shouldSyncPlayback())) {
+        rafId = requestAnimationFrame(tick);
+      }
     }
 
     function pauseOthers() {
@@ -719,15 +914,18 @@
 
       setState("playing");
       setPlayingUi(true);
+      userDetachedScroll = false;
+      userScrollIntent = false;
+      markPlaybackClock(audio.currentTime);
       stopRaf();
-      applyTranscriptState(audio.currentTime, { scroll: true });
-      updateProgress(audio.currentTime);
-      rafId = requestAnimationFrame(tick);
+      syncPlaybackFrame(getPlaybackTime(), { scroll: true });
+      scheduleTick();
     }
 
     function pausePlayback() {
       audio?.pause();
       stopRaf();
+      resetPlaybackClock();
       if (audio) {
         applyTranscriptState(audio.currentTime, { scroll: false });
       }
@@ -743,12 +941,17 @@
       void startPlayback();
     }
 
-    function finishPlayback() {
+    function finishPlayback({ force = false } = {}) {
+      if (!force && audio && !audio.ended) {
+        return;
+      }
+
       stopRaf();
       isScrubbing = false;
       scrubPointerId = null;
       progressTrack?.classList.remove("is-scrubbing");
       card.classList.remove("is-scrubbing");
+      resetPlaybackClock();
       updateProgress(getDuration());
       revealAllTurns();
       setState("complete");
@@ -852,14 +1055,21 @@
     });
 
     audio?.addEventListener("playing", () => {
-      applyTranscriptState(audio.currentTime, { scroll: true });
-      updateProgress(audio.currentTime);
+      markPlaybackClock(audio.currentTime);
+      if (!shouldSyncPlayback()) return;
+      syncPlaybackFrame(getPlaybackTime(), { scroll: true });
+      scheduleTick();
     });
 
     audio?.addEventListener("timeupdate", () => {
-      if (!audio || isScrubbing || state !== "playing") return;
-      applyTranscriptState(audio.currentTime, { scroll: true });
-      updateProgress(audio.currentTime);
+      if (!shouldSyncPlayback()) return;
+      markPlaybackClock(audio.currentTime);
+      syncPlaybackFrame(getPlaybackTime(), { scroll: true });
+    });
+
+    audio?.addEventListener("pause", () => {
+      stopRaf();
+      resetPlaybackClock();
     });
 
     audio?.addEventListener("durationchange", () => {

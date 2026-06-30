@@ -5,7 +5,9 @@
   "description": "FreedomDesk marketing site and lead capture",
   "scripts": {
     "deploy": "vercel --prod",
-    "deploy:preview": "vercel"
+    "deploy:preview": "vercel",
+    "test": "node --test src/engine/prompt-context-builder.test.js",
+    "context:new-patient": "node scripts/print-new-patient-context.js"
   },
   "devDependencies": {
     "vercel": "^54.13.0"

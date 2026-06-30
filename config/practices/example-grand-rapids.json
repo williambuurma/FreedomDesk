@@ -1,0 +1,154 @@
+{
+  "practiceId": "example-grand-rapids",
+  "name": "Cascade Family Dentistry",
+  "timezone": "America/Detroit",
+  "phone": {
+    "main": "+16165550100",
+    "afterHours": "+16165550100"
+  },
+  "address": {
+    "street": "2450 East Beltline Ave SE",
+    "city": "Grand Rapids",
+    "state": "MI",
+    "zip": "49546",
+    "parkingNotes": "Free parking in the lot behind the building."
+  },
+  "website": "https://example-cascade-family-dentistry.com",
+  "pmsType": "open_dental",
+  "bookingMode": "request",
+  "agentName": "Aly",
+  "greeting": {
+    "businessHours": "Thank you for calling Cascade Family Dentistry. This is Aly. How can I help you today?",
+    "afterHours": "Thank you for calling Cascade Family Dentistry. You've reached our after-hours line. This is Aly. How can I help you?"
+  },
+  "hoursOfOperation": {
+    "monday": { "open": "08:00", "close": "17:00" },
+    "tuesday": { "open": "08:00", "close": "17:00" },
+    "wednesday": { "open": "08:00", "close": "17:00" },
+    "thursday": { "open": "08:00", "close": "17:00" },
+    "friday": { "open": "08:00", "close": "14:00" },
+    "saturday": null,
+    "sunday": null
+  },
+  "providers": [
+    { "name": "Dr. William Buurma", "role": "general_dentist", "npi": "0000000000" },
+    { "name": "Dr. Sarah Chen", "role": "general_dentist", "npi": "0000000001" }
+  ],
+  "hygienists": [
+    { "name": "Jessica M.", "role": "hygienist" },
+    { "name": "Amanda K.", "role": "hygienist" }
+  ],
+  "services": [
+    "General dentistry",
+    "Preventive hygiene",
+    "Restorative (fillings, crowns)",
+    "Root canals (anterior and premolar)",
+    "Extractions",
+    "Dentures and partials",
+    "Pediatric dentistry (age 3+)"
+  ],
+  "minPediatricAge": 3,
+  "appointmentTypes": [
+    {
+      "id": "new_patient_exam",
+      "label": "New Patient Exam",
+      "durationMinutes": 60,
+      "openDentalType": "New Patient"
+    },
+    {
+      "id": "adult_prophy",
+      "label": "Adult Cleaning",
+      "durationMinutes": 60,
+      "openDentalType": "Prophy"
+    },
+    {
+      "id": "child_prophy",
+      "label": "Child Cleaning",
+      "durationMinutes": 45,
+      "openDentalType": "Child Prophy"
+    },
+    {
+      "id": "emergency_eval",
+      "label": "Emergency Evaluation",
+      "durationMinutes": 30,
+      "openDentalType": "Emergency"
+    },
+    {
+      "id": "crown_seat",
+      "label": "Crown Seat",
+      "durationMinutes": 45,
+      "openDentalType": "Crown Seat"
+    }
+  ],
+  "schedulingRules": {
+    "newPatientDays": ["monday", "tuesday", "wednesday", "thursday"],
+    "noNewPatientsFridayAfternoon": true,
+    "hygieneExamAttached": true
+  },
+  "insurance": {
+    "acceptedCarriers": [
+      "Delta Dental PPO",
+      "Delta Dental Premier",
+      "Blue Cross Blue Shield of Michigan",
+      "Cigna",
+      "MetLife",
+      "Guardian",
+      "United Concordia"
+    ],
+    "acceptedMedicaidPrograms": [
+      "healthy_kids_dental",
+      "delta_dental_medicaid"
+    ],
+    "acceptsCashPay": true,
+    "inNetworkDeltaPPO": true,
+    "disambiguationRequired": [
+      "Delta Dental",
+      "Delta",
+      "Medicaid",
+      "state insurance",
+      "Healthy Kids"
+    ]
+  },
+  "emergencyPolicy": {
+    "sameDayEmergencyEnabled": true,
+    "callbackSlaMinutes": 30,
+    "onCallRotation": [
+      { "provider": "Dr. William Buurma", "days": ["monday", "tuesday", "wednesday"] },
+      { "provider": "Dr. Sarah Chen", "days": ["thursday", "friday", "saturday", "sunday"] }
+    ],
+    "erEscalationTriggers": [
+      "trouble breathing",
+      "uncontrolled bleeding",
+      "spreading facial swelling with fever"
+    ],
+    "backupNumber": "+16165550199"
+  },
+  "referralResources": [
+    { "id": "endo_partner", "specialty": "endodontics", "name": "West Michigan Endodontics" },
+    { "id": "os_partner", "specialty": "oral_surgery", "name": "Grand Rapids Oral Surgery" }
+  ],
+  "pharmacies": {
+    "preferred": [
+      { "name": "Meijer Pharmacy — 28th St", "notes": "Common patient preference" },
+      { "name": "CVS Pharmacy — Cascade", "notes": "Walkable from office" }
+    ]
+  },
+  "hospitals": {
+    "erGuidance": [
+      { "name": "Corewell Health Butterworth Hospital", "useFor": "life_threatening" }
+    ]
+  },
+  "summaryDelivery": {
+    "email": ["frontdesk@example-cascade-family-dentistry.com"],
+    "sms": ["+16165550150"]
+  },
+  "postOpScripts": {
+    "enabled": false
+  },
+  "clinicalScope": {
+    "rootCanalInHouse": true,
+    "rootCanalReferMolar": true,
+    "implantsInHouse": false,
+    "sedationAvailable": false
+  }
+}

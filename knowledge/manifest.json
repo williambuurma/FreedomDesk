@@ -1,0 +1,430 @@
+{
+  "version": "1.0.0",
+  "description": "Machine-readable catalog of FreedomDesk knowledge documents for prompt context assembly.",
+  "categories": {
+    "ai": {
+      "label": "AI & Prompting",
+      "description": "Guardrails, persona, conversation style, and summarization rules."
+    },
+    "michigan": {
+      "label": "Michigan Regional",
+      "description": "West Michigan market, insurance programs, emergency routing, and local resources."
+    },
+    "insurance": {
+      "label": "Insurance",
+      "description": "Carrier-specific and general insurance intake guidance."
+    },
+    "dentistry": {
+      "label": "Clinical Operations",
+      "description": "Terminology, procedures, emergencies, and post-operative calls."
+    },
+    "scheduling": {
+      "label": "Scheduling",
+      "description": "Appointment types, hygiene recall, and emergency scheduling."
+    },
+    "office": {
+      "label": "Front Office",
+      "description": "Front desk workflows, patient communication, and private practice operations."
+    },
+    "procedures": {
+      "label": "Procedures & Summaries",
+      "description": "CDT codes, appointment mapping, follow-up trees, and summary templates."
+    },
+    "software": {
+      "label": "Practice Management Software",
+      "description": "PMS integration reference — not loaded into live call prompts by default."
+    },
+    "call-flows": {
+      "label": "Call Flow Excerpts",
+      "description": "Intent-specific conversation scripts extracted from docs/CALL_FLOWS.md."
+    }
+  },
+  "documents": [
+    {
+      "id": "ai.guardrails",
+      "path": "knowledge/ai/guardrails.md",
+      "promptExcerptPath": "knowledge/ai/guardrails-prompt-excerpt.md",
+      "category": "ai",
+      "title": "AI Guardrails",
+      "description": "Non-negotiable clinical, insurance, HIPAA, and scheduling boundaries.",
+      "tags": ["guardrails", "clinical", "hipaa", "insurance"],
+      "promptRole": "guardrails",
+      "includeInDefaultPrompt": true
+    },
+    {
+      "id": "ai.conversation-style",
+      "path": "knowledge/ai/conversation-style.md",
+      "promptExcerptPath": "knowledge/ai/conversation-style-prompt-excerpt.md",
+      "category": "ai",
+      "title": "Conversation Style",
+      "description": "Aly persona voice, tone, phrases, and turn-taking rules.",
+      "tags": ["persona", "aly", "voice"],
+      "promptRole": "persona",
+      "includeInDefaultPrompt": true
+    },
+    {
+      "id": "ai.summarization",
+      "path": "knowledge/ai/summarization.md",
+      "category": "ai",
+      "title": "Summarization",
+      "description": "Structured call summary rules and field requirements.",
+      "tags": ["summary", "output"],
+      "promptRole": "summarization",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "michigan.regional-overview",
+      "path": "knowledge/michigan/regional-overview.md",
+      "category": "michigan",
+      "title": "Michigan Regional Overview",
+      "description": "Geographic scope, market context, and regional operational defaults.",
+      "tags": ["michigan", "grand-rapids", "regional"],
+      "promptRole": "regional",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "michigan.regional-insurance",
+      "path": "knowledge/michigan/regional-insurance.md",
+      "category": "michigan",
+      "title": "Michigan Regional Insurance",
+      "description": "Michigan insurance taxonomy and disambiguation priority.",
+      "tags": ["michigan", "insurance", "delta", "medicaid", "hkd"],
+      "promptRole": "regional",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "michigan.new-patient-regional",
+      "path": "knowledge/michigan/new-patient-regional-excerpt.md",
+      "category": "michigan",
+      "title": "Michigan Regional Notes — New Patient",
+      "description": "Short Michigan insurance taxonomy and disambiguation for new patient intake.",
+      "tags": ["michigan", "insurance", "new-patient", "regional"],
+      "promptRole": "regional",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "michigan.medicaid-and-healthy-kids-dental",
+      "path": "knowledge/michigan/medicaid-and-healthy-kids-dental.md",
+      "category": "michigan",
+      "title": "Michigan Medicaid and Healthy Kids Dental",
+      "description": "HKD and adult Michigan Medicaid intake and scheduling rules.",
+      "tags": ["michigan", "medicaid", "hkd", "pediatric"],
+      "promptRole": "regional",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "michigan.emergency-routing",
+      "path": "knowledge/michigan/emergency-routing.md",
+      "category": "michigan",
+      "title": "Michigan Emergency Routing",
+      "description": "After-hours and same-day emergency routing for West Michigan practices.",
+      "tags": ["michigan", "emergency", "routing"],
+      "promptRole": "regional",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "michigan.grand-rapids-dental-market",
+      "path": "knowledge/michigan/grand-rapids-dental-market.md",
+      "category": "michigan",
+      "title": "Grand Rapids Dental Market",
+      "description": "Local market patterns and caller expectations in Grand Rapids metro.",
+      "tags": ["michigan", "grand-rapids", "market"],
+      "promptRole": "regional",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "michigan.local-pharmacies-and-hospitals",
+      "path": "knowledge/michigan/local-pharmacies-and-hospitals.md",
+      "category": "michigan",
+      "title": "Local Pharmacies and Hospitals",
+      "description": "Practice-configurable pharmacy and hospital guidance patterns.",
+      "tags": ["michigan", "pharmacy", "hospital", "er"],
+      "promptRole": "regional",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "michigan.referral-patterns",
+      "path": "knowledge/michigan/referral-patterns.md",
+      "category": "michigan",
+      "title": "Michigan Referral Patterns",
+      "description": "Specialist referral patterns — defer to practice config at runtime.",
+      "tags": ["michigan", "referral", "specialist"],
+      "promptRole": "regional",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "insurance.concepts",
+      "path": "knowledge/insurance/concepts.md",
+      "category": "insurance",
+      "title": "Insurance Concepts",
+      "description": "General insurance terminology and intake concepts.",
+      "tags": ["insurance", "intake"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "insurance.delta-dental",
+      "path": "knowledge/insurance/delta-dental.md",
+      "category": "insurance",
+      "title": "Delta Dental",
+      "description": "Delta Dental PPO, Premier, and Medicaid program disambiguation.",
+      "tags": ["insurance", "delta"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "insurance.healthy-kids-dental",
+      "path": "knowledge/insurance/healthy-kids-dental.md",
+      "category": "insurance",
+      "title": "Healthy Kids Dental",
+      "description": "HKD eligibility, intake fields, and scheduling guardrails.",
+      "tags": ["insurance", "hkd", "pediatric"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "insurance.michigan-medicaid",
+      "path": "knowledge/insurance/michigan-medicaid.md",
+      "category": "insurance",
+      "title": "Michigan Medicaid (Adult)",
+      "description": "Adult Michigan Medicaid intake and acceptance rules.",
+      "tags": ["insurance", "medicaid"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "dentistry.terminology",
+      "path": "knowledge/dentistry/terminology.md",
+      "category": "dentistry",
+      "title": "Dental Terminology",
+      "description": "Plain-language vs clinical terms for phone conversations.",
+      "tags": ["dentistry", "terminology"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "dentistry.procedures",
+      "path": "knowledge/dentistry/procedures.md",
+      "category": "dentistry",
+      "title": "Dental Procedures",
+      "description": "Appointment type classification for treatment scheduling calls.",
+      "tags": ["dentistry", "procedures", "scheduling"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "dentistry.emergencies",
+      "path": "knowledge/dentistry/emergencies.md",
+      "category": "dentistry",
+      "title": "Dental Emergencies",
+      "description": "Symptom triage and urgency classification without diagnosis.",
+      "tags": ["dentistry", "emergency", "triage"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "dentistry.post-op",
+      "path": "knowledge/dentistry/post-op.md",
+      "category": "dentistry",
+      "title": "Post-Operative Calls",
+      "description": "Post-operative call handling and escalation rules.",
+      "tags": ["dentistry", "post-op"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "scheduling.appointment-types",
+      "path": "knowledge/scheduling/appointment-types.md",
+      "category": "scheduling",
+      "title": "Appointment Types",
+      "description": "Default appointment types, durations, and scheduling rules.",
+      "tags": ["scheduling", "appointment-types"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "scheduling.hygiene-and-recall",
+      "path": "knowledge/scheduling/hygiene-and-recall.md",
+      "category": "scheduling",
+      "title": "Hygiene and Recall",
+      "description": "Hygiene scheduling, recall, and reactivation patterns.",
+      "tags": ["scheduling", "hygiene", "recall"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "scheduling.emergency-scheduling",
+      "path": "knowledge/scheduling/emergency-scheduling.md",
+      "category": "scheduling",
+      "title": "Emergency Scheduling",
+      "description": "Same-day and urgent slot handling.",
+      "tags": ["scheduling", "emergency"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "office.front-desk-workflows",
+      "path": "knowledge/office/front-desk-workflows.md",
+      "category": "office",
+      "title": "Front Desk Workflows",
+      "description": "How front desks handle common call types and handoffs.",
+      "tags": ["office", "front-desk"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "office.patient-communication",
+      "path": "knowledge/office/patient-communication.md",
+      "category": "office",
+      "title": "Patient Communication",
+      "description": "Phone etiquette, hold language, and patient-facing communication norms.",
+      "tags": ["office", "communication"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "office.private-practice-operations",
+      "path": "knowledge/office/private-practice-operations.md",
+      "category": "office",
+      "title": "Private Practice Operations",
+      "description": "Independent GP practice operational patterns.",
+      "tags": ["office", "operations"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "procedures.common-cdt-codes",
+      "path": "knowledge/procedures/common-cdt-codes.md",
+      "category": "procedures",
+      "title": "Common CDT Codes",
+      "description": "CDT reference labels for summary alignment — not spoken to patients by default.",
+      "tags": ["procedures", "cdt"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "procedures.appointment-code-map",
+      "path": "knowledge/procedures/appointment-code-map.md",
+      "category": "procedures",
+      "title": "Appointment Code Map",
+      "description": "Maps appointment types to PMS codes and summary fields.",
+      "tags": ["procedures", "appointment-types"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "procedures.call-summary-templates",
+      "path": "knowledge/procedures/call-summary-templates.md",
+      "category": "procedures",
+      "title": "Call Summary Templates",
+      "description": "Summary templates aligned to Open Dental comm log patterns.",
+      "tags": ["procedures", "summary"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "procedures.follow-up-question-trees",
+      "path": "knowledge/procedures/follow-up-question-trees.md",
+      "category": "procedures",
+      "title": "Follow-Up Question Trees",
+      "description": "Branching follow-up questions by chief complaint and treatment type.",
+      "tags": ["procedures", "triage", "questions"],
+      "promptRole": "supplemental",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "software.open-dental",
+      "path": "knowledge/software/open-dental.md",
+      "category": "software",
+      "title": "Open Dental",
+      "description": "Open Dental API and data model reference.",
+      "tags": ["pms", "open-dental"],
+      "promptRole": "none",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "software.dentrix",
+      "path": "knowledge/software/dentrix.md",
+      "category": "software",
+      "title": "Dentrix",
+      "description": "Dentrix integration reference.",
+      "tags": ["pms", "dentrix"],
+      "promptRole": "none",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "software.eaglesoft",
+      "path": "knowledge/software/eaglesoft.md",
+      "category": "software",
+      "title": "Eaglesoft",
+      "description": "Eaglesoft integration reference.",
+      "tags": ["pms", "eaglesoft"],
+      "promptRole": "none",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "software.carestack",
+      "path": "knowledge/software/carestack.md",
+      "category": "software",
+      "title": "CareStack",
+      "description": "CareStack integration reference.",
+      "tags": ["pms", "carestack"],
+      "promptRole": "none",
+      "includeInDefaultPrompt": false
+    },
+    {
+      "id": "call-flows.new-patient",
+      "path": "knowledge/call-flows/new-patient.md",
+      "category": "call-flows",
+      "title": "New Patient Call Flow",
+      "description": "New patient intake script, state machine, and required summary fields.",
+      "tags": ["call-flow", "new-patient"],
+      "promptRole": "call-flow",
+      "includeInDefaultPrompt": false,
+      "source": "docs/CALL_FLOWS.md#new-patient-call-flow"
+    }
+  ],
+  "persona": {
+    "path": "voice/persona.json",
+    "description": "Structured Aly persona definition — tone, phrases, and constraints."
+  },
+  "intentBundles": {
+    "NEW_PATIENT": {
+      "callFlow": "call-flows.new-patient",
+      "regional": ["michigan.new-patient-regional"],
+      "supplemental": []
+    },
+    "EMERGENCY": {
+      "callFlow": null,
+      "regional": [
+        "michigan.regional-overview",
+        "michigan.emergency-routing"
+      ],
+      "supplemental": [
+        "dentistry.emergencies",
+        "scheduling.emergency-scheduling"
+      ]
+    },
+    "SCHEDULE_EXISTING": {
+      "callFlow": null,
+      "regional": ["michigan.regional-overview"],
+      "supplemental": [
+        "scheduling.appointment-types",
+        "scheduling.hygiene-and-recall",
+        "dentistry.procedures"
+      ]
+    }
+  },
+  "promptAssemblyOrder": [
+    "guardrails",
+    "persona",
+    "regional",
+    "practice",
+    "supplemental",
+    "call-flow"
+  ],
+  "promptContextBudget": {
+    "maxCharacters": 12000,
+    "description": "Target max compiled prompt context size for Phase 1A live-call assembly."
+  }
+}

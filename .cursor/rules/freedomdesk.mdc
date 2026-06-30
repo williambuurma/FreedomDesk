@@ -1,0 +1,75 @@
+---
+description: FreedomDesk West Michigan context, domain rules, and engineering standards
+alwaysApply: true
+---
+
+# FreedomDesk
+
+AI phone front desk for **West Michigan independent private dental practices** — built by Dr. William Buurma DDS (practicing GP, Michigan). Answers calls, collects structured intake, triages emergencies, delivers PMS-ready summaries. **Supports** the front desk; never replaces clinical judgment.
+
+**Read first:** `docs/FREEDOMDESK_CONTEXT.md` → `docs/DENTAL_WORKFLOWS.md` → `docs/CALL_FLOWS.md` → `docs/ARCHITECTURE.md`
+
+## Target Practice (Grand Rapids profile)
+
+- 1–3 GP dentists, 4–8 operatories, 2–4 hygienists, 1–3 front desk
+- High call volume 8–9 AM and 4–5 PM; significant after-hours emergencies
+- PMS priority: **Open Dental** → Eaglesoft → Dentrix → CareStack
+
+## Insurance Priority (West Michigan)
+
+Always classify to program level — never treat "Delta" as one plan:
+
+1. Delta Dental **PPO** (employer)
+2. Delta Dental **Medicaid**
+3. **Healthy Kids Dental** (HKD)
+4. **Michigan Medicaid** (adult)
+5. Other **PPO** (BCBS MI, Cigna, MetLife, etc.)
+6. **Cash-pay** / no insurance
+
+**Never** promise coverage, quote fees/balances, or state remaining benefits.
+
+## Workflows to Master
+
+New patient · same-day emergency · hygiene recall · crown seat · root canal · extraction · implant consult · denture (consult/impression/delivery/reline) · pediatric/HKD · insurance intake · demographics update · confirm · cancel/reschedule · waitlist
+
+## Non-Negotiables
+
+### Clinical
+- **Never** diagnose, prescribe, or guarantee treatment/insurance outcomes
+- Triage symptoms; route per office protocol; ER/911 for life-threatening
+
+### Voice ("Aly" — `voice/persona.json`)
+- Calm, Midwest-friendly, professional; short responses
+- **Never** identify as AI
+
+### Design principle
+**Minimize front desk rework.** Collect complete, typed data on the phone. Summaries map to Open Dental comm logs — not paragraphs to re-type.
+
+### HIPAA
+- No PHI in logs; secrets server-side only; BAA-covered vendors
+
+## Call Summary Rules
+
+Structured JSON per `docs/CALL_FLOWS.md`. Required by intent:
+
+| Intent | Must include |
+|--------|--------------|
+| New patient | name, phone, DOB, insurance taxonomy, chief complaint, appointment preference |
+| Treatment | `appointment.type` (crown seat, RCT, extraction, etc.) — not generic "appointment" |
+| Emergency | symptoms, swelling/fever, urgency, sameDayEmergency flag, routing |
+| Pediatric | child name/DOB, guardian, HKD/Medicaid ID if applicable |
+| Waitlist | appointmentType, flexibility |
+| Demographics | fields to update |
+
+## Code Standards
+
+- Minimize scope; validate at boundaries (`validateLead` → `normalizeLead` pattern)
+- No PHI in logs; no empty catch blocks
+- Practice-configurable over hard-coded; default to appointment **request** until PMS validated
+
+## When Building
+
+1. `docs/ROADMAP.md` — phase scope
+2. `docs/DENTAL_WORKFLOWS.md` — operational truth
+3. `docs/PRACTICE_MANAGEMENT_SOFTWARE.md` — Open Dental first
+4. Prefer implementation that reduces front desk clicks over shaving call seconds

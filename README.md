@@ -1,125 +1,221 @@
-# FreedomDesk by Buurma AI
+# FreedomDesk
 
-Landing page and lead capture funnel for **FreedomDesk** — the trusted front desk layer for independent dental practices.
+**The AI front desk layer for independent dental practices in West Michigan.**
 
-## Deploy to production (Vercel)
+FreedomDesk answers phone calls, gathers the information your office needs, and delivers organized call summaries so your team can stay focused on patients in the chair. Built by **Dr. William Buurma DDS**, a practicing general dentist in Michigan — not as a replacement for your front desk, but as calm, reliable phone coverage that captures opportunities and protects patient experience.
 
-For a public HTTPS URL with environment variables and the lead API:
+**Primary market:** Grand Rapids metro and West Michigan independent general dentistry (1–3 doctors, 4–8 operatories, Open Dental–first). See [docs/FREEDOMDESK_CONTEXT.md](docs/FREEDOMDESK_CONTEXT.md).
 
-**→ See [DEPLOY.md](DEPLOY.md) for full beginner step-by-step instructions.**
+---
 
-Quick summary:
-1. Push this folder to GitHub
-2. Import the repo at [vercel.com/new](https://vercel.com/new)
-3. Add environment variables from `.env.example`
-4. Deploy — you get `https://your-project.vercel.app` with HTTPS automatically
+## What FreedomDesk Does
 
-## Run locally
+| Capability | Description |
+|------------|-------------|
+| **New patient intake** | Collects demographics, insurance, chief complaint, and scheduling preferences; delivers structured summaries for front desk follow-up |
+| **Existing patient requests** | Reschedule, cancel, confirm, billing questions, prescription refills (routing only), general office inquiries |
+| **After-hours coverage** | Answers when the office is closed; captures messages; triages urgent dental emergencies per office rules |
+| **Emergency triage** | Symptom screening without diagnosis; flags urgency; routes to on-call dentist or urgent care guidance |
+| **Call summaries** | Every call ends with an organized summary delivered to the practice (email, SMS, PMS task, or dashboard — per integration tier) |
+| **Treatment scheduling** | Crown seat, root canal, extraction, implant consult, denture stages — typed summaries, not generic "appointment" |
+| **West Michigan insurance** | Delta Dental PPO, Delta Dental Medicaid, Healthy Kids Dental, Michigan Medicaid, PPO, cash-pay — program-level classification |
+| **PMS integration** | Open Dental (priority), Eaglesoft, Dentrix, CareStack |
 
-### Static only (no lead storage)
+---
 
-```bash
-cd Apps/DentalReceptionistAI
-python3 -m http.server 5500
+## Documentation Index
+
+This repository is the **FreedomDesk knowledge base and marketing site**. Before writing code or designing call flows, read these documents in order:
+
+| Document | Audience | Purpose |
+|----------|----------|---------|
+| [docs/FREEDOMDESK_CONTEXT.md](docs/FREEDOMDESK_CONTEXT.md) | Everyone | Product vision, personas, principles, HIPAA posture, competitive positioning |
+| [docs/DENTAL_WORKFLOWS.md](docs/DENTAL_WORKFLOWS.md) | Engineers + dental consultants | How private dental practices actually operate — scheduling, insurance, emergencies, communication |
+| [docs/PRACTICE_MANAGEMENT_SOFTWARE.md](docs/PRACTICE_MANAGEMENT_SOFTWARE.md) | Integration engineers | Open Dental, Eaglesoft, Dentrix, CareStack — APIs, data models, integration patterns |
+| [docs/CALL_FLOWS.md](docs/CALL_FLOWS.md) | Voice/AI engineers + consultants | Canonical call scripts, decision trees, triage rules, summary schemas |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Senior engineers | System architecture, security, data flows, coding standards |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Product + engineering | Phased delivery plan from marketing site to full production platform |
+| [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integration engineers | Third-party services (telephony, voice, email, CRM, PMS connectors) |
+| [DEPLOY.md](DEPLOY.md) | DevOps | Vercel deployment for the marketing site and lead API |
+
+---
+
+## Repository Structure
+
+```
+FreedomDesk/
+├── index.html              # Marketing landing page
+├── styles.css              # Design system
+├── script.js               # UI, form validation, lead submission
+├── demo-player.js          # Interactive demo call player
+├── voice/
+│   └── persona.json        # Voice agent persona ("Aly") — tone, phrases, constraints
+├── audio/                  # Demo call recordings + manifest.json
+├── server/                 # Express API (local dev)
+│   ├── index.js
+│   └── leads-handler.js
+├── api/
+│   └── leads.js            # Vercel serverless entry for POST /api/leads
+├── supabase/
+│   └── leads.sql           # Lead capture table schema
+├── scripts/                # Audio generation, alignment utilities
+└── docs/                   # Knowledge base (start here)
 ```
 
-Form submissions will fail without the API server.
+---
+
+## Current State (Phase 0)
+
+The repository today ships:
+
+1. **Marketing site** — product positioning, pricing, founder story, demo audio player
+2. **Lead capture API** — `POST /api/leads` stores demo requests in Supabase/Airtable and sends confirmation email via Resend
+3. **Demo audio** — three sample scenarios (new patient, weekend toothache, broken tooth) with voice persona defined in `voice/persona.json`
+4. **Knowledge base** — comprehensive docs for building the full platform
+
+The **production AI phone system** (telephony, real-time voice, PMS write-back, per-practice configuration) is defined in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ROADMAP.md](docs/ROADMAP.md) and is not yet implemented in this repo.
+
+---
+
+## Quick Start (Developers)
+
+### Prerequisites
+
+- Node.js 18+
+- Python 3.10+ (optional — demo audio scripts)
+- Supabase project (optional — lead storage)
+- Resend account (optional — confirmation emails)
 
 ### Full stack (recommended)
 
 ```bash
-cd Apps/DentalReceptionistAI/server
+cd server
 npm install
 cp ../.env.example ../.env
-# Edit ../.env with your Supabase / Airtable / Resend keys
+# Edit ../.env with Supabase / Airtable / Resend keys
 npm start
 ```
 
 Open http://127.0.0.1:5500
 
-The Express server serves the static site and handles `POST /api/leads`.
+The Express server serves static assets and handles `POST /api/leads`.
 
-## Lead capture flow
+### Static only (no lead storage)
 
-All **Try it free** and **Start free trial** buttons open a premium onboarding modal that collects:
+```bash
+python3 -m http.server 5500
+```
 
-- Full name
-- Practice name
-- Email
-- Phone number
-- Practice management software
-- Number of locations
-- Estimated monthly call volume
+Form submissions will fail without the API server.
 
-After submission:
+---
 
-1. Lead is stored in **Supabase** and/or **Airtable**
-2. Confirmation email is sent via **Resend**
-3. Your team receives an internal notification
-4. User sees a premium success screen
-
-## Environment variables
+## Environment Variables
 
 Copy `.env.example` to `.env` in the project root.
 
 | Variable | Purpose |
 |----------|---------|
+| `PORT` | Local server port (default `5500`) |
+| `NODE_ENV` | `development` or `production` |
 | `LEADS_PROVIDER` | `supabase`, `airtable`, or `both` |
 | `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_KEY` | Service role key (server-side only) |
+| `SUPABASE_SERVICE_KEY` | Service role key (server-side only — never expose to client) |
+| `SUPABASE_TABLE` | Table name (default `leads`) |
 | `AIRTABLE_API_KEY` | Airtable personal access token |
 | `AIRTABLE_BASE_ID` | Airtable base ID |
-| `RESEND_API_KEY` | Resend API key for confirmation emails |
-| `FROM_EMAIL` | Sender address (verified domain in Resend) |
+| `AIRTABLE_TABLE` | Table name (default `Leads`) |
+| `RESEND_API_KEY` | Resend API key for transactional email |
+| `FROM_EMAIL` | Verified sender address |
+| `REPLY_TO_EMAIL` | Reply-to address for lead confirmations |
 | `NOTIFY_EMAIL` | Internal team notification inbox |
+| `ALLOWED_ORIGIN` | CORS origin (default `*`) |
 
-## Supabase setup
+---
 
-1. Create a new Supabase project
-2. Run `supabase/leads.sql` in the SQL editor
-3. Add `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` to `.env`
+## Lead Capture Flow
 
-## Airtable setup
+All **Request a Demo** CTAs open a form that collects:
 
-Create a table named **Leads** with columns:
+- Full name
+- Practice name
+- Work email
+- Phone number
+- Practice management software (Dentrix, Open Dental, Eaglesoft, Curve, CareStack, Other)
+- Number of locations
+- Estimated monthly call volume
 
-- Full Name (text)
-- Practice Name (text)
-- Email (email)
-- Phone (phone)
-- Practice Software (single select)
-- Locations (single select)
-- Call Volume (single select)
-- Source (text)
-- Submitted At (date)
+After submission:
 
-## Deploy
+1. Lead stored in **Supabase** and/or **Airtable**
+2. Confirmation email sent via **Resend**
+3. Internal notification to `NOTIFY_EMAIL`
+4. User sees success confirmation
 
-### Vercel
+---
 
-Deploy the repo root. `vercel.json` routes `/api/leads` to the serverless function.
+## Demo Audio
 
-Add all environment variables in the Vercel dashboard.
+Sample calls live in `audio/` with metadata in `audio/manifest.json`:
 
-### Other hosts
+| Scenario ID | Title | Purpose |
+|-------------|-------|---------|
+| `new-patient-exam` | New Patient | Intake + insurance + scheduling offer |
+| `toothache` | Weekend Toothache | After-hours urgent triage |
+| `brokentooth` | Broken Tooth | Trauma intake + same-day urgency |
 
-Run `server/index.js` on Railway, Render, Fly.io, or similar. Point your domain to the Node server.
-
-## Demo audio
-
-Sample calls use generated audio in `audio/`. Regenerate on macOS:
+Voice direction is defined in `voice/persona.json`. Regenerate dev timing audio on macOS:
 
 ```bash
 python3 scripts/generate_demo_audio.py
 ```
 
-## Files
+For production-quality voice, use recorded audio or a natural TTS provider (ElevenLabs, PlayHT, etc.).
 
-- `index.html` — page structure, onboarding modal
-- `styles.css` — FreedomDesk design system
-- `script.js` — UI, form validation, API submission
-- `demo-player.js` — interactive audio demo player
-- `audio/` — demo call audio + manifest
-- `server/` — Express API + lead handler
-- `api/leads.js` — Vercel serverless entry
-- `supabase/leads.sql` — database schema
+---
+
+## Pricing (Product)
+
+| Tier | Price | Includes |
+|------|-------|----------|
+| **FreedomDesk** | $699/month per location | New patient, existing patient, after-hours, emergency triage, call summaries |
+| **FreedomDesk Custom** | $1,299/month per location | Everything above + office-specific workflows, custom scheduling rules, custom summary fields |
+
+Setup included. Month-to-month. No long-term contract.
+
+---
+
+## Engineering Principles
+
+When contributing to FreedomDesk, internalize these non-negotiables:
+
+1. **Support the front desk, never replace clinical judgment.** FreedomDesk gathers information and routes; it does not diagnose, prescribe, or guarantee coverage.
+2. **HIPAA by design.** PHI flows through BAA-covered vendors only. Minimize retention. Encrypt in transit and at rest. Audit everything that touches patient data.
+3. **Practice-configurable.** Every office handles calls differently. Hard-coded workflows fail in production.
+4. **PMS-aware.** Scheduling language, patient lookup, and write-back must respect each practice management system's data model and API constraints.
+5. **Sound human.** The voice agent ("Aly") is a calm, experienced front desk coordinator — not a robot, not a chatbot, not an "AI assistant."
+
+Full standards: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [.cursor/rules/freedomdesk.mdc](.cursor/rules/freedomdesk.mdc).
+
+---
+
+## Deploy to Production
+
+**→ See [DEPLOY.md](DEPLOY.md) for full Vercel deployment instructions.**
+
+Quick summary:
+
+1. Push to GitHub
+2. Import at [vercel.com/new](https://vercel.com/new)
+3. Add environment variables from `.env.example`
+4. Deploy — `vercel.json` routes `/api/leads` to the serverless function
+
+---
+
+## Company
+
+**FreedomDesk** by [Buurma AI](https://buurma.ai)
+
+Founder: **Dr. William Buurma DDS** — practicing dentist, Michigan
+
+© 2026 FreedomDesk

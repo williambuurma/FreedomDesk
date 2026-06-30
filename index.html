@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Keep your front desk focused while FreedomDesk handles the phones. Calm call coverage for routine calls, new patients, and after-hours emergencies at private dental practices." />
   <title>FreedomDesk — Phone Support for Dental Offices</title>
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -187,7 +191,7 @@
                 <span class="demo-select-title">Weekend Toothache</span>
                 <span class="demo-select-desc">After-hours dental concern</span>
               </button>
-              <button type="button" class="demo-tab demo-select-card" role="tab" id="hear-tab-broken-tooth" aria-selected="false" aria-controls="hear-panel-broken-tooth" data-demo-tab="broken-tooth" tabindex="-1">
+              <button type="button" class="demo-tab demo-select-card" role="tab" id="hear-tab-broken-tooth" aria-selected="false" aria-controls="hear-panel-broken-tooth" data-demo-tab="brokentooth" tabindex="-1">
                 <span class="demo-select-title">Broken Tooth</span>
                 <span class="demo-select-desc">Urgent restorative issue</span>
               </button>
@@ -213,18 +217,18 @@
                         </button>
                         <div class="demo-card-player-body">
                           <div class="demo-card-progress-wrap">
-                            <div class="demo-card-progress" role="slider" tabindex="0" aria-label="New Patient playback timeline" aria-valuemin="0" aria-valuemax="175" aria-valuenow="0" aria-valuetext="0:00">
+                            <div class="demo-card-progress" role="slider" tabindex="0" aria-label="New Patient playback timeline" aria-valuemin="0" aria-valuemax="171" aria-valuenow="0" aria-valuetext="0:00">
                               <div class="demo-card-progress-rail">
                                 <span class="demo-card-progress-bar"></span>
                               </div>
                               <span class="demo-card-progress-handle" aria-hidden="true"></span>
                             </div>
-                            <span class="demo-card-time">0:00 / 0:00</span>
+                            <span class="demo-card-time">0:00 / 2:50</span>
                           </div>
                         </div>
                       </div>
                       <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
-                      <audio preload="metadata" src="audio/New%20Patient/New%20Patient.mp3"></audio>
+                      <audio preload="metadata" src="audio/New%20Patient/New%20Patient.flac"></audio>
                     </div>
                     <div class="demo-stage-summary">
                       <div class="patient-summary patient-summary--end" aria-label="Patient summary for New Patient">
@@ -240,7 +244,7 @@
                           </div>
                           <div class="patient-summary-item patient-summary-item--concern">
                             <dt>Chief Concern</dt>
-                            <dd>Interested in establishing care and scheduling a new patient exam and cleaning.</dd>
+                            <dd>Routine exam and cleaning; also interested in cosmetic smile options.</dd>
                           </div>
                           <div class="patient-summary-item">
                             <dt>New or Existing Patient</dt>
@@ -252,11 +256,11 @@
                           </div>
                           <div class="patient-summary-item patient-summary-item--wide">
                             <dt>Requested Appointment</dt>
-                            <dd>Monday, June 10 — 4:00 PM with Dr. Buurma; hygiene at 5:00 PM</dd>
+                            <dd>Monday, June 10 — 4:00 PM with Dr. Buurma; hygiene immediately after</dd>
                           </div>
                           <div class="patient-summary-item">
                             <dt>Preferred Callback Time</dt>
-                            <dd>Weekday afternoons</dd>
+                            <dd>Not collected</dd>
                           </div>
                           <div class="patient-summary-item patient-summary-item--outcome">
                             <dt>Call Outcome</dt>
@@ -347,8 +351,8 @@
                 </article>
               </div>
 
-              <div class="demo-tab-panel" role="tabpanel" id="hear-panel-broken-tooth" aria-labelledby="hear-tab-broken-tooth" data-demo-panel="broken-tooth" hidden>
-                <article class="proof-card demo-card" data-demo="broken-tooth">
+              <div class="demo-tab-panel" role="tabpanel" id="hear-panel-broken-tooth" aria-labelledby="hear-tab-broken-tooth" data-demo-panel="brokentooth" hidden>
+                <article class="proof-card demo-card" data-demo="brokentooth">
                   <h3 class="proof-card-title proof-card-title--hidden">Demo: Broken Tooth</h3>
                   <div class="demo-stage">
                     <div class="demo-stage-conversation">
@@ -367,18 +371,18 @@
                         </button>
                         <div class="demo-card-player-body">
                           <div class="demo-card-progress-wrap">
-                            <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Broken Tooth playback timeline" aria-valuemin="0" aria-valuemax="110" aria-valuenow="0" aria-valuetext="0:00">
+                            <div class="demo-card-progress" role="slider" tabindex="0" aria-label="Broken Tooth playback timeline" aria-valuemin="0" aria-valuemax="85" aria-valuenow="0" aria-valuetext="0:00">
                               <div class="demo-card-progress-rail">
                                 <span class="demo-card-progress-bar"></span>
                               </div>
                               <span class="demo-card-progress-handle" aria-hidden="true"></span>
                             </div>
-                            <span class="demo-card-time">0:00 / 0:00</span>
+                            <span class="demo-card-time">0:00 / 1:25</span>
                           </div>
                         </div>
                       </div>
                       <div class="demo-card-transcript chat-transcript" aria-live="polite"></div>
-                      <audio preload="metadata"></audio>
+                      <audio preload="metadata" src="audio/Broken%20Tooth/Broken-Tooth.mp3"></audio>
                     </div>
                     <div class="demo-stage-summary">
                       <div class="patient-summary patient-summary--end" aria-label="Patient summary for Broken Tooth">
@@ -386,31 +390,31 @@
                         <dl class="patient-summary-list">
                           <div class="patient-summary-item patient-summary-item--high">
                             <dt>Patient Name</dt>
-                            <dd class="patient-summary-not-collected">Not collected</dd>
+                            <dd>Raj Patel</dd>
                           </div>
                           <div class="patient-summary-item patient-summary-item--high">
                             <dt>Phone Number</dt>
-                            <dd class="patient-summary-not-collected">Not collected</dd>
+                            <dd>Not collected</dd>
                           </div>
                           <div class="patient-summary-item patient-summary-item--concern">
                             <dt>Chief Concern</dt>
-                            <dd>Chipped front tooth with mild sensitivity; wants same-day evaluation.</dd>
+                            <dd>Broken upper right posterior tooth with mild sensitivity (2/10).</dd>
                           </div>
                           <div class="patient-summary-item">
                             <dt>New or Existing Patient</dt>
-                            <dd>Not confirmed</dd>
+                            <dd>Existing Patient</dd>
                           </div>
                           <div class="patient-summary-item">
                             <dt>Insurance Information</dt>
-                            <dd class="patient-summary-not-collected">Not collected</dd>
+                            <dd>Not collected</dd>
                           </div>
                           <div class="patient-summary-item patient-summary-item--wide">
                             <dt>Requested Appointment</dt>
-                            <dd>Same day — lunch hour preferred</dd>
+                            <dd>Tomorrow at 2:00 PM</dd>
                           </div>
                           <div class="patient-summary-item">
                             <dt>Preferred Callback Time</dt>
-                            <dd>Same day — lunch hour</dd>
+                            <dd>Not collected</dd>
                           </div>
                           <div class="patient-summary-item patient-summary-item--outcome">
                             <dt>Call Outcome</dt>

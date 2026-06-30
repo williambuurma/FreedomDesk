@@ -2,16 +2,17 @@
   "audioAvailable": true,
   "new-patient-exam": {
     "title": "New Patient",
-    "duration": 174.759,
+    "duration": 170.606,
     "file": "audio/New Patient/New Patient.flac"
   },
   "toothache": {
     "title": "Weekend Toothache",
-    "duration": 110.368,
+    "duration": 110.367,
     "file": "audio/Weekend Toothache/Toothache.mp3"
   },
-  "broken-tooth": {
+  "brokentooth": {
     "title": "Broken Tooth",
-    "audioAvailable": false
+    "duration": 85.238,
+    "file": "audio/Broken Tooth/Broken-Tooth.mp3"
   }
 }

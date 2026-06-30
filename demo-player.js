@@ -2,11 +2,12 @@
   // Nudge all bubble timings for a demo (+ = later, − = earlier)
   const newPatientOffset = 0;
   const toothacheOffset = 0;
+  const brokentoothOffset = 0;
 
   const DEMO_OFFSETS = {
     "new-patient-exam": newPatientOffset,
     toothache: toothacheOffset,
-    "broken-tooth": 0,
+    brokentooth: brokentoothOffset,
   };
 
   // Manual full-turn transcripts — edit start times here
@@ -29,7 +30,7 @@
       },
       {
         speaker: "aly",
-        start: 16.45,
+        start: 19.65,
         text: "Our front desk team is busy helping patients in the office right now, but I can get everything started for you and send your appointment request over for review.",
       },
       {
@@ -54,22 +55,22 @@
       },
       {
         speaker: "aly",
-        start: 48.55,
+        start: 48.53,
         text: "And what are you hoping to do during this appointment? Just a routine exam and cleaning?",
       },
       {
         speaker: "aly",
-        start: 53.01,
+        start: 51.01,
         text: "Or is there anything specific you'd like the doctor to take a look at?",
       },
       {
         speaker: "patient",
-        start: 57.45,
+        start: 61.65,
         text: "Mostly a cleaning and check-up. I'm also wondering if there's anything we can do to make my smile better because I'm a sales rep and first impressions are everything for my job.",
       },
       {
         speaker: "aly",
-        start: 67.3,
+        start: 70.13,
         text: "Got it. I'll make a note for the doctor. Our doctors take pride in creating beautiful smiles for our patient family.",
       },
       {
@@ -89,7 +90,7 @@
       },
       {
         speaker: "patient",
-        start: 79.88,
+        start: 78.68,
         text: "DD48291.",
       },
       {
@@ -109,17 +110,17 @@
       },
       {
         speaker: "patient",
-        start: 100.47,
+        start: 100.77,
         text: "Ah, I can't make that time.",
       },
       {
         speaker: "patient",
-        start: 102.32,
+        start: 100.92,
         text: "What about Monday?",
       },
       {
         speaker: "aly",
-        start: 104.89,
+        start: 109.89,
         text: "Let me take a look. I have an opening at 4pm on Monday June 10th with Dr. Buurma and we will be able to move you over to Hygiene right after. Would you like me to request 4pm?",
       },
       {
@@ -154,7 +155,7 @@
       },
       {
         speaker: "aly",
-        start: 138.67,
+        start: 145.17,
         text: "One more thing. Once your request is reviewed, you'll receive new patient forms electronically. Please fill it out 24 hours ahead of time for our staff to update your patient chart.",
       },
       {
@@ -201,125 +202,220 @@
       },
       {
         speaker: "patient",
-        start: 4.76,
+        start: 4.77,
         text: "Hey, I have an awful toothache that's kept me up all night. Are you open?",
       },
       {
         speaker: "aly",
-        start: 10.18,
+        start: 10.13,
         text: "I'm sorry to hear that. Unfortunately, our office is closed until Monday morning.",
       },
       {
         speaker: "aly",
-        start: 14.9,
+        start: 15.01,
         text: "But we do have an on-call team that reviews urgent situations like this, and someone will follow up with you as soon as possible.",
       },
       {
         speaker: "aly",
-        start: 21.98,
+        start: 21.97,
         text: "I'm going to gather a little information so I can pass it along to our on-call team. Let's start with your name and date of birth.",
       },
       {
         speaker: "patient",
-        start: 28.6,
+        start: 28.93,
         text: "My name is Finn Leo. My birthday is May 10, 1997.",
       },
       {
         speaker: "aly",
-        start: 34.0,
+        start: 33.97,
         text: "Perfect. What is a good phone number to reach you at?",
       },
       {
         speaker: "patient",
-        start: 37.0,
+        start: 37.41,
         text: "616-123-1356.",
       },
       {
         speaker: "aly",
-        start: 42.6,
+        start: 42.77,
         text: "Do you have dental insurance?",
       },
       {
         speaker: "patient",
-        start: 44.68,
+        start: 44.85,
         text: "Yeah, I have Delta Dental.",
       },
       {
         speaker: "aly",
-        start: 47.14,
+        start: 47.25,
         text: "Great. Thank you. Can you tell me where the pain is coming from and when it started?",
       },
       {
         speaker: "patient",
-        start: 52.24,
+        start: 52.37,
         text: "It's my bottom molar on the right side. I noticed it a couple days ago, but it's gotten worse today and it's starting to spread into my jaw.",
       },
       {
         speaker: "aly",
-        start: 60.34,
+        start: 60.61,
         text: "I'll make a note of that. On a scale from 1 to 10, how bad is it right now, and how bad was it at its worst?",
       },
       {
         speaker: "patient",
-        start: 67.86,
+        start: 66.37,
         text: "Before it was only a 1 or 2, but today it's climbed up to about a 6.",
       },
       {
         speaker: "aly",
-        start: 72.58,
+        start: 72.77,
         text: "Okay. Have you noticed any facial swelling, fever, or difficulty swallowing?",
       },
       {
         speaker: "patient",
-        start: 77.88,
+        start: 78.05,
         text: "No, I don't think so.",
       },
       {
         speaker: "aly",
-        start: 80.16,
+        start: 80.13,
         text: "Okay, that's good. I'm sending your information to the on-call team now.",
       },
       {
         speaker: "aly",
-        start: 84.22,
+        start: 84.77,
         text: "Keep your phone nearby because one of our staff members will be calling you shortly.",
       },
       {
         speaker: "aly",
-        start: 89.14,
+        start: 94.77,
         text: "If you develop difficulty swallowing, difficulty breathing, significant facial swelling, or feel like the swelling is spreading, please seek immediate medical attention or call 911.",
       },
       {
         speaker: "patient",
-        start: 100.84,
+        start: 100.85,
         text: "Okay, thank you so much. And what was your name again?",
       },
       {
         speaker: "aly",
-        start: 104.86,
+        start: 104.85,
         text: "My name is Aly. You're very welcome, Finn. Take care.",
       },
       {
         speaker: "patient",
-        start: 108.74,
+        start: 108.93,
         text: "Goodbye, Aly.",
       },
     ],
-    "broken-tooth": [
+    brokentooth: [
       {
         speaker: "aly",
-        start: 0,
+        start: 0.0,
         text: "Thank you for calling Buurma Family Dentistry. This is Aly. How can I help you today?",
       },
       {
         speaker: "patient",
-        start: 4,
-        text: "Hi, I chipped a front tooth and wanted to see if someone could take a look today.",
+        start: 3.97,
+        text: "Hi Aly, I broke my tooth last night. I think it was the one Dr. Buurma planned on fixing.",
       },
       {
         speaker: "aly",
-        start: 10,
-        text: "[Placeholder transcript — update timings when final audio is added.]",
+        start: 10.21,
+        text: "I'm sorry to hear that. Unfortunately, our practice is currently closed until tomorrow morning at 8 AM.",
+      },
+      {
+        speaker: "aly",
+        start: 17.17,
+        text: "But I can request an appointment for you and the front desk will review it in the morning.",
+      },
+      {
+        speaker: "aly",
+        start: 22.29,
+        text: "Can I start with your first and last name?",
+      },
+      {
+        speaker: "patient",
+        start: 25.01,
+        text: "My name is Raj Patel.",
+      },
+      {
+        speaker: "aly",
+        start: 27.33,
+        text: "Can you tell me where the broken tooth is?",
+      },
+      {
+        speaker: "patient",
+        start: 30.37,
+        text: "It's the tooth on the top, way in the back, on the right side.",
+      },
+      {
+        speaker: "aly",
+        start: 34.45,
+        text: "Are you in pain? On a scale between 0 and 10, with 10 being the worst, what would you grade it?",
+      },
+      {
+        speaker: "patient",
+        start: 42.61,
+        text: "Two out of 10. It doesn't hurt, but sometimes it's sensitive.",
+      },
+      {
+        speaker: "aly",
+        start: 47.49,
+        text: "Do you have any swelling or bleeding?",
+      },
+      {
+        speaker: "patient",
+        start: 49.49,
+        text: "I don't think so.",
+      },
+      {
+        speaker: "aly",
+        start: 51.49,
+        text: "Got it. I'll make a note for Dr. Buurma. Let me take a look at our schedule tomorrow.",
+      },
+      {
+        speaker: "aly",
+        start: 57.25,
+        text: "I see an opening at 2 PM. Does that work?",
+      },
+      {
+        speaker: "patient",
+        start: 60.93,
+        text: "Yes, I can do that.",
+      },
+      {
+        speaker: "aly",
+        start: 63.17,
+        text: "Perfect. I've submitted your request.",
+      },
+      {
+        speaker: "aly",
+        start: 65.97,
+        text: "Our front desk team will review it first thing in the morning and send a confirmation email.",
+      },
+      {
+        speaker: "aly",
+        start: 71.01,
+        text: "If any adjustments need to be made, they will reach out to you directly.",
+      },
+      {
+        speaker: "aly",
+        start: 75.49,
+        text: "Do you need to update any information before your appointment?",
+      },
+      {
+        speaker: "patient",
+        start: 78.93,
+        text: "No, nothing has changed. Thank you.",
+      },
+      {
+        speaker: "aly",
+        start: 81.81,
+        text: "You're very welcome. Bye Raj.",
+      },
+      {
+        speaker: "patient",
+        start: 84.13,
+        text: "Goodbye.",
       },
     ],
   };
@@ -343,17 +439,26 @@
     }
   }
 
+  function normalizeMediaUrl(url) {
+    if (!url) return "";
+    try {
+      return new URL(url, window.location.href).href;
+    } catch {
+      return url;
+    }
+  }
+
   function audioSourceMatches(audio, file) {
     if (!audio || !file) return false;
-    const target = resolveAudioUrl(file);
-    return audio.src === target || audio.currentSrc === target;
+    const target = normalizeMediaUrl(resolveAudioUrl(file));
+    const sources = [audio.getAttribute("src"), audio.src, audio.currentSrc].filter(Boolean);
+    return sources.some((src) => normalizeMediaUrl(src) === target);
   }
 
   function setAudioSource(audio, file) {
     if (!audio || !file) return;
-    const target = resolveAudioUrl(file);
     if (!audioSourceMatches(audio, file)) {
-      audio.src = target;
+      audio.src = file;
       audio.load();
     }
   }
@@ -546,6 +651,8 @@
 
     if (audio && meta.file) {
       audio.preload = "metadata";
+      audio.muted = false;
+      audio.volume = 1;
       setAudioSource(audio, meta.file);
     } else {
       console.warn(`FreedomDesk demo "${meta.title}": playback disabled (missing audio file).`);
@@ -885,6 +992,8 @@
       if (!audio) return;
 
       pauseOthers();
+      audio.muted = false;
+      audio.volume = 1;
       setAudioSource(audio, meta.file);
 
       if (audio.currentTime >= getDuration() - 0.05) {

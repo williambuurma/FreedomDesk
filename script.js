@@ -36,9 +36,38 @@
     navToggle.setAttribute("aria-expanded", open);
   });
 
+  function closeMobileNav() {
+    navLinks?.classList.remove("open");
+    navToggle?.setAttribute("aria-expanded", "false");
+  }
+
   navLinks?.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => navLinks.classList.remove("open"));
+    link.addEventListener("click", closeMobileNav);
   });
+
+  function initMobileAnchorScroll() {
+    const mobileQuery = window.matchMedia("(max-width: 768px)");
+
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+      const href = link.getAttribute("href");
+      if (!href || href === "#") return;
+
+      link.addEventListener("click", (event) => {
+        if (!mobileQuery.matches) return;
+
+        const target = document.querySelector(href);
+        if (!target) return;
+
+        event.preventDefault();
+        closeMobileNav();
+
+        const headerOffset =
+          parseInt(getComputedStyle(document.documentElement).getPropertyValue("--header-h"), 10) || 58;
+        const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - 14;
+        window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+      });
+    });
+  }
 
   function initReveal() {
     const els = document.querySelectorAll("[data-reveal]");
@@ -208,5 +237,55 @@
     }
   });
 
+  function initMobilePatientSummary() {
+    const mobileQuery = window.matchMedia("(max-width: 768px)");
+
+    function collapseSummary(summary) {
+      summary.classList.remove("is-expanded");
+      const toggle = summary.querySelector(".patient-summary-toggle");
+      if (toggle) {
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.textContent = "View Full Summary";
+      }
+    }
+
+    function collapseAllSummaries() {
+      if (!mobileQuery.matches) return;
+      document.querySelectorAll("#hear .patient-summary").forEach(collapseSummary);
+    }
+
+    function bindToggles() {
+      document.querySelectorAll("#hear .patient-summary-toggle").forEach((toggle) => {
+        if (toggle.dataset.bound === "true") return;
+        toggle.dataset.bound = "true";
+
+        toggle.addEventListener("click", () => {
+          if (!mobileQuery.matches) return;
+          const summary = toggle.closest(".patient-summary");
+          if (!summary) return;
+
+          const expanded = summary.classList.toggle("is-expanded");
+          toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+          toggle.textContent = expanded ? "Hide Full Summary" : "View Full Summary";
+        });
+      });
+    }
+
+    bindToggles();
+
+    document.querySelector("#hear .demo-tabs-list")?.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-demo-tab]")) return;
+      collapseAllSummaries();
+    });
+
+    mobileQuery.addEventListener("change", () => {
+      document.querySelectorAll("#hear .patient-summary").forEach((summary) => {
+        summary.classList.remove("is-expanded");
+      });
+    });
+  }
+
   initReveal();
+  initMobilePatientSummary();
+  initMobileAnchorScroll();
 })();

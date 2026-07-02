@@ -6,7 +6,7 @@
   "scripts": {
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
-    "test": "node --test src/engine/prompt-context-builder.test.js",
+    "test": "node --test src/engine/prompt-context-builder.test.js && node --experimental-strip-types --test src/conversation/psychology.test.ts",
     "context:new-patient": "node scripts/print-new-patient-context.js"
   },
   "devDependencies": {

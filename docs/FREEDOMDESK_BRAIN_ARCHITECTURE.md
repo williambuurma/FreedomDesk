@@ -524,6 +524,8 @@ FreedomDesk reasoning is modular: five specialized brains answer five classes of
 
 ## 9. Emotional Reasoning
 
+> **Full specification:** [`EMOTIONAL_INTELLIGENCE_ENGINE.md`](EMOTIONAL_INTELLIGENCE_ENGINE.md) — principles, emotion taxonomy, caller profiles, interaction disciplines, measurable goals, and scenario examples. This section summarizes Psychology Brain integration.
+
 Emotional reasoning is not decoration. It determines **order of operations** — what gets asked before what, and whether the caller can hear administrative questions at all.
 
 ### Why emotion is a first-class input
@@ -1446,6 +1448,7 @@ If a proposed change passes three lenses but fails one, fix the failure before s
 | Document | Relationship |
 |----------|--------------|
 | [`FREEDOMDESK_CONSTITUTION.md`](FREEDOMDESK_CONSTITUTION.md) | Highest authority; safety, truth, clinical boundaries |
+| [`EMOTIONAL_INTELLIGENCE_ENGINE.md`](EMOTIONAL_INTELLIGENCE_ENGINE.md) | Full emotional intelligence specification; Psychology Brain principles |
 | [`KNOWLEDGE_ENGINE.md`](KNOWLEDGE_ENGINE.md) | Declarative truth brains consume; not reasoning logic |
 | [`FREEDOMDESK_OFFICE_DNA.md`](FREEDOMDESK_OFFICE_DNA.md) | L3 practice profile; Business/Front Desk/Triage inputs |
 | [`FREEDOMDESK_CONTEXT.md`](FREEDOMDESK_CONTEXT.md) | Product and market context |

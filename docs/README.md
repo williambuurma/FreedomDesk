@@ -24,10 +24,22 @@ The canonical definition of practice-specific operating profiles (Layer 3 knowle
 
 The canonical reference for conversation intelligence. Governs how FreedomDesk reasons about patient calls — the five-brain model, conversation loop, and design rules for behaving like a careful dental team member rather than a keyword matcher or script reader.
 
-### 5. [VISION.md](../VISION.md)
+### 5. [EMOTIONAL_INTELLIGENCE_ENGINE.md](EMOTIONAL_INTELLIGENCE_ENGINE.md)
+
+The canonical reference for emotionally intelligent conversation. Governs how FreedomDesk perceives, reasons about, and adapts to caller emotion — principles, assessment dimensions, interaction disciplines, and measurable outcomes — without scripts or phrase libraries.
+
+### 6. [PRACTICE_OPERATING_SYSTEM.md](PRACTICE_OPERATING_SYSTEM.md)
+
+The founding architecture for FreedomDesk as an AI Chief of Staff — daily awareness, opportunity detection, role-specific success, recommendations, and practice-wide operational intelligence beyond individual calls.
+
+### 7. [CONTINUOUS_LEARNING_ENGINE.md](CONTINUOUS_LEARNING_ENGINE.md)
+
+The canonical reference for organizational learning. Governs how FreedomDesk improves from every interaction — pattern detection, practice memory, recommendation governance, human review, and improvement cycles — without machine learning training or autonomous behavior change.
+
+### 8. [VISION.md](../VISION.md)
 
 The product philosophy document. Governs why FreedomDesk exists and how it should feel on the phone — patients first, purposeful questions, reasoning from conversation state instead of scripting, and amplifying compassion rather than replacing it.
 
-### 6. [CALL_FLOWS.md](CALL_FLOWS.md)
+### 9. [CALL_FLOWS.md](CALL_FLOWS.md)
 
 The canonical phone conversation design. Governs per-intent call structure, triage rules, slot collection, decision trees, and structured summary schemas — optimized for West Michigan independent general dentistry and aligned with Open Dental-ready front-desk output.

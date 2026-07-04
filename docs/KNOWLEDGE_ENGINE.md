@@ -1456,6 +1456,7 @@ Violations: safety-rule/never-promise-coverage, safety-rule/never-promise-availa
 | Document | Relationship |
 |----------|--------------|
 | [`FREEDOMDESK_CONSTITUTION.md`](FREEDOMDESK_CONSTITUTION.md) | Highest authority; safety and truth principles |
+| [`EMOTIONAL_INTELLIGENCE_ENGINE.md`](EMOTIONAL_INTELLIGENCE_ENGINE.md) | L2 communication playbooks consumed by Psychology Brain |
 | [`FREEDOMDESK_BRAIN_ARCHITECTURE.md`](FREEDOMDESK_BRAIN_ARCHITECTURE.md) | How brains consume this engine |
 | [`VISION.md`](../VISION.md) | Reason from state; knowledge enables, does not script |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | `practice_configs`, multi-tenancy, config-service |

@@ -1,0 +1,618 @@
+{
+  "previewMode": true,
+  "generatedAt": "2026-07-04T15:08:43.691Z",
+  "recipientName": "Dr. Buurma",
+  "practiceName": "Cascade Family Dentistry",
+  "date": "2026-07-04",
+  "estimatedReadMinutes": 3,
+  "targetDeliveryAt": "2026-07-04T11:45:00.000Z",
+  "stewardshipNote": "Calls captured at 5calls — trending positively vs. baseline.",
+  "sections": [
+    {
+      "id": "overnight_calls",
+      "title": "Overnight calls",
+      "items": [
+        {
+          "id": "brief_call_call_overnight_001",
+          "summary": "emergency — urgent (same-day flag)",
+          "detail": "Appointment type: emergency_eval. Completeness: 100%.",
+          "confidence": 1,
+          "actionRequired": true,
+          "owner": "dentist"
+        },
+        {
+          "id": "brief_call_call_overnight_002",
+          "summary": "new patient — routine",
+          "detail": "Appointment type: new_patient_exam. Completeness: 95%.",
+          "confidence": 0.95,
+          "actionRequired": false,
+          "owner": "front_desk"
+        }
+      ],
+      "owner": "front_desk",
+      "priority": "critical"
+    },
+    {
+      "id": "emergent_followups",
+      "title": "Emergent follow-ups",
+      "items": [
+        {
+          "id": "brief_item_rec_1783177723690_11",
+          "summary": "Overnight urgent call requires on-call callback within 30 min SLA",
+          "detail": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
+          "confidence": 0.98,
+          "actionRequired": true,
+          "owner": "front_desk",
+          "relatedRecommendationId": "rec_1783177723690_11"
+        },
+        {
+          "id": "brief_item_rec_1783177723690_1",
+          "summary": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
+          "detail": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
+          "confidence": 0.95,
+          "actionRequired": true,
+          "owner": "front_desk",
+          "relatedRecommendationId": "rec_1783177723690_1"
+        }
+      ],
+      "owner": "front_desk",
+      "priority": "critical"
+    },
+    {
+      "id": "schedule_snapshot",
+      "title": "Today's schedule snapshot",
+      "items": [
+        {
+          "id": "brief_sched_count",
+          "summary": "3 appointments scheduled today across doctor and hygiene columns",
+          "actionRequired": false,
+          "owner": "front_desk"
+        },
+        {
+          "id": "brief_sched_open",
+          "summary": "3 open blocks available for squeeze-ins or waitlist fill",
+          "actionRequired": true,
+          "owner": "front_desk",
+          "confidence": 0.7,
+          "detail": "Schedule from mock data — PMS integration pending; verify before confirming."
+        },
+        {
+          "id": "brief_sched_cancel",
+          "summary": "1 cancellation(s) — recovery pipeline active",
+          "actionRequired": true,
+          "owner": "front_desk"
+        },
+        {
+          "id": "brief_lab_slot_doc_1000",
+          "summary": "Crown seat at 10:00 — confirm lab case status",
+          "actionRequired": true,
+          "owner": "assistant",
+          "confidence": 0.9
+        }
+      ],
+      "owner": "front_desk",
+      "priority": "high"
+    },
+    {
+      "id": "new_patients_today",
+      "title": "New patients today",
+      "items": [
+        {
+          "id": "brief_npe_slot_doc_0830",
+          "summary": "New patient exam at 08:30",
+          "detail": "Insurance: delta_dental_ppo. Emotional flags: highAnxiety.",
+          "confidence": 0.95,
+          "actionRequired": true,
+          "owner": "front_desk"
+        }
+      ],
+      "owner": "front_desk",
+      "priority": "high"
+    },
+    {
+      "id": "squeeze_in_capacity",
+      "title": "Same-day squeeze-in & production",
+      "items": [
+        {
+          "id": "brief_item_rec_1783177723690_2",
+          "summary": "Confirm lab case status before crown seat; assistant prep per Assistant Workflow DNA.",
+          "detail": "Treatment-specific typing on call reduces assistant surprise and chairside delay.",
+          "confidence": 0.91,
+          "actionRequired": false,
+          "owner": "assistant",
+          "relatedRecommendationId": "rec_1783177723690_2"
+        },
+        {
+          "id": "brief_item_rec_1783177723690_9",
+          "summary": "Offer open doctor block for treatment scheduling or same-day emergency squeeze-in.",
+          "detail": "Open doctor production time aligns with capacity optimization without inventing availability.",
+          "confidence": 0.72,
+          "actionRequired": false,
+          "owner": "front_desk",
+          "relatedRecommendationId": "rec_1783177723690_9"
+        },
+        {
+          "id": "brief_item_rec_1783177723690_10",
+          "summary": "Offer open doctor block for treatment scheduling or same-day emergency squeeze-in.",
+          "detail": "Open doctor production time aligns with capacity optimization without inventing availability.",
+          "confidence": 0.72,
+          "actionRequired": false,
+          "owner": "front_desk",
+          "relatedRecommendationId": "rec_1783177723690_10"
+        }
+      ],
+      "owner": "front_desk",
+      "priority": "medium"
+    },
+    {
+      "id": "recall_opportunities",
+      "title": "Recall opportunities on today's schedule",
+      "items": [
+        {
+          "id": "brief_recall_pat_ref_3312",
+          "summary": "prophy recall 45 days overdue — patient on schedule today",
+          "detail": "Discuss rebooking additional hygiene or perio maintenance while patient is in office.",
+          "actionRequired": true,
+          "owner": "hygiene_coordinator",
+          "confidence": 0.85
+        },
+        {
+          "id": "brief_recall_pat_ref_8890",
+          "summary": "perio_maintenance recall 30 days overdue — patient on schedule today",
+          "detail": "Discuss rebooking additional hygiene or perio maintenance while patient is in office.",
+          "actionRequired": true,
+          "owner": "hygiene_coordinator",
+          "confidence": 0.85
+        }
+      ],
+      "owner": "hygiene_coordinator",
+      "priority": "medium"
+    },
+    {
+      "id": "waitlist_cancellations",
+      "title": "Cancellation & waitlist actions",
+      "items": [
+        {
+          "id": "brief_item_rec_1783177723690_4",
+          "summary": "Contact waitlist candidates for cancellation recovery — 11:00 hygiene — sequential offer per Office DNA waitlist policy.",
+          "detail": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes.",
+          "confidence": 0.85,
+          "actionRequired": false,
+          "owner": "front_desk",
+          "relatedRecommendationId": "rec_1783177723690_4"
+        },
+        {
+          "id": "brief_item_rec_1783177723690_5",
+          "summary": "Contact waitlist candidates for waitlist match for cancelled hygiene slot — sequential offer per Office DNA waitlist policy.",
+          "detail": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes.",
+          "confidence": 0.82,
+          "actionRequired": false,
+          "owner": "front_desk",
+          "relatedRecommendationId": "rec_1783177723690_5"
+        },
+        {
+          "id": "brief_item_rec_1783177723690_7",
+          "summary": "Unfilled hygiene capacity — waitlist or recall candidate may fit 60-min prophy/perio.",
+          "detail": "Detected scheduling opportunity with evidence-backed confidence 75%.",
+          "confidence": 0.75,
+          "actionRequired": false,
+          "owner": "front_desk",
+          "relatedRecommendationId": "rec_1783177723690_7"
+        }
+      ],
+      "owner": "front_desk",
+      "priority": "medium"
+    },
+    {
+      "id": "retention_actions",
+      "title": "Retention opportunities",
+      "items": [
+        {
+          "id": "brief_item_rec_1783177723690_6",
+          "summary": "Hygiene coordinator outreach for severely overdue recall — welcoming reactivation intake, not lecturing (EIE embarrassment principles).",
+          "detail": "Recall overdue population drives long-term retention; caller embarrassment patterns require non-judgmental framing.",
+          "confidence": 0.78,
+          "actionRequired": false,
+          "owner": "hygiene_coordinator",
+          "relatedRecommendationId": "rec_1783177723690_6"
+        },
+        {
+          "id": "brief_item_rec_1783177723690_8",
+          "summary": "Hygiene coordinator outreach for severely overdue recall — welcoming reactivation intake, not lecturing (EIE embarrassment principles).",
+          "detail": "Recall overdue population drives long-term retention; caller embarrassment patterns require non-judgmental framing.",
+          "confidence": 0.74,
+          "actionRequired": false,
+          "owner": "front_desk",
+          "relatedRecommendationId": "rec_1783177723690_8"
+        }
+      ],
+      "owner": "hygiene_coordinator",
+      "priority": "medium"
+    },
+    {
+      "id": "alerts",
+      "title": "Alerts",
+      "items": [
+        {
+          "id": "brief_alert_risk_emerg_call_overnight_001",
+          "summary": "Overnight urgent call requires on-call callback within 30 min SLA",
+          "actionRequired": true,
+          "owner": "front_desk",
+          "confidence": 0.9
+        },
+        {
+          "id": "brief_dna_freshness",
+          "summary": "Office DNA last validated 45 days ago — review recommended",
+          "actionRequired": false,
+          "owner": "office_manager",
+          "confidence": 0.95
+        }
+      ],
+      "owner": "office_manager",
+      "priority": "high"
+    },
+    {
+      "id": "yesterday_highlight",
+      "title": "Stewardship highlight",
+      "items": [
+        {
+          "id": "brief_stewardship",
+          "summary": "Calls captured at 5calls — trending positively vs. baseline.",
+          "actionRequired": false,
+          "owner": "office_manager"
+        }
+      ],
+      "owner": "office_manager",
+      "priority": "low"
+    }
+  ],
+  "topRecommendations": [
+    {
+      "id": "rec_1783177723690_11",
+      "recommendation": "Overnight urgent call requires on-call callback within 30 min SLA",
+      "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
+      "priority": "critical",
+      "category": "emergency",
+      "owner": "front_desk",
+      "confidence": 0.98,
+      "expectedOutcome": "On-call SLA met; patient receives timely callback"
+    },
+    {
+      "id": "rec_1783177723690_1",
+      "recommendation": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
+      "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
+      "priority": "critical",
+      "category": "emergency",
+      "owner": "front_desk",
+      "confidence": 0.95,
+      "expectedOutcome": "Same-day urgent care scheduled; on-call SLA met; patient safety preserved"
+    },
+    {
+      "id": "rec_1783177723690_3",
+      "recommendation": "Verify insurance benefits before NPE arrival; note emotional flags for clinical prep.",
+      "reason": "New patient first impression depends on honest insurance handling and anxiety-aware prep — Constitution truth before efficiency.",
+      "priority": "medium",
+      "category": "patient_experience",
+      "owner": "front_desk",
+      "confidence": 0.88,
+      "expectedOutcome": "New patient visit prepared with verified insurance and emotional context flags"
+    },
+    {
+      "id": "rec_1783177723690_4",
+      "recommendation": "Contact waitlist candidates for cancellation recovery — 11:00 hygiene — sequential offer per Office DNA waitlist policy.",
+      "reason": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes.",
+      "priority": "medium",
+      "category": "schedule",
+      "owner": "front_desk",
+      "confidence": 0.85,
+      "expectedOutcome": "Schedule value reclaimed from cancellation"
+    },
+    {
+      "id": "rec_1783177723690_5",
+      "recommendation": "Contact waitlist candidates for waitlist match for cancelled hygiene slot — sequential offer per Office DNA waitlist policy.",
+      "reason": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes.",
+      "priority": "medium",
+      "category": "schedule",
+      "owner": "front_desk",
+      "confidence": 0.82,
+      "expectedOutcome": "Cancelled slot filled within 72h; cancellation fill rate improved"
+    },
+    {
+      "id": "rec_1783177723690_7",
+      "recommendation": "Unfilled hygiene capacity — waitlist or recall candidate may fit 60-min prophy/perio.",
+      "reason": "Detected scheduling opportunity with evidence-backed confidence 75%.",
+      "priority": "medium",
+      "category": "schedule",
+      "owner": "front_desk",
+      "confidence": 0.75,
+      "expectedOutcome": "Fill open chair time; reduce unfilled hygiene/doctor blocks"
+    },
+    {
+      "id": "rec_1783177723690_2",
+      "recommendation": "Confirm lab case status before crown seat; assistant prep per Assistant Workflow DNA.",
+      "reason": "Treatment-specific typing on call reduces assistant surprise and chairside delay.",
+      "priority": "medium",
+      "category": "production",
+      "owner": "assistant",
+      "confidence": 0.91,
+      "expectedOutcome": "Capture treatment production in open doctor column"
+    },
+    {
+      "id": "rec_1783177723690_6",
+      "recommendation": "Hygiene coordinator outreach for severely overdue recall — welcoming reactivation intake, not lecturing (EIE embarrassment principles).",
+      "reason": "Recall overdue population drives long-term retention; caller embarrassment patterns require non-judgmental framing.",
+      "priority": "medium",
+      "category": "retention",
+      "owner": "hygiene_coordinator",
+      "confidence": 0.78,
+      "expectedOutcome": "Reactivate overdue recall patient; reduce 18-month gap churn proxy"
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "opp_emerg_call_overnight_001",
+      "type": "emergency",
+      "title": "Overnight urgent — same-day follow-up required",
+      "description": "Emergency eval intake complete — schedule same-day squeeze-in if clinically appropriate per DNA; callback SLA applies.",
+      "confidence": 0.95,
+      "estimatedImpact": "high",
+      "suggestedOwner": "front_desk"
+    },
+    {
+      "id": "opp_prod_call_early_003",
+      "type": "production",
+      "title": "Crown seat scheduled — lab case confirmation",
+      "description": "Treatment-specific typing captured — assistant lab case flag per Assistant Workflow DNA.",
+      "confidence": 0.91,
+      "estimatedImpact": "medium",
+      "suggestedOwner": "assistant"
+    },
+    {
+      "id": "opp_npe_call_overnight_002",
+      "type": "patient",
+      "title": "New patient arriving today — verification and prep",
+      "description": "NPE with delta_dental_ppo — benefits verification queue before visit.",
+      "confidence": 0.88,
+      "estimatedImpact": "medium",
+      "suggestedOwner": "front_desk"
+    },
+    {
+      "id": "opp_cancel_slot_hyg_1100",
+      "type": "cancellation_recovery",
+      "title": "Cancellation recovery — 11:00 hygiene",
+      "description": "Cancelled slot may be offered to waitlist per Office DNA waitlist policy within 15-minute target latency.",
+      "confidence": 0.85,
+      "estimatedImpact": "high",
+      "suggestedOwner": "front_desk"
+    },
+    {
+      "id": "opp_waitlist_2026-07-04",
+      "type": "waitlist_fill",
+      "title": "Waitlist match for cancelled hygiene slot",
+      "description": "1 cancellation(s) today — offer to waitlist candidates within 15-minute POS target latency.",
+      "confidence": 0.82,
+      "estimatedImpact": "high",
+      "suggestedOwner": "front_desk"
+    },
+    {
+      "id": "opp_recall_pat_ref_2201",
+      "type": "retention",
+      "title": "Reactivation candidate — severely overdue recall",
+      "description": "prophy recall 120 days overdue — hygiene coordinator outreach opportunity.",
+      "confidence": 0.78,
+      "estimatedImpact": "medium",
+      "suggestedOwner": "hygiene_coordinator"
+    },
+    {
+      "id": "opp_sched_hyg_slot_hyg_1300",
+      "type": "scheduling",
+      "title": "Open hygiene slot at 13:00",
+      "description": "Unfilled hygiene capacity — waitlist or recall candidate may fit 60-min prophy/perio.",
+      "confidence": 0.75,
+      "estimatedImpact": "medium",
+      "suggestedOwner": "front_desk"
+    },
+    {
+      "id": "opp_retain_call_early_004",
+      "type": "retention",
+      "title": "Cancellation save opportunity — frustrated caller",
+      "description": "Frustrated cancel/reschedule intent — disambiguate reschedule vs. cancel; EIE validation before admin.",
+      "confidence": 0.74,
+      "estimatedImpact": "medium",
+      "suggestedOwner": "front_desk"
+    },
+    {
+      "id": "opp_sched_doc_slot_doc_1400",
+      "type": "production",
+      "title": "Open doctor block at 14:00",
+      "description": "Doctor column capacity available — same-day emergency squeeze-in or treatment scheduling opportunity.",
+      "confidence": 0.72,
+      "estimatedImpact": "high",
+      "suggestedOwner": "front_desk"
+    },
+    {
+      "id": "opp_sched_doc_slot_doc_1530",
+      "type": "production",
+      "title": "Open doctor block at 15:30",
+      "description": "Doctor column capacity available — same-day emergency squeeze-in or treatment scheduling opportunity.",
+      "confidence": 0.72,
+      "estimatedImpact": "high",
+      "suggestedOwner": "front_desk"
+    }
+  ],
+  "metrics": {
+    "asOf": "2026-07-04T15:08:43.679Z",
+    "stewardshipHighlight": "Calls captured at 5calls — trending positively vs. baseline.",
+    "departments": [
+      {
+        "department": "practice",
+        "kpis": [
+          {
+            "id": "schedule_utilization",
+            "name": "Schedule utilization",
+            "value": 43,
+            "unit": "%",
+            "target": 80,
+            "trend": "flat",
+            "health": "critical"
+          }
+        ]
+      },
+      {
+        "department": "doctor",
+        "kpis": [
+          {
+            "id": "emergency_routing",
+            "name": "Emergency/urgent events",
+            "value": 1,
+            "unit": "events",
+            "target": 0,
+            "trend": "flat",
+            "health": "insufficient_data"
+          },
+          {
+            "id": "doctor_open_blocks",
+            "name": "Open doctor blocks today",
+            "value": 2,
+            "unit": "blocks",
+            "target": 1,
+            "trend": "flat",
+            "health": "critical"
+          }
+        ]
+      },
+      {
+        "department": "front_desk",
+        "kpis": [
+          {
+            "id": "summary_completeness",
+            "name": "Summary completeness avg",
+            "value": 92,
+            "unit": "%",
+            "target": 95,
+            "trend": "up",
+            "health": "healthy"
+          },
+          {
+            "id": "cancellation_count",
+            "name": "Cancellations today",
+            "value": 1,
+            "unit": "slots",
+            "target": 0,
+            "trend": "up",
+            "health": "insufficient_data"
+          },
+          {
+            "id": "call_surge",
+            "name": "Peak-hour call surge active",
+            "value": 0,
+            "unit": "flag",
+            "target": 0,
+            "trend": "flat",
+            "health": "insufficient_data"
+          }
+        ]
+      },
+      {
+        "department": "hygiene",
+        "kpis": [
+          {
+            "id": "hygiene_open_slots",
+            "name": "Open hygiene slots today",
+            "value": 1,
+            "unit": "slots",
+            "target": 0,
+            "trend": "flat",
+            "health": "insufficient_data"
+          },
+          {
+            "id": "recall_overdue_count",
+            "name": "Overdue recall patients",
+            "value": 3,
+            "unit": "patients",
+            "target": 0,
+            "trend": "down",
+            "health": "insufficient_data"
+          },
+          {
+            "id": "recall_on_schedule_today",
+            "name": "Overdue recall on today's schedule",
+            "value": 2,
+            "unit": "patients",
+            "target": 3,
+            "trend": "up",
+            "health": "critical"
+          },
+          {
+            "id": "severely_overdue",
+            "name": "Recall 90+ days overdue",
+            "value": 1,
+            "unit": "patients",
+            "target": 0,
+            "trend": "flat",
+            "health": "insufficient_data"
+          }
+        ]
+      },
+      {
+        "department": "assistant",
+        "kpis": []
+      },
+      {
+        "department": "office_manager",
+        "kpis": [
+          {
+            "id": "dna_freshness",
+            "name": "Days since DNA validation",
+            "value": 45,
+            "unit": "days",
+            "target": 90,
+            "trend": "flat",
+            "health": "healthy"
+          },
+          {
+            "id": "recommendation_acceptance",
+            "name": "Recommendation acceptance rate",
+            "value": 100,
+            "unit": "%",
+            "target": 50,
+            "trend": "up",
+            "health": "healthy"
+          },
+          {
+            "id": "pms_integration",
+            "name": "PMS data available",
+            "value": 0,
+            "unit": "%",
+            "target": 100,
+            "trend": "flat",
+            "health": "critical"
+          }
+        ]
+      },
+      {
+        "department": "patient_access",
+        "kpis": [
+          {
+            "id": "answer_rate",
+            "name": "Calls captured",
+            "value": 5,
+            "unit": "calls",
+            "target": 5,
+            "trend": "up",
+            "health": "healthy"
+          },
+          {
+            "id": "after_hours_capture",
+            "name": "After-hours calls handled",
+            "value": 2,
+            "unit": "calls",
+            "target": 1,
+            "trend": "flat",
+            "health": "healthy"
+          }
+        ]
+      }
+    ]
+  }
+}

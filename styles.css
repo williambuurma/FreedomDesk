@@ -7070,3 +7070,73 @@ h1 {
     padding: 28px 22px;
   }
 }
+
+/* Morning Brief preview callout on marketing site */
+.mb-preview-section {
+  padding: calc(var(--section-pad) * 0.45) 0;
+  background: var(--bg-soft);
+}
+
+.mb-preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 36px 40px;
+  box-shadow: var(--shadow-sm);
+}
+
+.mb-preview-card-kicker {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 8px;
+}
+
+.mb-preview-card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.mb-preview-card-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  max-width: 520px;
+}
+
+.mb-preview-card-action {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.mb-preview-card-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .mb-preview-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px 24px;
+  }
+
+  .mb-preview-card-action {
+    width: 100%;
+  }
+
+  .mb-preview-card-action .btn {
+    width: 100%;
+  }
+}

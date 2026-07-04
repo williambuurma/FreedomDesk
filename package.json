@@ -6,7 +6,8 @@
   "scripts": {
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
-    "test": "node --test src/engine/prompt-context-builder.test.js && node --experimental-strip-types --test src/conversation/psychology.test.ts && node --experimental-strip-types --test src/practice-brain/practiceBrain.test.ts",
+    "test": "node --test src/engine/prompt-context-builder.test.js && node --experimental-strip-types --test src/conversation/psychology.test.ts && node --experimental-strip-types --test src/practice-brain/practiceBrain.test.ts && node --test scripts/morning-brief-preview.test.js",
+    "preview:morning-brief": "node scripts/generate-morning-brief-preview.js",
     "context:new-patient": "node scripts/print-new-patient-context.js"
   },
   "devDependencies": {

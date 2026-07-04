@@ -1,0 +1,58 @@
+<header class="mb-greeting" id="mbGreeting" aria-live="polite">
+  <p class="mb-greeting-kicker">Morning Brief</p>
+  <h1 class="mb-greeting-title">Good morning, <span id="mbRecipient">Dr. Buurma</span></h1>
+  <p class="mb-greeting-meta">
+    <span id="mbPracticeName">Cascade Family Dentistry</span>
+    · <span id="mbDate">—</span>
+    · <span id="mbReadTime">—</span> min read
+  </p>
+</header>
+
+<div class="mb-loading" id="mbLoading" aria-busy="true">
+  <p>Preparing your morning brief…</p>
+</div>
+
+<div class="mb-error" id="mbError" hidden>
+  <p>Unable to load the morning brief preview. Please refresh or contact support.</p>
+</div>
+
+<div class="mb-dashboard" id="mbDashboard" hidden>
+  <!-- Today's Focus -->
+  <section class="mb-section mb-focus-section" aria-labelledby="mbFocusHeading">
+    <h2 class="mb-section-label" id="mbFocusHeading">Today's Focus</h2>
+    <div class="mb-focus-card" id="mbFocus"></div>
+  </section>
+
+  <!-- Practice Snapshot -->
+  <section class="mb-section mb-snapshot-section" aria-labelledby="mbSnapshotHeading">
+    <h2 class="mb-section-label" id="mbSnapshotHeading">Practice Snapshot</h2>
+    <div class="mb-snapshot-grid" id="mbMetrics"></div>
+  </section>
+
+  <!-- Operational cards -->
+  <div class="mb-ops-grid">
+    <section class="mb-card mb-card-section" id="mbSchedule" aria-labelledby="mbScheduleHeading"></section>
+    <section class="mb-card mb-card-section" id="mbOvernight" aria-labelledby="mbOvernightHeading"></section>
+    <section class="mb-card mb-card-section mb-card-critical" id="mbEmergency" aria-labelledby="mbEmergencyHeading"></section>
+    <section class="mb-card mb-card-section" id="mbNewPatients" aria-labelledby="mbNewPatientsHeading"></section>
+  </div>
+
+  <!-- Insights -->
+  <div class="mb-insights-grid">
+    <section class="mb-card mb-card-section" id="mbOpportunities" aria-labelledby="mbOpportunitiesHeading"></section>
+    <section class="mb-card mb-card-section" id="mbRecommendations" aria-labelledby="mbRecommendationsHeading"></section>
+  </div>
+
+  <!-- Stewardship -->
+  <section class="mb-stewardship" id="mbStewardship" aria-labelledby="mbStewardshipHeading">
+    <div class="mb-stewardship-inner">
+      <p class="mb-stewardship-label" id="mbStewardshipHeading">Stewardship</p>
+      <p class="mb-stewardship-text" id="mbStewardshipText"></p>
+    </div>
+  </section>
+
+  <footer class="mb-footer-note">
+    <p>Preview generated from Practice Brain mock data. No PMS connection. Not for clinical use.</p>
+    <p class="mb-footer-timestamp">Last generated: <time id="mbGeneratedAt">—</time></p>
+  </footer>
+</div>

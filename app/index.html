@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="FreedomDesk internal dashboard — practice intelligence for dental teams." />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>FreedomDesk</title>
+  <link rel="icon" href="../favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
+  <link rel="stylesheet" href="styles/morning-brief.css" />
+</head>
+<body class="fd-dashboard">
+  <div class="fd-dashboard-layout">
+    <div class="fd-sidebar-backdrop" id="fdSidebarBackdrop" aria-hidden="true"></div>
+
+    <aside class="fd-sidebar" id="fdSidebar" aria-label="Dashboard navigation">
+      <div class="fd-sidebar-brand">
+        <img
+          src="../assets/logos/Freedomdesk-logo-full.png?v=20260614"
+          alt=""
+          class="fd-sidebar-logo"
+          width="36"
+          height="36"
+          decoding="async"
+        />
+        <div class="fd-sidebar-brand-text">
+          <span class="fd-sidebar-brand-name">FreedomDesk</span>
+          <span class="fd-sidebar-brand-sub">Practice OS</span>
+        </div>
+      </div>
+
+      <nav class="fd-sidebar-nav">
+        <ul id="fdModuleNav"></ul>
+      </nav>
+
+      <div class="fd-sidebar-footer">
+        <a href="../index.html" class="fd-sidebar-footer-link">← Back to marketing site</a>
+      </div>
+    </aside>
+
+    <div class="fd-dashboard-main">
+      <header class="fd-dashboard-header">
+        <button class="fd-sidebar-toggle" id="fdSidebarToggle" type="button" aria-label="Open navigation menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <h1 class="fd-module-title fd-header-home" id="fdModuleTitle">What should I do next?</h1>
+        <div class="fd-header-actions">
+          <span class="fd-preview-badge">Internal · Mock data</span>
+          <a href="../index.html" class="fd-header-site-link"><span>Marketing site</span> →</a>
+        </div>
+      </header>
+
+      <main class="fd-dashboard-content fd-content-home" id="fdDashboardContent" aria-live="polite">
+        <!-- Dashboard modules render here -->
+      </main>
+    </div>
+  </div>
+
+  <script src="shared/registry.js"></script>
+  <script src="shared/utils.js"></script>
+  <script src="shared/placeholder-module.js"></script>
+  <script src="modules/morning-brief/morning-brief.js"></script>
+  <script src="modules/morning-brief/module.js"></script>
+  <script src="modules/calls/calls.js"></script>
+  <script src="modules/patients/patients.js"></script>
+  <script src="modules/opportunities/opportunities.js"></script>
+  <script src="modules/analytics/analytics.js"></script>
+  <script src="modules/settings/settings.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

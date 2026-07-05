@@ -397,6 +397,8 @@ Daily awareness feeds: Morning Brief, Live Operational Awareness, End-of-Day Sum
 
 The Morning Brief is the **Chief of Staff's daily opening handshake** with the practice — delivered before the first patient arrives, optimized for the first 10 minutes of the team's day.
 
+> **Experience rules:** How briefings are prioritized, spoken, and presented to each role is governed by [`USER_EXPERIENCE_PHILOSOPHY.md`](USER_EXPERIENCE_PHILOSOPHY.md). This section defines *what intelligence exists*; that document defines *how it is experienced*.
+
 ### 12.1 Purpose
 
 Transform overnight and early-morning signals into **prioritized, actionable intelligence** so the team starts aligned — not reactive from the first ring.
@@ -1028,6 +1030,8 @@ Call-level PHI retention follows HIPAA and practice-configured limits ([`FREEDOM
 ## 28. End-of-Day Summary
 
 The End-of-Day Summary closes the operational loop — **what happened, what remains, what improved.**
+
+> **Experience rules:** End-of-day tone, completion states, and role-aware checklists are governed by [`USER_EXPERIENCE_PHILOSOPHY.md`](USER_EXPERIENCE_PHILOSOPHY.md). The goal is confidence, not punishment.
 
 ### 28.1 Summary contents
 

@@ -10,13 +10,13 @@
   FreedomDesk.registerModule({
     id: "morning-brief",
     label: "Morning Brief",
-    order: 1,
+    order: 2,
     navIcon: "brief",
     init: function (container) {
       container.innerHTML =
         '<div class="mb-page">' +
         '<main class="mb-main">' +
-        '<div class="container mb-container"></div>' +
+        '<div class="fd-container fd-container--wide mb-container"></div>' +
         "</main></div>";
 
       fetch(TEMPLATE_URL)

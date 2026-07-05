@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  var DEFAULT_MODULE = "morning-brief";
+  var DEFAULT_MODULE = "my-day";
   var currentModuleId = null;
   var currentModuleInstance = null;
 
@@ -44,7 +44,7 @@
   function updateHeader(module) {
     var titleEl = $("fdModuleTitle");
     var contentEl = $("fdDashboardContent");
-    var isHome = module && module.id === DEFAULT_MODULE;
+    var isHome = module && (module.id === DEFAULT_MODULE || module.id === "my-day");
 
     if (titleEl && module) {
       if (isHome) {

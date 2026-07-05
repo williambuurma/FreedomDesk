@@ -32,14 +32,18 @@ The canonical reference for emotionally intelligent conversation. Governs how Fr
 
 The founding architecture for FreedomDesk as an AI Chief of Staff — daily awareness, opportunity detection, role-specific success, recommendations, and practice-wide operational intelligence beyond individual calls.
 
-### 7. [CONTINUOUS_LEARNING_ENGINE.md](CONTINUOUS_LEARNING_ENGINE.md)
+### 7. [USER_EXPERIENCE_PHILOSOPHY.md](USER_EXPERIENCE_PHILOSOPHY.md)
+
+The canonical product experience document. Governs how FreedomDesk should feel to the practice team — morning briefings, role-specific homepages, task hierarchy, end-of-day confidence, voice and language, and the principle that FreedomDesk is an operating intelligence platform, not a dashboard.
+
+### 8. [FEATURE_BACKLOG.md](FEATURE_BACKLOG.md)
+
+The permanent product backlog — long-term ideas organized by capability area (morning experience, role homepages, intelligence, search, analytics, etc.). Sprints pull from here; [`ROADMAP.md`](ROADMAP.md) schedules delivery; [`USER_EXPERIENCE_PHILOSOPHY.md`](USER_EXPERIENCE_PHILOSOPHY.md) governs how items must feel.
+
+### 9. [CONTINUOUS_LEARNING_ENGINE.md](CONTINUOUS_LEARNING_ENGINE.md)
 
 The canonical reference for organizational learning. Governs how FreedomDesk improves from every interaction — pattern detection, practice memory, recommendation governance, human review, and improvement cycles — without machine learning training or autonomous behavior change.
 
-### 8. [VISION.md](../VISION.md)
-
-The product philosophy document. Governs why FreedomDesk exists and how it should feel on the phone — patients first, purposeful questions, reasoning from conversation state instead of scripting, and amplifying compassion rather than replacing it.
-
-### 9. [CALL_FLOWS.md](CALL_FLOWS.md)
+### 10. [CALL_FLOWS.md](CALL_FLOWS.md)
 
 The canonical phone conversation design. Governs per-intent call structure, triage rules, slot collection, decision trees, and structured summary schemas — optimized for West Michigan independent general dentistry and aligned with Open Dental-ready front-desk output.

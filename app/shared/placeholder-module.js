@@ -39,7 +39,7 @@
         }
 
         container.innerHTML =
-          '<div class="fd-module-page">' +
+          '<div class="fd-module-page fd-container fd-container--narrow">' +
           '<header class="fd-module-header">' +
           '<p class="fd-module-kicker">' +
           FreedomDeskUtils.escapeHtml(config.kicker || "Practice Brain") +

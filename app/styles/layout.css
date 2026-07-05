@@ -1,0 +1,128 @@
+/* FreedomDesk — responsive layout system
+ *
+ * Breakpoint reference (min-width unless noted):
+ *   ≤479   phone (portrait)
+ *   480    large phone
+ *   640    phone landscape / phablet
+ *   768    tablet portrait (iPad Mini)
+ *   900    tablet landscape / half-screen laptop
+ *   1024   tablet landscape (iPad) / compact laptop
+ *   1280   standard laptop
+ *   1440   large laptop / 27" monitor
+ *   1680   desktop
+ *   1920+  ultrawide — content caps, margins absorb excess
+ */
+
+.fd-dashboard {
+  /* Spacing scale — fluid between phone and desktop */
+  --fd-space-1: clamp(0.25rem, 0.2rem + 0.25vw, 0.375rem);
+  --fd-space-2: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
+  --fd-space-3: clamp(0.75rem, 0.6rem + 0.75vw, 1rem);
+  --fd-space-4: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  --fd-space-5: clamp(1.25rem, 1rem + 1.25vw, 2rem);
+  --fd-space-6: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --fd-space-7: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+  --fd-space-8: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+
+  /* Shell padding — shared by header and content for edge alignment */
+  --fd-space-inline: clamp(1rem, 2vw + 0.5rem, 2rem);
+  --fd-space-block: clamp(1.25rem, 1.5vw + 0.75rem, 2rem);
+  --fd-space-block-home: clamp(1rem, 1.25vw + 0.5rem, 1.5rem);
+
+  /* Content width tiers */
+  --fd-width-reading: 38rem;   /* ~608px — narrative / My Day */
+  --fd-width-narrow: 44rem;    /* ~704px — forms, placeholders */
+  --fd-width-standard: 56rem;  /* ~896px — mixed content */
+  --fd-width-wide: 68rem;      /* ~1088px — dashboard grids */
+  --fd-width-max: 76rem;       /* ~1216px — absolute shell cap */
+
+  /* Typography scale */
+  --fd-text-xs: clamp(0.6875rem, 0.66rem + 0.15vw, 0.75rem);
+  --fd-text-sm: clamp(0.8125rem, 0.78rem + 0.2vw, 0.875rem);
+  --fd-text-base: clamp(0.9375rem, 0.9rem + 0.2vw, 1rem);
+  --fd-text-lg: clamp(1.0625rem, 1rem + 0.35vw, 1.1875rem);
+  --fd-text-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  --fd-text-2xl: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
+  --fd-text-3xl: clamp(1.75rem, 1.4rem + 1.75vw, 2.5rem);
+}
+
+/* ── Container utilities ── */
+
+.fd-container {
+  width: 100%;
+  margin-inline: auto;
+}
+
+.fd-container--reading {
+  max-width: min(var(--fd-width-reading), 100%);
+}
+
+.fd-container--narrow {
+  max-width: min(var(--fd-width-narrow), 100%);
+}
+
+.fd-container--standard {
+  max-width: min(var(--fd-width-standard), 100%);
+}
+
+.fd-container--wide {
+  max-width: min(var(--fd-width-wide), 100%);
+}
+
+/* Centered reading column on large viewports */
+@media (min-width: 1280px) {
+  .fd-container--reading {
+    --fd-width-reading: 40rem;
+  }
+}
+
+@media (min-width: 1680px) {
+  .fd-container--reading {
+    --fd-width-reading: 42rem;
+  }
+}
+
+/* ── Adaptive grids ── */
+
+.fd-grid {
+  display: grid;
+  gap: var(--fd-space-4);
+}
+
+.fd-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.fd-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.fd-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.fd-grid--auto {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+@media (max-width: 1023px) {
+  .fd-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 639px) {
+  .fd-grid--2,
+  .fd-grid--3,
+  .fd-grid--4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tight 2-col on small phones when cards are compact */
+@media (max-width: 479px) {
+  .fd-grid--4.fd-grid--compact-mobile {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--fd-space-2);
+  }
+}

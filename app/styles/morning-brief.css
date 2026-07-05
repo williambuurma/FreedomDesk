@@ -5,17 +5,15 @@
 }
 
 .fd-dashboard-content .mb-main {
-  padding: 0 0 48px;
+  padding: 0 0 var(--fd-space-7);
 }
 
-.fd-dashboard-content .mb-container {
-  max-width: 1080px;
-}
+/* mb-container width handled by .fd-container--wide */
 
 /* ── Greeting ── */
 
 .fd-dashboard-content .mb-greeting {
-  margin-bottom: 36px;
+  margin-bottom: var(--fd-space-6);
 }
 
 .fd-dashboard-content .mb-greeting-kicker {
@@ -28,7 +26,7 @@
 }
 
 .fd-dashboard-content .mb-greeting-title {
-  font-size: clamp(1.85rem, 4vw, 2.5rem);
+  font-size: var(--fd-text-3xl);
   font-weight: 700;
   letter-spacing: -0.035em;
   color: var(--navy);
@@ -61,7 +59,7 @@
 /* ── Section labels ── */
 
 .fd-dashboard-content .mb-section {
-  margin-bottom: 32px;
+  margin-bottom: var(--fd-space-6);
 }
 
 .fd-dashboard-content .mb-section-label {
@@ -148,7 +146,7 @@
 .fd-dashboard-content .mb-snapshot-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: var(--fd-space-4);
 }
 
 .fd-dashboard-content .mb-snapshot-card {
@@ -202,15 +200,15 @@
 .fd-dashboard-content .mb-ops-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: var(--fd-space-4);
+  margin-bottom: var(--fd-space-4);
 }
 
 .fd-dashboard-content .mb-insights-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  margin-bottom: 32px;
+  gap: var(--fd-space-4);
+  margin-bottom: var(--fd-space-6);
 }
 
 .fd-dashboard-content .mb-card {
@@ -480,40 +478,42 @@
 
 /* ── Responsive ── */
 
-@media (max-width: 960px) {
+@media (max-width: 1023px) {
   .fd-dashboard-content .mb-snapshot-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
 
+@media (max-width: 899px) {
   .fd-dashboard-content .mb-ops-grid,
   .fd-dashboard-content .mb-insights-grid {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 479px) {
   .fd-dashboard-content .mb-main {
-    padding-bottom: 32px;
+    padding-bottom: var(--fd-space-6);
   }
 
   .fd-dashboard-content .mb-greeting {
-    margin-bottom: 28px;
+    margin-bottom: var(--fd-space-5);
   }
 
   .fd-dashboard-content .mb-focus-card {
-    padding: 22px 20px;
+    padding: var(--fd-space-5) var(--fd-space-4);
   }
 
   .fd-dashboard-content .mb-snapshot-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--fd-space-2);
   }
 
   .fd-dashboard-content .mb-card {
-    padding: 20px 18px;
+    padding: var(--fd-space-5) var(--fd-space-4);
   }
 
   .fd-dashboard-content .mb-stewardship-inner {
-    padding: 22px 20px;
+    padding: var(--fd-space-5) var(--fd-space-4);
   }
 }

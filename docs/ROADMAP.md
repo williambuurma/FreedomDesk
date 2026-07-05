@@ -484,6 +484,8 @@ These run across all phases:
 ## Related Documents
 
 - [FREEDOMDESK_CONTEXT.md](FREEDOMDESK_CONTEXT.md) — product vision and principles
+- [USER_EXPERIENCE_PHILOSOPHY.md](USER_EXPERIENCE_PHILOSOPHY.md) — how features must feel
+- [FEATURE_BACKLOG.md](FEATURE_BACKLOG.md) — permanent product backlog by capability area
 - [ARCHITECTURE.md](ARCHITECTURE.md) — technical architecture per phase
 - [PRACTICE_MANAGEMENT_SOFTWARE.md](PRACTICE_MANAGEMENT_SOFTWARE.md) — PMS integration timeline
 - [CALL_FLOWS.md](CALL_FLOWS.md) — call flows to implement per phase

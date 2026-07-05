@@ -1,0 +1,932 @@
+/* My Day — operating surface composition */
+
+.fd-dashboard-content .md-page {
+  background: transparent;
+}
+
+.fd-dashboard-content .md-main {
+  padding: var(--fd-space-1) 0 var(--fd-space-8);
+}
+
+/* ── Loading & error ── */
+
+.fd-dashboard-content .md-loading {
+  text-align: left;
+  padding: 56px 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.55;
+}
+
+.fd-dashboard-content .md-error {
+  padding: 24px 0;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+/* ── Dashboard workspace ── */
+
+.fd-dashboard-content .md-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-5);
+}
+
+.fd-dashboard-content .md-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-4);
+}
+
+.fd-dashboard-content .md-workspace-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-4);
+}
+
+.fd-dashboard-content .md-workspace-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-4);
+}
+
+/* ── Status bar (morning summary) ── */
+
+.fd-dashboard-content .md-hero {
+  margin: 0;
+}
+
+.fd-dashboard-content .md-hero .fd-ui-morning-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--fd-space-5);
+  padding: var(--fd-space-5) var(--fd-space-6);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.fd-dashboard-content .fd-ui-morning-summary-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.fd-dashboard-content .fd-ui-morning-greeting {
+  font-size: var(--fd-text-xl);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.2;
+  margin: 0 0 var(--fd-space-2);
+}
+
+.fd-dashboard-content .fd-ui-morning-body {
+  font-size: var(--fd-text-base);
+  font-weight: 400;
+  color: var(--navy-mid);
+  line-height: 1.55;
+  margin: 0 0 var(--fd-space-2);
+  max-width: 62ch;
+}
+
+.fd-dashboard-content .fd-ui-morning-signoff {
+  font-size: var(--fd-text-sm);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0 0 var(--fd-space-2);
+  max-width: 58ch;
+}
+
+.fd-dashboard-content .fd-ui-morning-meta {
+  font-size: var(--fd-text-xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+/* ── Role switcher ── */
+
+.fd-dashboard-content .fd-ui-role-switcher {
+  display: flex;
+  gap: 2px;
+  background: rgba(24, 53, 98, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.fd-dashboard-content .fd-ui-role-btn {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+}
+
+.fd-dashboard-content .fd-ui-role-btn:hover {
+  color: var(--navy);
+}
+
+.fd-dashboard-content .fd-ui-role-btn-active {
+  background: #fff;
+  color: var(--navy);
+  box-shadow: 0 1px 2px rgba(24, 53, 98, 0.05);
+}
+
+/* ── Section panels ── */
+
+.fd-dashboard-content .md-dashboard .fd-ui-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--fd-space-5) var(--fd-space-6);
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-4);
+  height: 100%;
+}
+
+.fd-dashboard-content .fd-ui-section-title {
+  font-size: var(--fd-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1.3;
+  margin: 0;
+  padding-bottom: var(--fd-space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.fd-dashboard-content .fd-ui-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.fd-dashboard-content .fd-ui-empty {
+  font-size: var(--fd-text-sm);
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-style: normal;
+  max-width: none;
+  opacity: 0.85;
+}
+
+/* ── Since your last login ── */
+
+.fd-dashboard-content .md-panel-since .fd-ui-card {
+  background: rgba(24, 53, 98, 0.02);
+  border-style: dashed;
+}
+
+.fd-dashboard-content .fd-ui-change-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-3);
+}
+
+.fd-dashboard-content .fd-ui-change-item {
+  padding: 0;
+  margin: 0;
+}
+
+.fd-dashboard-content .fd-ui-change-text {
+  font-size: var(--fd-text-base);
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.fd-dashboard-content .fd-ui-change-detail {
+  font-size: var(--fd-text-sm);
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 4px 0 0;
+  opacity: 0.85;
+}
+
+/* ── Task list — action-first rows (receptionist) ── */
+
+.fd-dashboard-content .fd-ui-task-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  counter-reset: task;
+  margin: 0;
+  padding: 0;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-task-list {
+  counter-reset: task;
+}
+
+.fd-dashboard-content .fd-ui-task-item {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  column-gap: var(--fd-space-3);
+  row-gap: var(--fd-space-2);
+  align-items: start;
+  padding: var(--fd-space-4) 0;
+  border-bottom: 1px solid var(--border);
+  counter-increment: task;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-task-item::before {
+  content: counter(task);
+  grid-row: 1 / span 3;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: var(--blue-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--navy-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+.fd-dashboard-content .md-panel:not(.md-panel-anchor) .fd-ui-task-item::before {
+  display: none;
+}
+
+.fd-dashboard-content .md-panel:not(.md-panel-anchor) .fd-ui-task-item {
+  grid-template-columns: 1fr auto;
+}
+
+.fd-dashboard-content .fd-ui-task-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.fd-dashboard-content .fd-ui-task-item:first-child {
+  padding-top: 0;
+}
+
+.fd-dashboard-content .fd-ui-task-content {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.fd-dashboard-content .md-panel:not(.md-panel-anchor) .fd-ui-task-content {
+  grid-column: 1;
+}
+
+.fd-dashboard-content .fd-ui-task-action {
+  font-size: var(--fd-text-lg);
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.5;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.fd-dashboard-content .md-panel:not(.md-panel-anchor) .fd-ui-task-action {
+  font-size: var(--fd-text-base);
+}
+
+.fd-dashboard-content .fd-ui-task-context {
+  font-size: var(--fd-text-sm);
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 4px 0 0;
+  opacity: 0.85;
+}
+
+.fd-dashboard-content .fd-ui-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.fd-dashboard-content .fd-ui-task-btn {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: start;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: var(--fd-text-sm);
+  font-weight: 600;
+  color: var(--navy);
+  background: var(--blue-muted);
+  border: 1px solid rgba(24, 53, 98, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.fd-dashboard-content .md-panel:not(.md-panel-anchor) .fd-ui-task-btn {
+  grid-column: 2;
+}
+
+.fd-dashboard-content .fd-ui-task-btn:hover {
+  background: rgba(24, 53, 98, 0.08);
+  border-color: rgba(24, 53, 98, 0.18);
+}
+
+.fd-dashboard-content .fd-ui-task-item.fd-ui-task-needs-attention {
+  margin: calc(-1 * var(--fd-space-3)) calc(-1 * var(--fd-space-4)) var(--fd-space-3);
+  padding: var(--fd-space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--red-soft);
+  grid-template-columns: 2rem 1fr auto;
+}
+
+.fd-dashboard-content .fd-ui-task-item.fd-ui-task-needs-attention::before {
+  background: #fff;
+  color: var(--red-deep);
+}
+
+.fd-dashboard-content .fd-ui-task-item.fd-ui-task-needs-attention .fd-ui-task-action {
+  font-weight: 600;
+}
+
+.fd-dashboard-content .fd-ui-task-item.fd-ui-task-needs-attention .fd-ui-task-btn {
+  background: #fff;
+  border-color: rgba(185, 28, 28, 0.15);
+  color: var(--red-deep);
+}
+
+.fd-dashboard-content .fd-ui-task-item .fd-ui-reason {
+  grid-column: 2;
+}
+
+/* ── Quiet panels — coming up & reminders ── */
+
+.fd-dashboard-content .md-panel-quiet .fd-ui-card {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.fd-dashboard-content .md-panel-quiet .fd-ui-section-title {
+  font-size: var(--fd-text-xs);
+  opacity: 0.75;
+}
+
+.fd-dashboard-content .fd-ui-awareness-list,
+.fd-dashboard-content .fd-ui-reminder-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-4);
+}
+
+.fd-dashboard-content .fd-ui-awareness-item,
+.fd-dashboard-content .fd-ui-reminder-item {
+  padding: 0 0 var(--fd-space-4);
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.fd-dashboard-content .fd-ui-awareness-item:last-child,
+.fd-dashboard-content .fd-ui-reminder-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.fd-dashboard-content .fd-ui-awareness-action {
+  font-size: var(--fd-text-sm);
+  font-weight: 500;
+  color: var(--navy-mid);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.fd-dashboard-content .fd-ui-awareness-context,
+.fd-dashboard-content .fd-ui-reminder-text {
+  font-size: var(--fd-text-sm);
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 4px 0 0;
+  opacity: 0.85;
+}
+
+.fd-dashboard-content .fd-ui-awareness-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: var(--fd-text-sm);
+  font-weight: 600;
+  color: var(--navy-mid);
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.fd-dashboard-content .fd-ui-awareness-link:hover {
+  opacity: 1;
+}
+
+.fd-dashboard-content .fd-ui-awareness-link::after {
+  content: " ›";
+}
+
+/* ── Start Here — visual anchor ── */
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-card {
+  padding: var(--fd-space-6);
+  border-color: rgba(24, 53, 98, 0.14);
+  border-left: 3px solid var(--navy);
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-section-title {
+  font-size: var(--fd-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--navy);
+  padding-bottom: var(--fd-space-4);
+}
+
+/* ── Priority list — scannable action rows ── */
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  counter-reset: priority;
+  margin: 0;
+  padding: 0;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-item {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  column-gap: var(--fd-space-3);
+  row-gap: var(--fd-space-1);
+  padding: var(--fd-space-4) 0;
+  border-bottom: 1px solid var(--border);
+  counter-increment: priority;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-item:first-child {
+  padding-top: 0;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-item::before {
+  content: counter(priority);
+  grid-row: 1 / span 2;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: var(--blue-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--navy-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-item.fd-ui-priority-needs-attention {
+  margin: calc(-1 * var(--fd-space-3)) calc(-1 * var(--fd-space-4)) var(--fd-space-3);
+  padding: var(--fd-space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--red-soft);
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-item.fd-ui-priority-needs-attention::before {
+  background: #fff;
+  color: var(--red-deep);
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-action {
+  font-size: var(--fd-text-lg);
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.5;
+  letter-spacing: -0.015em;
+  margin: 0;
+  grid-column: 2;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-action::before {
+  content: none;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-needs-attention .fd-ui-priority-action {
+  font-weight: 600;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-priority-meta {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 0;
+}
+
+.fd-dashboard-content .md-panel-anchor .fd-ui-reason {
+  grid-column: 2;
+  margin-top: 0;
+}
+
+/* ── Secondary panels — supporting context ── */
+
+.fd-dashboard-content .md-workspace-secondary .fd-ui-priority-list,
+.fd-dashboard-content .md-workspace-secondary .fd-ui-patient-list,
+.fd-dashboard-content .md-workspace-secondary .fd-ui-opp-list {
+  gap: var(--fd-space-4);
+}
+
+.fd-dashboard-content .fd-ui-patient-list,
+.fd-dashboard-content .fd-ui-opp-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-4);
+  margin: 0;
+  padding: 0;
+}
+
+.fd-dashboard-content .fd-ui-patient-item,
+.fd-dashboard-content .fd-ui-opp-item {
+  padding: 0 0 var(--fd-space-4);
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.fd-dashboard-content .fd-ui-patient-item:last-child,
+.fd-dashboard-content .fd-ui-opp-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.fd-dashboard-content .fd-ui-patient-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.fd-dashboard-content .fd-ui-patient-name {
+  font-size: var(--fd-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.fd-dashboard-content .fd-ui-patient-action,
+.fd-dashboard-content .fd-ui-opp-action {
+  font-size: var(--fd-text-base);
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.fd-dashboard-content .fd-ui-patient-issue,
+.fd-dashboard-content .fd-ui-opp-desc {
+  font-size: var(--fd-text-sm);
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 4px 0 0;
+  max-width: none;
+  opacity: 0.85;
+}
+
+/* ── Priority badges & meta ── */
+
+.fd-dashboard-content .fd-ui-priority-meta,
+.fd-dashboard-content .fd-ui-patient-meta,
+.fd-dashboard-content .fd-ui-opp-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.fd-dashboard-content .fd-ui-priority {
+  font-size: var(--fd-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0;
+  background: none;
+}
+
+.fd-dashboard-content .fd-ui-priority-critical {
+  color: var(--red-deep);
+}
+
+.fd-dashboard-content .fd-ui-priority-high,
+.fd-dashboard-content .fd-ui-priority-medium,
+.fd-dashboard-content .fd-ui-priority-low {
+  display: none;
+}
+
+.fd-dashboard-content .fd-ui-owner {
+  font-size: var(--fd-text-sm);
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.fd-dashboard-content .fd-ui-owner::before {
+  content: "·";
+  margin-right: 10px;
+  color: rgba(74, 88, 114, 0.3);
+}
+
+.fd-dashboard-content .fd-ui-priority-meta .fd-ui-owner:first-child::before,
+.fd-dashboard-content .fd-ui-patient-meta .fd-ui-owner:first-child::before {
+  content: none;
+  margin: 0;
+}
+
+/* ── Why toggle ── */
+
+.fd-dashboard-content .fd-ui-why {
+  font-size: var(--fd-text-sm);
+  font-weight: 500;
+  color: var(--navy-mid);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+
+.fd-dashboard-content .fd-ui-why::after {
+  content: " ›";
+  font-size: 0.875rem;
+  opacity: 0.6;
+}
+
+.fd-dashboard-content .fd-ui-why:hover,
+.fd-dashboard-content .fd-ui-why[aria-expanded="true"] {
+  opacity: 1;
+}
+
+.fd-dashboard-content .fd-ui-reason {
+  margin-top: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+.fd-dashboard-content .fd-ui-reason-kicker {
+  font-size: var(--fd-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.55;
+  margin: 0 0 4px;
+}
+
+.fd-dashboard-content .fd-ui-reason-text {
+  font-size: var(--fd-text-sm);
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: none;
+  margin: 0;
+}
+
+/* ── Insight & navigation panels ── */
+
+.fd-dashboard-content .fd-ui-insight-text {
+  font-size: var(--fd-text-base);
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  margin: 0;
+  max-width: none;
+}
+
+.fd-dashboard-content .fd-ui-insight-detail {
+  font-size: var(--fd-text-sm);
+  color: var(--text-muted);
+  margin-top: 6px;
+  line-height: 1.55;
+  max-width: none;
+  opacity: 0.85;
+}
+
+.fd-dashboard-content .fd-ui-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.fd-dashboard-content .fd-ui-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fd-space-4);
+  width: 100%;
+  padding: 10px 0;
+  font-size: var(--fd-text-sm);
+  font-weight: 500;
+  text-align: left;
+  color: var(--navy-mid);
+  background: none;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  text-decoration: none;
+}
+
+.fd-dashboard-content .fd-ui-action-btn + .fd-ui-action-btn {
+  border-top: 1px solid var(--border);
+}
+
+.fd-dashboard-content .fd-ui-action-btn:hover {
+  color: var(--navy);
+}
+
+.fd-dashboard-content .fd-ui-action-arrow {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  opacity: 0.4;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.fd-dashboard-content .fd-ui-action-btn:hover .fd-ui-action-arrow {
+  opacity: 0.7;
+  transform: translateX(2px);
+}
+
+/* ── Today's focus — closing panel ── */
+
+.fd-dashboard-content .md-closing {
+  margin: 0;
+}
+
+.fd-dashboard-content .fd-ui-todays-focus {
+  padding: var(--fd-space-5) var(--fd-space-6);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+.fd-dashboard-content .fd-ui-todays-focus::before {
+  display: none;
+}
+
+.fd-dashboard-content .fd-ui-todays-focus-label {
+  font-size: var(--fd-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.65;
+  margin: 0 0 var(--fd-space-2);
+}
+
+.fd-dashboard-content .fd-ui-todays-focus-text {
+  font-size: var(--fd-text-lg);
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  max-width: 52ch;
+  margin: 0;
+}
+
+/* ── Legacy greeting (Morning Brief compatibility) ── */
+
+.fd-dashboard-content .fd-ui-greeting {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fd-dashboard-content .fd-ui-greeting-kicker {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.fd-dashboard-content .fd-ui-greeting-title {
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.15;
+  margin-bottom: 4px;
+}
+
+.fd-dashboard-content .fd-ui-greeting-meta {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* ── Desktop composition ── */
+
+@media (min-width: 900px) {
+  .fd-dashboard-content .md-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--fd-space-4);
+    align-items: start;
+  }
+
+  .fd-dashboard-content .md-workspace-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--fd-space-4);
+    align-items: stretch;
+  }
+}
+
+@media (min-width: 1200px) {
+  .fd-dashboard-content .md-workspace {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: var(--fd-space-5);
+  }
+
+  .fd-dashboard-content .md-workspace-footer {
+    gap: var(--fd-space-5);
+  }
+}
+
+/* ── Mobile & tablet ── */
+
+@media (max-width: 899px) {
+  .fd-dashboard-content .md-hero .fd-ui-morning-summary {
+    flex-direction: column;
+    gap: var(--fd-space-4);
+    padding: var(--fd-space-5);
+  }
+
+  .fd-dashboard-content .fd-ui-role-switcher {
+    width: fit-content;
+  }
+
+  .fd-dashboard-content .md-panel-anchor .fd-ui-card {
+    padding: var(--fd-space-5);
+  }
+
+  .fd-dashboard-content .fd-ui-task-item {
+    grid-template-columns: 1fr;
+    gap: var(--fd-space-3);
+  }
+
+  .fd-dashboard-content .md-panel-anchor .fd-ui-task-item::before {
+    display: none;
+  }
+
+  .fd-dashboard-content .fd-ui-task-content,
+  .fd-dashboard-content .md-panel:not(.md-panel-anchor) .fd-ui-task-content {
+    grid-column: 1;
+  }
+
+  .fd-dashboard-content .fd-ui-task-btn,
+  .fd-dashboard-content .md-panel:not(.md-panel-anchor) .fd-ui-task-btn {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+  }
+}

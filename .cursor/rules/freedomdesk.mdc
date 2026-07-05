@@ -7,7 +7,7 @@ alwaysApply: true
 
 AI phone front desk for **West Michigan independent private dental practices** — built by Dr. William Buurma DDS (practicing GP, Michigan). Answers calls, collects structured intake, triages emergencies, delivers PMS-ready summaries. **Supports** the front desk; never replaces clinical judgment.
 
-**Read first:** `docs/FREEDOMDESK_CONTEXT.md` → `docs/DENTAL_WORKFLOWS.md` → `docs/CALL_FLOWS.md` → `docs/ARCHITECTURE.md`
+**Read first:** `docs/FREEDOMDESK_CONTEXT.md` → `docs/DENTAL_WORKFLOWS.md` → `docs/CALL_FLOWS.md` → `docs/ARCHITECTURE.md` → `docs/USER_EXPERIENCE_PHILOSOPHY.md` (for dashboard/UI work)
 
 ## Target Practice (Grand Rapids profile)
 

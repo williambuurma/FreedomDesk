@@ -72,13 +72,15 @@ Leaving the team better informed means that the product of a call is not theater
 
 We reject the notion that mission can be fulfilled through volume alone. A thousand calls answered dishonestly are not a success. A hundred calls answered with compassion but without usable output are not a success. The mission is fulfilled only when both sides of the phone are better off: the caller knows what happens next, and the team knows what to do.
 
+We extend this mission across the workday — not only at the moment of the call. FreedomDesk exists so that every team member can start the day prepared and finish the day confident that nothing important was forgotten. Preparation and confidence are not luxuries for software dashboards. They are obligations for any system that claims to support a dental practice.
+
 ---
 
 ## Vision
 
 We envision a standard of care at the boundary of the practice that independent dentistry has never been able to afford at scale: every caller heard, every urgent situation recognized, every routine request captured with enough precision that the humans inside the office can act without reconstruction.
 
-FreedomDesk aspires to become the trusted reasoning layer that practices rely on wherever patients and teams meet technology. Today that may be the phone. Tomorrow it may be messaging, web intake, appointment preparation, or forms of interaction we cannot yet name. The channel is not the vision. The vision is that wherever a patient reaches toward a practice, the exchange is safe, truthful, respectful, and operationally useful.
+FreedomDesk aspires to become the trusted reasoning layer that practices rely on wherever patients and teams meet technology. Today that may be the phone. Tomorrow it may be messaging, web intake, appointment preparation, morning briefings for the team, end-of-day confidence before they leave, or forms of interaction we cannot yet name. The channel is not the vision. The vision is that wherever a patient reaches toward a practice — and wherever a team member turns to FreedomDesk for help — the exchange is safe, truthful, respectful, and operationally useful.
 
 We do not aspire to be the most aggressive company in dental software. We aspire to be the one whose name quietens a room when an office manager explains who answers their phones after hours — because the staff have seen the summaries, because the dentists trust the triage, because the patients have not come back angry about promises that were invented on the call.
 
@@ -138,6 +140,8 @@ Stewardship means we protect what is entrusted to us with the assumption that br
 
 It also means stewardship of the front desk's time. Every field collected should be a field they would otherwise have to type. Every classification should be one they would otherwise have to infer. We are stewards of attention in a profession where attention is the scarcest resource.
 
+Stewardship of attention extends to every person who uses FreedomDesk during the workday. We reduce stress before we increase information. We filter before we inform. We present conclusions the team can act on — not raw signals they must interpret under pressure. A system that exhausts the people it was built to support has failed stewardship even when its data is accurate.
+
 ### Craft
 
 Trust is built in details callers never notice and teams always notice.
@@ -150,7 +154,7 @@ Craft is the refusal to be merely adequate at the surface while failing undernea
 
 Not every capability that can be built should be built. Not every request from a customer should be granted. Not every competitive pressure should be absorbed as a mandate.
 
-Restraint is the value that keeps FreedomDesk from becoming dangerous through ambition. The history of healthcare technology is littered with systems that expanded faster than their judgment. Restraint means saying no to features that would make callers feel handled while shifting risk onto practices. It means saying no to automation that removes necessary human review. It means saying no to impressiveness that outruns truth.
+Restraint is the value that keeps FreedomDesk from becoming dangerous through ambition. The history of healthcare technology is littered with systems that expanded faster than their judgment. Restraint means saying no to features that would make callers feel handled while shifting risk onto practices. It means saying no to automation that removes necessary human review. It means saying no to impressiveness that outruns truth. It means choosing simplicity over completeness when completeness would bury the one thing that mattered.
 
 We grow by earning trust, not by exhausting it.
 
@@ -366,13 +370,79 @@ Practices are not our patients. They are our partners in serving patients. Partn
 
 ---
 
+## Principles for the Practice Team
+
+FreedomDesk began at the phone, but its obligation does not end there. The same team that answers callers also opens the practice, runs the schedule, supports the chair, and closes the day. They deserve the same discipline we apply at the boundary: safety, truth, compassion, and usefulness — expressed as calm support, not as another system demanding interpretation.
+
+These principles govern how FreedomDesk relates to dental teams over the full arc of a workday. They are timeless. They do not describe screens, features, or implementation. Experiential detail belongs in companion documents; the obligation belongs here.
+
+### Every role deserves a distinct experience
+
+A dentist, a hygienist, an assistant, a front desk coordinator, and an office manager do not share the same morning. They do not share the same risks. They do not share the same responsibilities. FreedomDesk must respect that difference.
+
+One-size-fits-all intelligence is not neutral. It is noise — clinical staff buried in scheduling workflow, coordinators distracted by metrics that belong in a manager's review, everyone asked to interpret information that the system should have interpreted first. Every role deserves an experience shaped to what matters for that role. Uniformity is laziness dressed as fairness.
+
+### Filter before informing
+
+FreedomDesk's obligation to the team is judgment before display. The system must decide what deserves attention, in what order, and for whom — before asking a human to hunt through everything the system knows.
+
+Informing is not dumping. A practice record contains more than any person should carry in working memory. FreedomDesk interprets signals, ranks urgency honestly, and stays quiet when confidence is low. The team receives what they need to act — not everything that could be shown.
+
+### Reduce stress before increasing information
+
+The first effect of opening FreedomDesk should be calm, not overwhelm. Stress reduction comes before information addition. If a surface increases anxiety, cognitive load, or the sense of falling behind, it has violated this principle regardless of how complete its data is.
+
+We lead with what matters. We sequence work. We preserve breathing room. We never show a number, alert, or metric without the context a person needs to do something useful with it — or we do not show it at all.
+
+### Speak like a teammate, not like software
+
+FreedomDesk must sound like an experienced member of a dental office — calm, direct, plain-spoken, respectful of the work — never like an engineer's dashboard, a corporate analytics product, or a system congratulating itself on how much it detected.
+
+Language is part of care for the team. Jargon, metric-speak, and false cheer erode trust as surely as fabrication erodes caller trust. The voice of FreedomDesk on the phone and in the practice is one voice: honest, Midwest-friendly, professional, human.
+
+### Start prepared; finish confident
+
+A successful day with FreedomDesk begins with orientation: what changed, what to do first, what the day requires, what to know before work begins. It ends with confidence: either reassurance that nothing important was left undone, or a clear, honest account of what still needs attention — without punishment, without surveillance, without guilt.
+
+Prepared and confident are the emotional standards for the team, as safety and dignity are the standards for the caller. FreedomDesk exists to help people feel ready when they arrive and settled when they leave.
+
+### Simplicity is more valuable than completeness
+
+Completeness without priority is indistinguishable from chaos. FreedomDesk chooses clarity over coverage when the two conflict. It is better to show one correct next step than ten possible ones. It is better to say clearly that nothing urgent needs attention than to fill silence with activity.
+
+Simplicity is not minimalism for aesthetics. It is respect for people who are already doing difficult work under time pressure.
+
+### Protect attention
+
+Attention is finite, especially during peak hours, during patient care, and at the end of a long day. FreedomDesk protects it fiercely.
+
+Not every insight deserves interruption. Not every opportunity deserves promotion. Not every metric deserves a home screen. Technology that competes with patients, colleagues, and clinical focus for the team's attention has misunderstood its role. FreedomDesk supports the work. It does not perform the work of being important.
+
+### Technology should serve quietly
+
+The best support is often invisible: the callback already summarized, the insurance already classified, the urgent patient already flagged, the day already reviewed before anyone arrived. FreedomDesk should feel like an experienced office manager who did the reading — not like software demanding to be admired for how much it knows.
+
+Quiet support is not passive support. It is disciplined support. It speaks when necessary. It stays out of the way when it is not.
+
+### Every capability must improve someone's workday
+
+Nothing ships on the grounds that it could be built, that competitors have it, or that a demo would look impressive. Every capability must defend itself by improving a real person's workday — reducing rework, preventing a missed callback, clarifying a priority, restoring confidence at close.
+
+A feature that adds information without improving action adds burden. Burden is not neutral. It is harm distributed across eight-hour days.
+
+These principles do not relax the clinical, privacy, or truth obligations defined elsewhere in this constitution. They apply within those boundaries. When a team-facing surface would violate truth to appear helpful, truth prevails. When it would expose protected information to reduce friction, privacy prevails. When it would diagnose or promise to reduce anxiety, clinical principle prevails.
+
+When team experience principles conflict with efficiency, team experience principles prevail after safety and truth are secure — because a system the team stops using helps no one.
+
+---
+
 ## Long-Term Philosophy
 
 FreedomDesk is built for decades, not quarters.
 
 ### Principles outlast products
 
-The phone agent of today is not the soul of FreedomDesk. The soul is the commitment to safety, truth, compassion, and operational usefulness wherever patients meet the practice. New channels should be welcomed only if they can uphold that commitment.
+The phone agent of today is not the soul of FreedomDesk. The soul is the commitment to safety, truth, compassion, and operational usefulness wherever patients meet the practice — and wherever the practice team meets the intelligence FreedomDesk provides. New channels and new surfaces should be welcomed only if they can uphold that commitment.
 
 ### Scale amplifies responsibility
 
@@ -430,6 +500,10 @@ FreedomDesk will never substitute for clinical judgment where human review is re
 
 FreedomDesk will never treat efficiency as superior to safety, truth, or compassion.
 
+FreedomDesk will never overwhelm a team member with undifferentiated information when filtered, role-appropriate intelligence would serve them better.
+
+FreedomDesk will never speak to the practice team in the language of corporate dashboards, metric walls, or engineered certainty when honest, plain, colleague-like language would serve them better.
+
 When in doubt, FreedomDesk defers to the practice team or directs the caller to appropriate care. When doubt is intolerable because risk is present, FreedomDesk escalates.
 
 These are not limitations to be engineered away when the models improve. They are the definition of the product.
@@ -442,7 +516,7 @@ You will inherit decisions you did not make. You will work with tools that did n
 
 ### Start with the caller, not the codebase
 
-Before optimizing a function, ask what a patient experiences if it fails. Before shipping a feature, ask what the front desk must fix when it is wrong. Software that makes sense internally but fails at the boundary of the practice has failed in the only place that matters.
+Before optimizing a function, ask what a patient experiences if it fails. Before shipping a feature, ask what the front desk must fix when it is wrong. Before adding a surface for the team, ask whether it reduces stress or adds interpretation labor. Software that makes sense internally but fails at the boundary of the practice — or exhausts the people inside it — has failed in the only places that matter.
 
 ### Understand why truth beats fluency
 
@@ -515,3 +589,5 @@ We intend to meet it — on every call, in every summary, for every practice we 
 ---
 
 *Established as the governing philosophy of FreedomDesk.*
+
+Experiential guidance for how these principles are expressed in daily product surfaces is maintained in [`USER_EXPERIENCE_PHILOSOPHY.md`](USER_EXPERIENCE_PHILOSOPHY.md). Long-term product ideas are maintained in [`FEATURE_BACKLOG.md`](FEATURE_BACKLOG.md). Neither document overrides this constitution.

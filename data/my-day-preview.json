@@ -1,0 +1,354 @@
+{
+  "previewMode": true,
+  "generatedAt": "2026-07-05T23:01:02.869Z",
+  "practiceName": "Cascade Family Dentistry",
+  "date": "2026-07-05",
+  "stewardshipNote": "Calls captured at 5calls — trending positively vs. baseline.",
+  "memorySummary": {
+    "openTaskCount": 4,
+    "unresolvedIssueCount": 3,
+    "opportunityCount": 4
+  },
+  "roles": {
+    "dentist": {
+      "recipientName": "Dr. Buurma",
+      "label": "Doctor",
+      "morningSummary": {
+        "greeting": "Good evening, Dr. Buurma.",
+        "body": "Your schedule is busy today, but everything is under control. 3 patients deserve extra attention."
+      },
+      "priorities": [
+        {
+          "id": "rec_1783292462867_11",
+          "action": "Overnight urgent call requires on-call callback within 30 min SLA",
+          "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
+          "priority": "critical",
+          "owner": "front_desk",
+          "category": "emergency"
+        },
+        {
+          "id": "rec_1783292462867_1",
+          "action": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
+          "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
+          "priority": "critical",
+          "owner": "front_desk",
+          "category": "emergency"
+        },
+        {
+          "id": "rec_1783292462867_2",
+          "action": "Confirm lab case status before crown seat; assistant prep per Assistant Workflow DNA.",
+          "reason": "Treatment-specific typing on call reduces assistant surprise and chairside delay.",
+          "priority": "medium",
+          "owner": "assistant",
+          "category": "production"
+        }
+      ],
+      "patientsAttention": [
+        {
+          "id": "pat-attn-clin_sm_001",
+          "name": "Sarah Mitchell",
+          "issue": "Crown #14 seat pending — patient reports occasional cold sensitivity.",
+          "action": "Note for today's clinical context.",
+          "reason": "Tooth #14",
+          "priority": "medium"
+        },
+        {
+          "id": "pat-attn-clin_en_001",
+          "name": "Emma Nguyen",
+          "issue": "Recall overdue by 4 months — last prophy 10/2025.",
+          "action": "Note for today's clinical context.",
+          "priority": "medium"
+        },
+        {
+          "id": "pat-attn-clin_rc_001",
+          "name": "Robert Chen",
+          "issue": "Post-extraction #19 — reports mild soreness; no swelling reported on last call.",
+          "action": "Note for today's clinical context.",
+          "reason": "Tooth #19",
+          "priority": "medium"
+        }
+      ],
+      "opportunities": [
+        {
+          "id": "opp_prod_call_early_003",
+          "action": "Confirm the lab case before the crown seat",
+          "title": "Crown seat scheduled — lab case confirmation",
+          "description": "Treatment-specific typing captured — assistant lab case flag per Assistant Workflow DNA.",
+          "reason": "production · 91% confidence · medium impact"
+        }
+      ],
+      "insight": {
+        "kicker": "Practice insight",
+        "text": "Open doctor blocks today: 2 open",
+        "detail": "Target 1 blocks. Calls captured at 5calls — trending positively vs. baseline."
+      },
+      "quickActions": [
+        {
+          "id": "review-schedule",
+          "label": "Review schedule"
+        },
+        {
+          "id": "lab-cases",
+          "label": "Check lab cases"
+        },
+        {
+          "id": "morning-brief",
+          "label": "Full brief",
+          "href": "#morning-brief"
+        }
+      ],
+      "todaysFocus": "Today's biggest opportunity is helping Sarah Mitchell feel comfortable before treatment."
+    },
+    "front_desk": {
+      "recipientName": "Jessica",
+      "label": "Receptionist",
+      "morningSummary": {
+        "greeting": "Good evening, Jessica.",
+        "body": "One overnight call needs a callback before the morning rush.",
+        "signoff": "I've already looked over overnight activity — here's what I'd focus on."
+      },
+      "priorities": [
+        {
+          "id": "rec_1783292462867_11",
+          "action": "Overnight urgent call requires on-call callback within 30 min SLA",
+          "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
+          "priority": "critical",
+          "owner": "front_desk",
+          "category": "emergency"
+        },
+        {
+          "id": "rec_1783292462867_1",
+          "action": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
+          "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
+          "priority": "critical",
+          "owner": "front_desk",
+          "category": "emergency"
+        },
+        {
+          "id": "rec_1783292462867_3",
+          "action": "Verify insurance benefits before NPE arrival; note emotional flags for clinical prep.",
+          "reason": "New patient first impression depends on honest insurance handling and anxiety-aware prep — Constitution truth before efficiency.",
+          "priority": "medium",
+          "owner": "front_desk",
+          "category": "patient_experience"
+        }
+      ],
+      "patientsAttention": [
+        {
+          "id": "brief_item_rec_1783292462867_11",
+          "name": "Overnight caller",
+          "issue": "Overnight urgent call requires on-call callback within 30 min SLA",
+          "action": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
+          "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
+          "priority": "critical"
+        },
+        {
+          "id": "brief_item_rec_1783292462867_1",
+          "name": "Overnight caller",
+          "issue": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
+          "action": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
+          "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
+          "priority": "critical"
+        },
+        {
+          "id": "pat-attn-task_sm_001",
+          "name": "Sarah Mitchell",
+          "issue": "Verify Delta PPO benefits before crown seat",
+          "action": "Confirm annual max remaining and crown coverage for #14.",
+          "reason": "Confirm annual max remaining and crown coverage for #14.",
+          "priority": "high"
+        }
+      ],
+      "opportunities": [
+        {
+          "id": "opp_emerg_call_overnight_001",
+          "action": "Follow up on the overnight urgent call today",
+          "title": "Overnight urgent — same-day follow-up required",
+          "description": "Emergency eval intake complete — schedule same-day squeeze-in if clinically appropriate per DNA; callback SLA applies.",
+          "reason": "emergency · 95% confidence · high impact"
+        },
+        {
+          "id": "opp_npe_call_overnight_002",
+          "action": "Complete verification and prep before the patient arrives",
+          "title": "New patient arriving today — verification and prep",
+          "description": "NPE with delta_dental_ppo — benefits verification queue before visit.",
+          "reason": "patient · 88% confidence · medium impact"
+        },
+        {
+          "id": "opp_cancel_slot_hyg_1100",
+          "action": "Offer the cancelled hygiene slot to the waitlist",
+          "title": "Cancellation recovery — 11:00 hygiene",
+          "description": "Cancelled slot may be offered to waitlist per Office DNA waitlist policy within 15-minute target latency.",
+          "reason": "cancellation recovery · 85% confidence · high impact"
+        }
+      ],
+      "insight": {
+        "kicker": "Practice insight",
+        "text": "Summary completeness avg: 92%",
+        "detail": "Target 95%. Calls captured at 5calls — trending positively vs. baseline."
+      },
+      "quickActions": [
+        {
+          "id": "callback-sla",
+          "label": "Start emergency callback"
+        },
+        {
+          "id": "waitlist",
+          "label": "Offer waitlist slot"
+        },
+        {
+          "id": "verify-insurance",
+          "label": "Verify NPE insurance"
+        },
+        {
+          "id": "morning-brief",
+          "label": "Full brief",
+          "href": "#morning-brief"
+        }
+      ],
+      "todaysFocus": "Today's biggest priority is completing the overnight emergency callback before the morning rush.",
+      "sinceLastLogin": [
+        {
+          "id": "since-overnight",
+          "text": "2 overnight calls handled — 1 needs a callback",
+          "detail": "Appointment type: emergency_eval. Completeness: 100%."
+        },
+        {
+          "id": "since-cancel-brief_item_rec_1783292462867_4",
+          "text": "Contact waitlist candidates for cancellation recovery — 11:00 hygiene — sequential offer per Office DNA waitlist policy.",
+          "detail": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes."
+        },
+        {
+          "id": "since-cancel-brief_item_rec_1783292462867_5",
+          "text": "Contact waitlist candidates for waitlist match for cancelled hygiene slot — sequential offer per Office DNA waitlist policy.",
+          "detail": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes."
+        },
+        {
+          "id": "since-npe-brief_npe_slot_doc_0830",
+          "text": "New patient exam at 08:30",
+          "detail": "Insurance: delta_dental_ppo. Emotional flags: highAnxiety."
+        },
+        {
+          "id": "since-sched-brief_sched_cancel",
+          "text": "1 cancellation(s) — recovery pipeline active"
+        }
+      ],
+      "urgentTasks": [
+        {
+          "id": "rec_1783292462867_11",
+          "action": "Overnight urgent call needs a callback before 8:30",
+          "context": "Overnight caller · callback SLA applies",
+          "priority": "critical",
+          "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
+          "category": "emergency",
+          "actionLabel": "Start callback",
+          "actionHref": "#calls",
+          "actionId": "start-callback"
+        },
+        {
+          "id": "rec_1783292462867_1",
+          "action": "Call back the overnight urgent patient and schedule a same-day eval — offer open doctor block if DNA enables squeeze-in.",
+          "context": "Overnight caller · callback SLA applies",
+          "priority": "critical",
+          "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
+          "category": "emergency",
+          "actionLabel": "Start callback",
+          "actionHref": "#calls",
+          "actionId": "start-callback"
+        },
+        {
+          "id": "pat-attn-task_sm_001",
+          "action": "Confirm annual max remaining and crown coverage for #14.",
+          "context": "Sarah Mitchell",
+          "priority": "high",
+          "reason": "Confirm annual max remaining and crown coverage for #14.",
+          "actionLabel": "Verify insurance",
+          "actionHref": "#patients",
+          "actionId": "verify-insurance"
+        }
+      ],
+      "todaysTasks": [
+        {
+          "id": "rec_1783292462867_3",
+          "action": "Verify benefits before the new patient arrives",
+          "priority": "medium",
+          "reason": "New patient first impression depends on honest insurance handling and anxiety-aware prep — Constitution truth before efficiency.",
+          "category": "patient_experience",
+          "actionLabel": "Verify insurance",
+          "actionHref": "#patients",
+          "actionId": "verify-insurance"
+        },
+        {
+          "id": "opp_emerg_call_overnight_001",
+          "action": "Follow up on the overnight urgent call today",
+          "context": "Emergency eval intake complete — schedule same-day squeeze-in if clinically appropriate per DNA; callback SLA applies.",
+          "priority": "medium",
+          "reason": "emergency · 95% confidence · high impact",
+          "actionLabel": "Start callback",
+          "actionHref": "#calls",
+          "actionId": "start-callback"
+        },
+        {
+          "id": "opp_npe_call_overnight_002",
+          "action": "Complete verification and prep before the patient arrives",
+          "context": "NPE with delta_dental_ppo — benefits verification queue before visit.",
+          "priority": "medium",
+          "reason": "patient · 88% confidence · medium impact",
+          "actionLabel": "View summary",
+          "actionHref": "#calls",
+          "actionId": "view-summary"
+        },
+        {
+          "id": "opp_cancel_slot_hyg_1100",
+          "action": "Offer the cancelled hygiene slot to the waitlist",
+          "context": "Cancelled slot may be offered to waitlist per Office DNA waitlist policy within 15-minute target latency.",
+          "priority": "medium",
+          "reason": "cancellation recovery · 85% confidence · high impact",
+          "actionLabel": "Schedule patient",
+          "actionHref": "#patients",
+          "actionId": "schedule-patient"
+        }
+      ],
+      "comingUp": [
+        {
+          "id": "upcoming-brief_item_rec_1783292462867_11",
+          "action": "Overnight urgent call requires on-call callback within 30 min SLA",
+          "context": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions."
+        },
+        {
+          "id": "upcoming-brief_item_rec_1783292462867_1",
+          "action": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
+          "context": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency."
+        },
+        {
+          "id": "upcoming-pat-attn-task_sm_001",
+          "action": "Sarah Mitchell — Delta PPO benefits before crown seat",
+          "context": "On today's schedule"
+        },
+        {
+          "id": "upcoming-brief_item_rec_1783292462867_2",
+          "action": "Confirm lab case status before crown seat; assistant prep per Assistant Workflow DNA.",
+          "context": "Treatment-specific typing on call reduces assistant surprise and chairside delay."
+        }
+      ],
+      "reminders": [
+        {
+          "id": "brief_alert_risk_emerg_call_overnight_001",
+          "text": "Overnight urgent call requires on-call callback within 30 min SLA"
+        },
+        {
+          "id": "brief_dna_freshness",
+          "text": "Office DNA last validated 45 days ago — review recommended"
+        },
+        {
+          "id": "rem-stewardship",
+          "text": "Calls captured at 5calls — trending positively vs. baseline."
+        },
+        {
+          "id": "rem-insurance-taxonomy",
+          "text": "Remember: Delta PPO, Delta Medicaid, and HKD are different plans — classify to program level."
+        }
+      ]
+    }
+  }
+}

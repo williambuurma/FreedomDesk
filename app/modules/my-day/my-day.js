@@ -1,7 +1,7 @@
 /**
  * My Day — role-aware daily action surface.
- * Receptionist: workday hierarchy per USER_EXPERIENCE_PHILOSOPHY.md §5–6.
- * Doctor: legacy layout until role-specific sprint.
+ * Receptionist: v3 morning briefing (USER_EXPERIENCE_PHILOSOPHY.md).
+ * Doctor: calm clinical workspace — same visual language, role-specific content.
  */
 (function () {
   "use strict";
@@ -11,10 +11,14 @@
 
   var UI = window.FreedomDeskUI;
   var Labels = window.FreedomDeskLabels;
+  var Staff = window.FreedomDeskPracticeStaff;
 
   var state = {
     data: null,
+    staff: null,
     roleId: "front_desk",
+    taskIndex: {},
+    eventsBound: false,
   };
 
   function $(id) {
@@ -45,17 +49,46 @@
   }
 
   function roleSwitcherHtml() {
-    return UI.renderRoleSwitcher(Labels.MY_DAY_ROLES, state.roleId);
+    var roles = state.staff ? Staff.roleSwitcherRoles(state.staff) : Labels.MY_DAY_ROLES;
+    return UI.renderRoleSwitcher(roles, state.roleId);
   }
 
-  function morningSummaryHtml(view) {
-    return UI.renderMorningSummary({
-      summary: view.morningSummary,
-      recipientName: view.recipientName,
-      practiceName: state.data.practiceName,
-      date: state.data.date,
-      roleSwitcherHtml: roleSwitcherHtml(),
+  function renderRoleBar() {
+    var roleBar = $("mdRoleBar");
+    if (roleBar) {
+      roleBar.innerHTML = roleSwitcherHtml();
+    }
+  }
+
+  function indexTasks(view) {
+    state.taskIndex = {};
+    (view.urgentTasks || [])
+      .concat(view.todayTasks || [])
+      .forEach(function (task) {
+        if (task && task.id) state.taskIndex[task.id] = task;
+      });
+
+    (view.attentionCards || []).forEach(function (card) {
+      if (card.taskId && state.taskIndex[card.taskId]) return;
+      if (card.taskId && card.callSummary) {
+        state.taskIndex[card.taskId] = {
+          id: card.taskId,
+          label: card.patientName,
+          instruction: card.preview,
+          callSummary: card.callSummary,
+          panel: card.panel || "view-summary",
+        };
+      }
     });
+  }
+
+  function panelElements() {
+    return {
+      overlay: $("mdPanelOverlay"),
+      panel: $("mdSidePanel"),
+      content: $("mdPanelContent"),
+      title: $("mdPanelTitle"),
+    };
   }
 
   function setLayoutVisibility() {
@@ -68,137 +101,100 @@
   }
 
   function renderReceptionist(view) {
-    var greetingEl = $("mdGreeting");
-    if (greetingEl) greetingEl.innerHTML = morningSummaryHtml(view);
+    indexTasks(view);
 
-    var sinceEl = $("mdSinceLastLogin");
+    var greetingEl = $("mdGreeting");
+    if (greetingEl) {
+      greetingEl.innerHTML = UI.renderReceptionistWelcome({
+        welcome: view.welcome,
+        practiceName: state.data.practiceName,
+        date: state.data.date,
+      });
+    }
+
+    var sinceEl = $("mdSinceYesterday");
     if (sinceEl) {
-      sinceEl.innerHTML = UI.renderSectionCard(
-        "Since your last login",
-        UI.renderChangeList(
-          view.sinceLastLogin,
-          "Nothing new since you were last here."
-        ),
-        { id: "mdSinceLastLoginCard" }
-      );
+      sinceEl.innerHTML = UI.renderAttentionCards(view.attentionCards);
     }
 
     var urgentEl = $("mdUrgent");
     if (urgentEl) {
-      urgentEl.innerHTML = UI.renderSectionCard(
-        "Start here",
-        UI.renderTaskList(
-          view.urgentTasks,
-          "You're in good shape — nothing urgent flagged.",
-          { anchorUrgent: true }
-        ),
-        { id: "mdUrgentCard" }
+      urgentEl.innerHTML = UI.renderUrgentSection(
+        view.urgentTasks,
+        "You're clear — nothing urgent."
       );
     }
 
-    var todayEl = $("mdTodaysTasks");
+    var todayEl = $("mdToday");
     if (todayEl) {
       todayEl.innerHTML = UI.renderSectionCard(
-        "Today's tasks",
-        UI.renderTaskList(
-          view.todaysTasks,
-          "Nothing else on your list for today — keep the schedule moving."
+        "Today",
+        UI.renderTodaySection(
+          view.todayTasks,
+          view.scheduleGaps,
+          "Nothing else on your list — keep the schedule moving."
         ),
-        { id: "mdTodaysTasksCard" }
+        { id: "mdTodayCard" }
       );
     }
 
-    var comingEl = $("mdComingUp");
-    if (comingEl) {
-      comingEl.innerHTML = UI.renderSectionCard(
-        "Coming up",
-        UI.renderAwarenessList(
-          view.comingUp,
-          "Nothing else on the horizon today."
-        ),
-        { id: "mdComingUpCard", compact: true }
+    var headsUpEl = $("mdHeadsUp");
+    if (headsUpEl) {
+      headsUpEl.innerHTML = UI.renderSectionCard(
+        "Today's Reminders",
+        UI.renderHeadsUpList(view.headsUp, "Nothing else on the radar today."),
+        { id: "mdHeadsUpCard", compact: true, emphasis: true }
       );
     }
-
-    var remindersEl = $("mdReminders");
-    if (remindersEl) {
-      remindersEl.innerHTML = UI.renderSectionCard(
-        "Reminders",
-        UI.renderReminderList(view.reminders, "No reminders for today."),
-        { id: "mdRemindersCard", compact: true }
-      );
-    }
-
-    var focusEl = $("mdTodaysFocus");
-    if (focusEl) focusEl.innerHTML = UI.renderTodaysFocus(view.todaysFocus);
   }
 
   function renderDoctor(view) {
     var greetingEl = $("mdDoctorGreeting");
-    if (greetingEl) greetingEl.innerHTML = morningSummaryHtml(view);
+    if (greetingEl) {
+      greetingEl.innerHTML = UI.renderDoctorClinicalWelcome({
+        welcome: view.welcome,
+        practiceName: state.data.practiceName,
+        date: state.data.date,
+      });
+    }
 
-    var prioritiesEl = $("mdPriorities");
+    var scheduleEl = $("mdDoctorSchedule");
+    if (scheduleEl) {
+      scheduleEl.innerHTML = UI.renderSectionCard(
+        "Today's Schedule",
+        UI.renderDoctorSchedule(view.schedule, "Schedule unavailable."),
+        { id: "mdDoctorScheduleCard" }
+      );
+    }
+
+    var tasksEl = $("mdDoctorTasks");
+    if (tasksEl) {
+      tasksEl.innerHTML = UI.renderSectionCard(
+        "Today's Tasks",
+        UI.renderDoctorTasks(view.todaysTasks, "No clinical tasks flagged today."),
+        { id: "mdDoctorTasksCard" }
+      );
+    }
+
+    var prioritiesEl = $("mdClinicalPriorities");
     if (prioritiesEl) {
       prioritiesEl.innerHTML = UI.renderSectionCard(
-        "Start here",
-        UI.renderPriorityList(
-          view.priorities,
-          "You're in good shape — nothing needs your attention right away."
+        "Clinical Priorities",
+        UI.renderClinicalPriorities(
+          view.clinicalPriorities,
+          "No clinical priorities flagged today."
         ),
-        { id: "mdPrioritiesCard" }
+        { id: "mdClinicalPrioritiesCard", compact: true, emphasis: true }
       );
     }
-
-    var patientsEl = $("mdPatients");
-    if (patientsEl) {
-      patientsEl.innerHTML = UI.renderSectionCard(
-        "Patients to keep in mind",
-        UI.renderPatientList(
-          view.patientsAttention,
-          "No one on today's schedule needs extra attention."
-        ),
-        { id: "mdPatientsCard" }
-      );
-    }
-
-    var oppEl = $("mdOpportunities");
-    if (oppEl) {
-      oppEl.innerHTML = UI.renderSectionCard(
-        "When you have a moment",
-        UI.renderOpportunityList(
-          view.opportunities,
-          "Nothing extra flagged today — keep the schedule moving."
-        ),
-        { id: "mdOpportunitiesCard" }
-      );
-    }
-
-    var insightEl = $("mdInsight");
-    if (insightEl) {
-      insightEl.innerHTML = UI.renderSectionCard(
-        "Something I noticed",
-        UI.renderInsight(view.insight),
-        { id: "mdInsightCard" }
-      );
-    }
-
-    var actionsEl = $("mdQuickActions");
-    if (actionsEl) {
-      actionsEl.innerHTML = UI.renderSectionCard(
-        "Go to",
-        UI.renderQuickActions(view.quickActions),
-        { id: "mdActionsCard" }
-      );
-    }
-
-    var focusEl = $("mdDoctorTodaysFocus");
-    if (focusEl) focusEl.innerHTML = UI.renderTodaysFocus(view.todaysFocus);
   }
 
   function renderRole() {
     var view = getRoleView();
     if (!view || !state.data) return;
 
+    UI.closeWorkPanel(panelElements());
+    renderRoleBar();
     setLayoutVisibility();
 
     if (state.roleId === "front_desk") {
@@ -209,31 +205,66 @@
   }
 
   function bindEvents(container) {
+    if (state.eventsBound) return;
+    state.eventsBound = true;
+
     UI.bindReasoningToggles(container);
+    var panelEls = panelElements();
 
-    container.addEventListener("click", function (event) {
-      var roleBtn = event.target.closest("[data-role]");
-      if (!roleBtn || !roleBtn.classList.contains("fd-ui-role-btn")) return;
+    document.addEventListener("click", function (event) {
+      var roleBtn = event.target.closest("[data-role].fd-ui-role-btn");
+      if (roleBtn) {
+        var nextRole = roleBtn.getAttribute("data-role");
+        if (!nextRole || !Labels.MY_DAY_ROLES[nextRole] || nextRole === state.roleId) return;
 
-      var nextRole = roleBtn.getAttribute("data-role");
-      if (!nextRole || nextRole === state.roleId) return;
+        state.roleId = nextRole;
+        storeRole(nextRole);
+        renderRole();
+        return;
+      }
 
-      state.roleId = nextRole;
-      storeRole(nextRole);
+      var panelBtn = event.target.closest("[data-panel]");
+      if (panelBtn && container.contains(panelBtn)) {
+        var panelType = panelBtn.getAttribute("data-panel");
+        var taskId = panelBtn.getAttribute("data-task-id");
+        var task = state.taskIndex[taskId] || {};
+        UI.openWorkPanel(panelType, task, panelEls);
+      }
+    });
 
-      container.querySelectorAll(".fd-ui-role-btn").forEach(function (btn) {
-        var isActive = btn.getAttribute("data-role") === nextRole;
-        btn.classList.toggle("fd-ui-role-btn-active", isActive);
-        btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    var closeBtn = $("mdPanelClose");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function () {
+        UI.closeWorkPanel(panelEls);
       });
+    }
 
-      renderRole();
+    if (panelEls.overlay) {
+      panelEls.overlay.addEventListener("click", function (event) {
+        if (event.target === panelEls.overlay) {
+          UI.closeWorkPanel(panelEls);
+        }
+      });
+    }
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && panelEls.overlay && !panelEls.overlay.hidden) {
+        UI.closeWorkPanel(panelEls);
+      }
     });
   }
 
   function showDashboard() {
-    $("mdLoading").hidden = true;
-    $("mdError").hidden = true;
+    var loading = $("mdLoading");
+    var err = $("mdError");
+    if (loading) {
+      loading.hidden = true;
+      loading.setAttribute("aria-hidden", "true");
+    }
+    if (err) {
+      err.hidden = true;
+      err.setAttribute("aria-hidden", "true");
+    }
     setLayoutVisibility();
   }
 
@@ -247,16 +278,20 @@
   function init(container) {
     state.roleId = getStoredRole();
 
-    fetch(PREVIEW_URL)
-      .then(function (res) {
-        if (!res.ok) throw new Error("Failed to load preview");
-        return res.json();
+    Promise.all([fetch(PREVIEW_URL), Staff.load()])
+      .then(function (results) {
+        var previewRes = results[0];
+        if (!previewRes.ok) throw new Error("Failed to load preview");
+        return previewRes.json().then(function (data) {
+          return { data: data, staff: results[1] };
+        });
       })
-      .then(function (data) {
-        if (!data.previewMode) {
+      .then(function (payload) {
+        state.staff = payload.staff;
+        state.data = Staff.applyToMyDayData(payload.data, payload.staff);
+        if (!state.data.previewMode) {
           console.warn("My Day preview: expected previewMode flag");
         }
-        state.data = data;
         renderRole();
         bindEvents(container);
         showDashboard();

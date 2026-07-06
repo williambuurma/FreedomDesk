@@ -6,44 +6,46 @@
   <p>Unable to load My Day. Please refresh or contact support.</p>
 </div>
 
-<!-- Receptionist workday — Sprint 2 hierarchy -->
+<div class="md-role-bar" id="mdRoleBar" aria-label="View as"></div>
+
+<!-- Receptionist — approved v3 morning briefing -->
 <div class="md-dashboard md-dashboard--receptionist" id="mdReceptionistLayout" hidden>
   <header class="md-hero" id="mdGreeting"></header>
 
-  <section class="md-panel md-panel-since" id="mdSinceLastLogin" aria-label="Since your last login"></section>
+  <div class="md-since-yesterday" id="mdSinceYesterday" aria-label="Since yesterday"></div>
 
   <div class="md-workspace">
     <div class="md-workspace-primary">
       <div class="md-panel md-panel-anchor" id="mdUrgent"></div>
-      <div class="md-panel" id="mdTodaysTasks"></div>
+      <div class="md-panel md-panel-today" id="mdToday"></div>
     </div>
-    <aside class="md-workspace-secondary" aria-label="Later today">
-      <div class="md-panel md-panel-quiet" id="mdComingUp"></div>
-      <div class="md-panel md-panel-quiet" id="mdReminders"></div>
+    <aside class="md-workspace-secondary" aria-label="Today's reminders">
+      <div class="md-panel md-panel-heads-up" id="mdHeadsUp"></div>
     </aside>
   </div>
 
-  <footer class="md-closing" id="mdTodaysFocus"></footer>
+  <div class="md-panel-overlay" id="mdPanelOverlay" hidden aria-hidden="true">
+    <div class="md-side-panel" id="mdSidePanel" role="dialog" aria-modal="true" aria-labelledby="mdPanelTitle" hidden>
+      <header class="md-side-panel-header">
+        <h2 class="md-side-panel-title" id="mdPanelTitle"></h2>
+        <button type="button" class="md-side-panel-close" id="mdPanelClose" aria-label="Close">×</button>
+      </header>
+      <div class="md-side-panel-body" id="mdPanelContent"></div>
+    </div>
+  </div>
 </div>
 
-<!-- Doctor view — unchanged until role-specific sprint -->
+<!-- Doctor — calm clinical workspace (same shell as receptionist) -->
 <div class="md-dashboard md-dashboard--doctor" id="mdDoctorLayout" hidden>
   <header class="md-hero" id="mdDoctorGreeting"></header>
 
   <div class="md-workspace">
     <div class="md-workspace-primary">
-      <div class="md-panel md-panel-anchor" id="mdPriorities"></div>
+      <div class="md-panel" id="mdDoctorSchedule"></div>
+      <div class="md-panel" id="mdDoctorTasks"></div>
     </div>
-    <aside class="md-workspace-secondary" aria-label="Supporting context">
-      <div class="md-panel" id="mdPatients"></div>
-      <div class="md-panel" id="mdOpportunities"></div>
+    <aside class="md-workspace-secondary" aria-label="Clinical priorities">
+      <div class="md-panel md-panel-heads-up" id="mdClinicalPriorities"></div>
     </aside>
   </div>
-
-  <div class="md-workspace-footer">
-    <div class="md-panel" id="mdInsight"></div>
-    <div class="md-panel" id="mdQuickActions"></div>
-  </div>
-
-  <footer class="md-closing" id="mdDoctorTodaysFocus"></footer>
 </div>

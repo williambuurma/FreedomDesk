@@ -1,0 +1,28 @@
+{
+  "defaultReceptionistId": "receptionist_sarah",
+  "defaultDoctorId": "doctor_johnson",
+  "receptionists": [
+    {
+      "id": "receptionist_sarah",
+      "firstName": "Sarah",
+      "displayName": "Sarah"
+    },
+    {
+      "id": "receptionist_jessica",
+      "firstName": "Jessica",
+      "displayName": "Jessica"
+    }
+  ],
+  "doctors": [
+    {
+      "id": "doctor_johnson",
+      "displayName": "Dr. Johnson",
+      "shortName": "Dr. Johnson"
+    },
+    {
+      "id": "doctor_buurma",
+      "displayName": "Dr. Buurma",
+      "shortName": "Dr. Buurma"
+    }
+  ]
+}

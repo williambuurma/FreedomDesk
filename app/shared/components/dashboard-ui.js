@@ -59,8 +59,506 @@
     );
   }
 
+  function renderStatusBadge(status) {
+    if (!status) return "";
+    var labels = {
+      "needs-action": "Needs Action",
+      waiting: "Waiting",
+      ready: "Ready",
+      available: "Available",
+      open: "Open",
+      verified: "Verified",
+      completed: "Completed",
+    };
+    var label = labels[status];
+    if (!label) return "";
+    return (
+      '<span class="fd-ui-status fd-ui-status-' +
+      escapeHtml(status) +
+      '">' +
+      escapeHtml(label) +
+      "</span>"
+    );
+  }
+
   /**
-   * Task row with a direct action — receptionist workday surface.
+   * Receptionist welcome — greeting, calm subline, practice meta.
+   */
+  function renderReceptionistWelcome(options) {
+    var opts = options || {};
+    var welcome = opts.welcome || {};
+    var timeGreeting = timeGreetingForHour(new Date().getHours());
+    var greetingLine =
+      welcome.greeting || timeGreeting + ", " + (opts.recipientName || "there") + ".";
+    var subline =
+      welcome.subline ||
+      welcome.priority ||
+      "You're well prepared. Let's start with today's priorities.";
+
+    return (
+      '<header class="fd-ui-receptionist-welcome" aria-live="polite">' +
+      '<div class="fd-ui-receptionist-welcome-main">' +
+      '<p class="fd-ui-welcome-greeting">' +
+      escapeHtml(greetingLine) +
+      "</p>" +
+      '<p class="fd-ui-welcome-subline">' +
+      escapeHtml(subline) +
+      "</p>" +
+      '<p class="fd-ui-welcome-meta">' +
+      escapeHtml(opts.practiceName || "") +
+      " · " +
+      escapeHtml(Utils.formatDate(opts.date || new Date().toISOString().slice(0, 10))) +
+      "</p>" +
+      "</div>" +
+      "</header>"
+    );
+  }
+
+  /**
+   * Attention cards — since yesterday at a glance.
+   */
+  function renderAttentionCards(cards) {
+    if (!cards || cards.length === 0) {
+      return (
+        '<p class="fd-ui-attention-empty">' +
+        escapeHtml("Nothing new overnight — you're starting fresh.") +
+        "</p>"
+      );
+    }
+
+    var html = '<div class="fd-ui-attention-grid">';
+    cards.forEach(function (card) {
+      var variant = card.variant === "red" ? " fd-ui-attention-card-red" : " fd-ui-attention-card-blue";
+
+      html += '<article class="fd-ui-attention-card' + variant + '">';
+
+      if (card.type === "callback-preview") {
+        html +=
+          '<span class="fd-ui-attention-icon" aria-hidden="true">' +
+          escapeHtml(card.icon || "☎️") +
+          "</span>" +
+          '<p class="fd-ui-attention-title">' +
+          escapeHtml(card.title || "Callback waiting") +
+          "</p>" +
+          '<p class="fd-ui-attention-patient">' +
+          escapeHtml(card.patientName || "") +
+          "</p>" +
+          '<p class="fd-ui-attention-preview">' +
+          escapeHtml(card.preview || "") +
+          "</p>" +
+          '<button type="button" class="fd-ui-attention-btn"' +
+          ' data-panel="' +
+          escapeHtml(card.panel || "view-summary") +
+          '" data-task-id="' +
+          escapeHtml(card.taskId || "") +
+          '">' +
+          escapeHtml(card.actionLabel || "View call summary") +
+          "</button>";
+      } else if (card.type === "call-preview") {
+        html +=
+          '<span class="fd-ui-attention-icon" aria-hidden="true">' +
+          escapeHtml(card.icon || "📞") +
+          "</span>" +
+          '<p class="fd-ui-attention-patient">' +
+          escapeHtml(card.patientName || "") +
+          "</p>" +
+          '<p class="fd-ui-attention-preview">' +
+          escapeHtml(card.preview || "") +
+          "</p>" +
+          '<button type="button" class="fd-ui-attention-btn"' +
+          ' data-panel="' +
+          escapeHtml(card.panel || "view-summary") +
+          '" data-task-id="' +
+          escapeHtml(card.taskId || "") +
+          '">' +
+          escapeHtml(card.actionLabel || "View call summary") +
+          "</button>";
+      } else {
+        html +=
+          '<span class="fd-ui-attention-icon" aria-hidden="true">' +
+          escapeHtml(card.icon || "") +
+          "</span>" +
+          '<p class="fd-ui-attention-title">' +
+          escapeHtml(card.title) +
+          "</p>" +
+          '<p class="fd-ui-attention-desc">' +
+          escapeHtml(card.description) +
+          "</p>";
+      }
+
+      html += "</article>";
+    });
+    html += "</div>";
+    return html;
+  }
+
+  function renderWorkTaskButton(task) {
+    var actionLabel = task.actionLabel || "View summary";
+    var panel = task.panel || task.actionId;
+
+    if (task.panel || task.actionId === "verify-insurance" || task.actionId === "view-summary") {
+      return (
+        '<button type="button" class="fd-ui-work-btn"' +
+        ' data-panel="' +
+        escapeHtml(task.panel || task.actionId) +
+        '" data-task-id="' +
+        escapeHtml(task.id || "") +
+        '">' +
+        escapeHtml(actionLabel) +
+        "</button>"
+      );
+    }
+
+    var actionTag = task.actionHref ? "a" : "button";
+    var actionAttrs = task.actionHref
+      ? ' href="' + escapeHtml(task.actionHref) + '"'
+      : ' type="button" data-action="' + escapeHtml(task.actionId || task.id || "") + '"';
+
+    return (
+      "<" +
+      actionTag +
+      ' class="fd-ui-work-btn"' +
+      actionAttrs +
+      ">" +
+      escapeHtml(actionLabel) +
+      "</" +
+      actionTag +
+      ">"
+    );
+  }
+
+  /**
+   * Urgent block — highest priority visual anchor.
+   */
+  function renderUrgentSection(tasks, emptyMessage) {
+    var body =
+      !tasks || tasks.length === 0
+        ? renderEmptyState(emptyMessage || "You're clear — nothing urgent.")
+        : renderWorkTaskList(tasks, emptyMessage, { anchor: true, urgentBlock: true });
+
+    return (
+      '<section class="fd-ui-urgent-block" aria-labelledby="mdUrgentHeading">' +
+      '<h2 class="fd-ui-urgent-heading" id="mdUrgentHeading">' +
+      '<span class="fd-ui-urgent-icon" aria-hidden="true">⚠</span> URGENT</h2>' +
+      '<div class="fd-ui-urgent-inner">' +
+      body +
+      "</div></section>"
+    );
+  }
+
+  /**
+   * Today — tasks plus open schedule gaps.
+   */
+  function renderTodaySection(todayTasks, scheduleGaps, emptyMessage) {
+    var html = "";
+
+    if (scheduleGaps && scheduleGaps.length > 0) {
+      html += '<ul class="fd-ui-schedule-gap-list">';
+      scheduleGaps.forEach(function (gap) {
+        var timeLabel = gap.time || gap.timeRange || "";
+        html +=
+          '<li class="fd-ui-schedule-gap">' +
+          '<p class="fd-ui-schedule-gap-label">' +
+          escapeHtml(gap.label || "Open") +
+          renderStatusBadge(gap.status || "available") +
+          "</p>" +
+          '<p class="fd-ui-schedule-gap-time">' +
+          escapeHtml(timeLabel) +
+          "</p>" +
+          '<p class="fd-ui-schedule-gap-provider">' +
+          escapeHtml(gap.provider) +
+          "</p>" +
+          '<p class="fd-ui-schedule-gap-duration">' +
+          escapeHtml(gap.duration) +
+          "</p>" +
+          "</li>";
+      });
+      html += "</ul>";
+    }
+
+    html += renderWorkTaskList(
+      todayTasks,
+      emptyMessage || "Nothing else on your list — keep the schedule moving.",
+      { anchor: false }
+    );
+
+    return html;
+  }
+
+  function renderCallSummaryPanel(task) {
+    var summary = task.callSummary || {};
+    var urgency = summary.urgency || (task.priority === "critical" ? "Urgent" : "Routine");
+    var urgencyClass =
+      /urgent|critical|high/i.test(urgency) ? " fd-ui-panel-urgency-high" : " fd-ui-panel-urgency-routine";
+
+    function fact(label, value) {
+      if (!value) return "";
+      return (
+        '<dl class="fd-ui-panel-facts"><dt>' +
+        escapeHtml(label) +
+        "</dt><dd>" +
+        escapeHtml(value) +
+        "</dd></dl>"
+      );
+    }
+
+    return (
+      '<div class="fd-ui-panel-call-summary">' +
+      '<p class="fd-ui-panel-patient-name">' +
+      escapeHtml(summary.patientName || task.label || "Patient") +
+      "</p>" +
+      '<span class="fd-ui-panel-urgency' +
+      urgencyClass +
+      '">' +
+      escapeHtml(urgency) +
+      "</span>" +
+      fact("Caller", summary.caller) +
+      fact("Date & time", summary.calledAt) +
+      fact("Chief concern", summary.chiefConcern || summary.intent) +
+      (summary.aiSummary
+        ? '<div class="fd-ui-panel-ai-block">' +
+          '<p class="fd-ui-panel-subhead">FreedomDesk summary</p>' +
+          '<p class="fd-ui-panel-ai-text">' +
+          escapeHtml(summary.aiSummary) +
+          "</p></div>"
+        : fact("Reason for call", summary.intent)) +
+      (summary.recommendedNextStep || summary.nextStep
+        ? '<div class="fd-ui-panel-next-block">' +
+          '<p class="fd-ui-panel-subhead">Recommended next step</p>' +
+          '<p class="fd-ui-panel-next-text">' +
+          escapeHtml(summary.recommendedNextStep || summary.nextStep) +
+          "</p></div>"
+        : "") +
+      (summary.phone
+        ? '<p class="fd-ui-panel-phone"><span>Callback number</span> ' +
+          escapeHtml(summary.phone) +
+          "</p>"
+        : "") +
+      '<button type="button" class="fd-ui-panel-primary" data-action="start-callback">Start callback</button>' +
+      "</div>"
+    );
+  }
+
+  function renderInsurancePanel(task) {
+    var ins = task.insurancePanel || {};
+    var missing = ins.missing || [];
+
+    var missingHtml = "";
+    if (missing.length > 0) {
+      missingHtml = '<ul class="fd-ui-panel-missing">';
+      missing.forEach(function (item) {
+        missingHtml += "<li>" + escapeHtml(item) + "</li>";
+      });
+      missingHtml += "</ul>";
+    }
+
+    return (
+      '<div class="fd-ui-panel-insurance">' +
+      '<dl class="fd-ui-panel-insurance-grid">' +
+      "<dt>Insurance company</dt><dd>" +
+      escapeHtml(ins.company || "—") +
+      "</dd>" +
+      "<dt>Subscriber</dt><dd>" +
+      escapeHtml(ins.subscriber || "—") +
+      "</dd>" +
+      "<dt>Verification status</dt><dd>" +
+      escapeHtml(ins.status || "Not verified") +
+      "</dd>" +
+      "<dt>Coverage</dt><dd>" +
+      escapeHtml(ins.coverage || "Primary") +
+      "</dd>" +
+      "<dt>Last verified</dt><dd>" +
+      escapeHtml(ins.lastVerified || "Never") +
+      "</dd>" +
+      "</dl>" +
+      (missing.length > 0
+        ? '<div class="fd-ui-panel-missing-wrap"><p class="fd-ui-panel-subhead">Missing information</p>' +
+          missingHtml +
+          "</div>"
+        : "") +
+      (ins.benefitsNote
+        ? '<p class="fd-ui-panel-note">' + escapeHtml(ins.benefitsNote) + "</p>"
+        : "") +
+      '<button type="button" class="fd-ui-panel-primary" data-action="verify-now">Verify now</button>' +
+      "</div>"
+    );
+  }
+
+  function panelTitleFor(panelType, task) {
+    if (panelType === "verify-insurance") return "Verify insurance";
+    if (panelType === "view-summary" || panelType === "call-summary") return "Call summary";
+    return task.label || "Details";
+  }
+
+  function renderPanelContent(panelType, task) {
+    if (panelType === "verify-insurance") return renderInsurancePanel(task);
+    return renderCallSummaryPanel(task);
+  }
+
+  function openWorkPanel(panelType, task, elements) {
+    var els = elements || {};
+    var overlay = els.overlay;
+    var panel = els.panel;
+    var content = els.content;
+    var title = els.title;
+    if (!overlay || !panel || !content) return;
+
+    if (title) title.textContent = panelTitleFor(panelType, task || {});
+    content.innerHTML = renderPanelContent(panelType, task || {});
+
+    overlay.hidden = false;
+    overlay.setAttribute("aria-hidden", "false");
+    panel.hidden = false;
+    document.body.classList.add("md-panel-open");
+  }
+
+  function closeWorkPanel(elements) {
+    var els = elements || {};
+    if (els.overlay) {
+      els.overlay.hidden = true;
+      els.overlay.setAttribute("aria-hidden", "true");
+    }
+    if (els.panel) els.panel.hidden = true;
+    if (els.content) els.content.innerHTML = "";
+    document.body.classList.remove("md-panel-open");
+  }
+
+  /**
+   * Since yesterday — legacy token line (doctor / fallback).
+   */
+  function renderSinceYesterday(sinceYesterday) {
+    var data = sinceYesterday || {};
+    var tokens = data.tokens || [];
+
+    if (tokens.length === 0) {
+      return (
+        '<p class="fd-ui-since-yesterday fd-ui-since-yesterday-empty">' +
+        '<span class="fd-ui-since-label">Since yesterday:</span> ' +
+        escapeHtml(data.emptyMessage || "Nothing new overnight.") +
+        "</p>"
+      );
+    }
+
+    var html =
+      '<p class="fd-ui-since-yesterday">' +
+      '<span class="fd-ui-since-label">Since yesterday:</span> ';
+
+    tokens.forEach(function (token, index) {
+      if (index > 0) html += '<span class="fd-ui-since-sep" aria-hidden="true">·</span>';
+      html += '<span class="fd-ui-since-token">' + escapeHtml(token.text) + "</span>";
+    });
+
+    html += "</p>";
+    return html;
+  }
+
+  /**
+   * Work task — label, instruction, verb-first action button.
+   */
+  function renderWorkTaskItem(task, index, options) {
+    var opts = options || {};
+    var priority = task.priority || "medium";
+    var isFirstCritical =
+      opts.anchor && priority === "critical" && opts.showFirstCritical;
+    var extraClass = "";
+    if (isFirstCritical && !opts.urgentBlock) extraClass = " fd-ui-work-item-critical";
+    if (opts.urgentBlock) extraClass += " fd-ui-work-item-urgent-block";
+
+    var recommendationHtml = "";
+    if (opts.urgentBlock && task.recommendedNextStep) {
+      recommendationHtml =
+        '<p class="fd-ui-work-recommendation">' +
+        '<span class="fd-ui-work-recommendation-label">Recommended next step:</span> ' +
+        escapeHtml(task.recommendedNextStep) +
+        "</p>";
+    }
+
+    return (
+      '<li class="fd-ui-work-item' +
+      extraClass +
+      '">' +
+      '<div class="fd-ui-work-body">' +
+      '<p class="fd-ui-work-label">' +
+      escapeHtml(task.label) +
+      renderStatusBadge(task.status) +
+      "</p>" +
+      '<p class="fd-ui-work-instruction">' +
+      escapeHtml(task.instruction) +
+      "</p>" +
+      recommendationHtml +
+      "</div>" +
+      renderWorkTaskButton(task) +
+      "</li>"
+    );
+  }
+
+  function renderWorkTaskList(tasks, emptyMessage, options) {
+    if (!tasks || tasks.length === 0) {
+      return renderEmptyState(emptyMessage || "You're clear — nothing here.");
+    }
+
+    var opts = options || {};
+    var criticalShown = false;
+    var html = '<ul class="fd-ui-work-list' + (opts.urgentBlock ? " fd-ui-work-list-urgent" : "") + '">';
+    tasks.forEach(function (task, index) {
+      var isCritical = (task.priority || "medium") === "critical";
+      var showFirst = isCritical && opts.anchor && !criticalShown && !opts.urgentBlock;
+      if (showFirst) criticalShown = true;
+      html += renderWorkTaskItem(task, index, {
+        anchor: opts.anchor,
+        showFirstCritical: showFirst,
+        urgentBlock: opts.urgentBlock,
+      });
+    });
+    html += "</ul>";
+    return html;
+  }
+
+  /**
+   * Small contextual icon for reminder rows — inferred from text, not stored in data.
+   */
+  function headsUpIcon(text) {
+    var t = (text || "").toLowerCase();
+    if (/crown|seat|#1[0-9]/.test(t)) return "🦷";
+    if (/new patient|npe|first visit/.test(t)) return "👤";
+    if (/rep|patterson|vendor|sales/.test(t)) return "📋";
+    if (/lab|pickup|case/.test(t)) return "📦";
+    if (/huddle|meeting|team/.test(t)) return "👥";
+    if (/payroll|admin|billing/.test(t)) return "📌";
+    if (/hygiene|recall|prophy/.test(t)) return "🪥";
+    return "•";
+  }
+
+  /**
+   * Heads up — time + short phrase, awareness only.
+   */
+  function renderHeadsUpList(items, emptyMessage) {
+    if (!items || items.length === 0) {
+      return renderEmptyState(emptyMessage || "Nothing else on the radar today.");
+    }
+
+    var html = '<ul class="fd-ui-heads-up-list">';
+    items.forEach(function (item) {
+      var icon = headsUpIcon(item.text);
+      html +=
+        '<li class="fd-ui-heads-up-item">' +
+        (item.time
+          ? '<span class="fd-ui-heads-up-time">' + escapeHtml(item.time) + "</span>"
+          : '<span class="fd-ui-heads-up-time fd-ui-heads-up-time-empty" aria-hidden="true"></span>') +
+        '<span class="fd-ui-heads-up-icon" aria-hidden="true">' +
+        escapeHtml(icon) +
+        "</span>" +
+        '<span class="fd-ui-heads-up-text">' +
+        escapeHtml(item.text) +
+        "</span>" +
+        "</li>";
+    });
+    html += "</ul>";
+    return html;
+  }
+
+  /**
+   * Task row with a direct action — legacy receptionist format (doctor modules).
    */
   function renderTaskItem(task, index, options) {
     var opts = options || {};
@@ -394,14 +892,125 @@
       escapeHtml(Utils.formatDate(opts.date || new Date().toISOString().slice(0, 10))) +
       "</p>" +
       "</div>" +
-      (opts.roleSwitcherHtml || "") +
       "</header>"
     );
   }
 
   /**
-   * Conversational morning summary — reads like an experienced office manager.
+   * Doctor clinical briefing — calm welcome block.
    */
+  function renderDoctorClinicalWelcome(options) {
+    var opts = options || {};
+    var welcome = opts.welcome || {};
+
+    return (
+      '<header class="fd-ui-doctor-welcome" aria-live="polite">' +
+      '<p class="fd-ui-welcome-greeting">' +
+      escapeHtml(welcome.greeting || "Good morning.") +
+      "</p>" +
+      '<p class="fd-ui-welcome-subline">' +
+      escapeHtml(welcome.subline || "You have a full clinical day.") +
+      "</p>" +
+      '<p class="fd-ui-welcome-meta">' +
+      escapeHtml(opts.practiceName || "") +
+      " · " +
+      escapeHtml(Utils.formatDate(opts.date || new Date().toISOString().slice(0, 10))) +
+      "</p>" +
+      "</header>"
+    );
+  }
+
+  function renderDoctorSchedule(appointments, emptyMessage) {
+    if (!appointments || appointments.length === 0) {
+      return renderEmptyState(emptyMessage || "Schedule unavailable.");
+    }
+
+    var html = '<ol class="fd-ui-doctor-schedule">';
+    appointments.forEach(function (appt) {
+      var rowClass = "fd-ui-doctor-schedule-row";
+      if (appt.isBlock) rowClass += " fd-ui-doctor-schedule-row-block";
+      if (appt.isOpen) rowClass += " fd-ui-doctor-schedule-row-open";
+
+      html += '<li class="' + rowClass + '">';
+      html += '<span class="fd-ui-doctor-schedule-time">' + escapeHtml(appt.time) + "</span>";
+      html += '<div class="fd-ui-doctor-schedule-detail">';
+
+      if (appt.patientName && !appt.isBlock) {
+        html +=
+          '<p class="fd-ui-doctor-schedule-patient">' +
+          escapeHtml(appt.patientName) +
+          "</p>";
+      }
+
+      html +=
+        '<p class="fd-ui-doctor-schedule-procedure">' +
+        escapeHtml(appt.procedure) +
+        "</p></div></li>";
+    });
+    html += "</ol>";
+    return html;
+  }
+
+  function renderDoctorTasks(tasks, emptyMessage) {
+    if (!tasks || tasks.length === 0) {
+      return renderEmptyState(emptyMessage || "No clinical tasks flagged today.");
+    }
+
+    var html = '<ul class="fd-ui-doctor-task-list">';
+    tasks.forEach(function (task) {
+      html +=
+        '<li class="fd-ui-doctor-task-item">' +
+        '<p class="fd-ui-doctor-task-label">' +
+        escapeHtml(task.label) +
+        "</p>" +
+        '<p class="fd-ui-doctor-task-detail">' +
+        escapeHtml(task.detail || "") +
+        "</p>" +
+        "</li>";
+    });
+    html += "</ul>";
+    return html;
+  }
+
+  function renderClinicalPriorities(priorities, emptyMessage) {
+    if (!priorities || priorities.length === 0) {
+      return renderEmptyState(emptyMessage || "No clinical priorities flagged today.");
+    }
+
+    var html = '<ol class="fd-ui-clinical-list">';
+    priorities.forEach(function (item) {
+      html +=
+        '<li class="fd-ui-clinical-item">' +
+        '<p class="fd-ui-clinical-label">' +
+        escapeHtml(item.number + ". " + item.label) +
+        "</p>" +
+        '<p class="fd-ui-clinical-detail">' +
+        escapeHtml(item.detail) +
+        "</p>" +
+        "</li>";
+    });
+    html += "</ol>";
+    return html;
+  }
+
+  function renderDoctorScheduleSummary(lines, emptyMessage) {
+    if (!lines || lines.length === 0) {
+      return renderEmptyState(emptyMessage || "Schedule summary unavailable.");
+    }
+
+    var html = '<ul class="fd-ui-schedule-summary-list">';
+    lines.forEach(function (line) {
+      html += '<li class="fd-ui-schedule-summary-item">' + escapeHtml(line) + "</li>";
+    });
+    html += "</ul>";
+    return html;
+  }
+
+  function renderClinicalOpportunity(opportunity) {
+    if (!opportunity || !opportunity.text) return "";
+    return '<p class="fd-ui-clinical-opportunity-text">' + escapeHtml(opportunity.text) + "</p>";
+  }
+
   function renderMorningSummary(options) {
     var opts = options || {};
     var summary = opts.summary || {};
@@ -434,7 +1043,6 @@
       escapeHtml(Utils.formatDate(opts.date || new Date().toISOString().slice(0, 10))) +
       "</p>" +
       "</div>" +
-      (opts.roleSwitcherHtml || "") +
       "</header>"
     );
   }
@@ -478,6 +1086,7 @@
   function renderSectionCard(title, bodyHtml, options) {
     var opts = options || {};
     var extraClass = opts.compact ? " fd-ui-card-compact" : "";
+    extraClass += opts.emphasis ? " fd-ui-card-emphasis" : "";
     var idAttr = opts.id ? ' id="' + escapeHtml(opts.id) + '"' : "";
     var labelledBy = opts.id ? ' aria-labelledby="' + escapeHtml(opts.id) + '-heading"' : "";
 
@@ -520,6 +1129,20 @@
   window.FreedomDeskUI = {
     renderGreeting: renderGreeting,
     renderMorningSummary: renderMorningSummary,
+    renderReceptionistWelcome: renderReceptionistWelcome,
+    renderDoctorClinicalWelcome: renderDoctorClinicalWelcome,
+    renderDoctorSchedule: renderDoctorSchedule,
+    renderDoctorTasks: renderDoctorTasks,
+    renderClinicalPriorities: renderClinicalPriorities,
+    renderAttentionCards: renderAttentionCards,
+    renderSinceYesterday: renderSinceYesterday,
+    renderUrgentSection: renderUrgentSection,
+    renderTodaySection: renderTodaySection,
+    renderWorkTaskList: renderWorkTaskList,
+    renderHeadsUpList: renderHeadsUpList,
+    openWorkPanel: openWorkPanel,
+    closeWorkPanel: closeWorkPanel,
+    renderPanelContent: renderPanelContent,
     renderTodaysFocus: renderTodaysFocus,
     renderRoleSwitcher: renderRoleSwitcher,
     renderSectionCard: renderSectionCard,

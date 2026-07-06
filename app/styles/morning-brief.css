@@ -17,11 +17,11 @@
 }
 
 .fd-dashboard-content .mb-greeting-kicker {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--red);
+  font-size: var(--fd-text-xs);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--fd-ink-tertiary);
   margin-bottom: 10px;
 }
 
@@ -29,7 +29,7 @@
   font-size: var(--fd-text-3xl);
   font-weight: 700;
   letter-spacing: -0.035em;
-  color: var(--navy);
+  color: var(--fd-navy);
   line-height: 1.1;
   margin-bottom: 12px;
 }
@@ -63,28 +63,28 @@
 }
 
 .fd-dashboard-content .mb-section-label {
-  font-size: 0.72rem;
+  font-size: var(--fd-text-sm);
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--fd-navy);
   margin-bottom: 14px;
 }
 
 /* ── Today's Focus ── */
 
 .fd-dashboard-content .mb-focus-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 28px 32px;
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .fd-dashboard-content .mb-focus-calm {
   font-size: 1.05rem;
   font-weight: 500;
-  color: var(--navy);
+  color: var(--fd-navy);
   line-height: 1.55;
 }
 
@@ -150,18 +150,19 @@
 }
 
 .fd-dashboard-content .mb-snapshot-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 20px 18px;
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0 0 16px;
+  box-shadow: none;
+  border-bottom: 1px solid var(--fd-divider-subtle);
 }
 
 .fd-dashboard-content .mb-snapshot-value {
   display: block;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--fd-navy);
   letter-spacing: -0.03em;
   line-height: 1.1;
   margin-bottom: 6px;
@@ -212,16 +213,17 @@
 }
 
 .fd-dashboard-content .mb-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px 26px;
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0 0 var(--fd-space-5);
+  box-shadow: none;
+  border-bottom: 1px solid var(--fd-divider-subtle);
 }
 
 .fd-dashboard-content .mb-card-critical {
-  border-color: rgba(214, 56, 80, 0.18);
-  box-shadow: 0 4px 24px rgba(214, 56, 80, 0.06);
+  border-bottom-color: var(--fd-divider);
+  box-shadow: none;
 }
 
 .fd-dashboard-content .mb-card-header {
@@ -235,7 +237,7 @@
 .fd-dashboard-content .mb-card-title {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--fd-navy);
   letter-spacing: -0.02em;
   line-height: 1.25;
 }
@@ -435,34 +437,35 @@
 }
 
 .fd-dashboard-content .mb-stewardship-inner {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
-  border-radius: var(--radius);
-  padding: 28px 32px;
-  color: #fff;
-  box-shadow: var(--glow-navy);
+  background: transparent;
+  border-radius: 0;
+  padding: var(--fd-space-4) 0;
+  color: var(--fd-ink-secondary);
+  box-shadow: none;
+  border-top: 1px solid var(--fd-divider-subtle);
 }
 
 .fd-dashboard-content .mb-stewardship-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.65);
-  margin-bottom: 10px;
+  font-size: var(--fd-text-xs);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--fd-ink-tertiary);
+  margin-bottom: 8px;
 }
 
 .fd-dashboard-content .mb-stewardship-text {
-  font-size: 1.05rem;
-  font-weight: 500;
-  line-height: 1.55;
-  color: #fff;
+  font-size: var(--fd-text-base);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--fd-ink-secondary);
 }
 
 .fd-dashboard-content .mb-footer-note {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-  text-align: center;
+  margin-top: var(--fd-space-5);
+  padding-top: var(--fd-space-4);
+  border-top: 1px solid var(--fd-divider-subtle);
+  text-align: left;
 }
 
 .fd-dashboard-content .mb-footer-note p {

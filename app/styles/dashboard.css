@@ -1,12 +1,12 @@
 /* FreedomDesk internal dashboard shell */
 
 :root {
-  --fd-sidebar-w: 252px;
+  --fd-sidebar-w: 288px;
   --fd-header-h: clamp(52px, 4vw + 40px, 60px);
 }
 
 .fd-dashboard {
-  background: var(--bg-warm);
+  background: var(--fd-surface-base);
   min-height: 100vh;
 }
 
@@ -26,47 +26,38 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--navy);
-  color: #fff;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--fd-surface-sidebar);
+  color: var(--fd-ink-inverse);
 }
 
 .fd-sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 22px 20px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 32px 28px 28px;
+  background: var(--fd-surface-raised);
+  flex-shrink: 0;
 }
 
-.fd-sidebar-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+.fd-sidebar-brand-link {
+  display: block;
+  line-height: 0;
+  max-width: 100%;
+}
+
+.fd-sidebar-brand-link:focus-visible {
+  outline: 2px solid var(--fd-navy-mid);
+  outline-offset: 4px;
+  border-radius: var(--fd-radius-sm);
+}
+
+/* Marketing .logo-image pattern — scaled for sidebar width */
+.fd-sidebar-brand .fd-sidebar-logo,
+.fd-sidebar-brand .logo-image {
+  display: block;
+  height: 80px;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
   object-fit: contain;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 4px;
-}
-
-.fd-sidebar-brand-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.fd-sidebar-brand-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.fd-sidebar-brand-sub {
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  object-position: left center;
 }
 
 .fd-sidebar-nav {
@@ -83,23 +74,22 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 14px;
-  border-radius: 10px;
-  font-size: 0.88rem;
+  padding: 10px 14px;
+  border-radius: var(--fd-radius-sm);
+  font-size: 0.875rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.68);
+  color: rgba(255, 255, 255, 0.58);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .fd-nav-link:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: #fff;
+  background: var(--fd-surface-sidebar-hover);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .fd-nav-link-active {
-  background: rgba(255, 255, 255, 0.11);
+  background: var(--fd-surface-sidebar-active);
   color: #fff;
-  box-shadow: inset 3px 0 0 var(--red);
 }
 
 .fd-nav-icon {
@@ -111,13 +101,12 @@
 
 .fd-sidebar-footer {
   padding: 16px 20px 22px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .fd-sidebar-footer-link {
   display: block;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.42);
   transition: color 0.15s ease;
 }
 
@@ -145,9 +134,7 @@
   gap: var(--fd-space-4);
   height: var(--fd-header-h);
   padding: 0 var(--fd-space-inline);
-  background: rgba(248, 250, 253, 0.88);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
+  background: var(--fd-surface-base);
 }
 
 .fd-sidebar-toggle {
@@ -156,10 +143,10 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--navy);
+  border: none;
+  border-radius: var(--fd-radius-sm);
+  background: var(--fd-divider-subtle);
+  color: var(--fd-navy);
   cursor: pointer;
 }
 
@@ -173,14 +160,14 @@
   min-width: 0;
   font-size: var(--fd-text-lg);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--navy);
+  letter-spacing: -0.025em;
+  color: var(--fd-navy);
   line-height: 1.2;
 }
 
 .fd-module-title.fd-header-home {
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--fd-ink-tertiary);
   font-size: var(--fd-text-sm);
 }
 
@@ -192,26 +179,26 @@
 
 .fd-preview-badge {
   display: inline-block;
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--navy-mid);
-  background: var(--blue-muted);
-  border: 1px solid var(--border-navy);
-  border-radius: 999px;
-  padding: 5px 11px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--fd-ink-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 }
 
 .fd-header-site-link {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--navy-mid);
+  color: var(--fd-navy-muted);
   white-space: nowrap;
 }
 
 .fd-header-site-link:hover {
-  color: var(--red);
+  color: var(--fd-navy-mid);
 }
 
 .fd-dashboard-content {
@@ -248,7 +235,7 @@
   font-size: var(--fd-text-2xl);
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: var(--navy);
+  color: var(--fd-navy);
   line-height: 1.15;
   margin-bottom: var(--fd-space-3);
 }
@@ -261,11 +248,11 @@
 }
 
 .fd-placeholder-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: transparent;
+  border: none;
+  border-radius: 0;
   padding: 40px 36px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   text-align: center;
 }
 
@@ -324,15 +311,15 @@
 .fd-placeholder-badge {
   display: inline-block;
   margin-top: 28px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--navy-mid);
-  background: var(--blue-muted);
-  border: 1px solid var(--border-navy);
-  border-radius: 999px;
-  padding: 6px 12px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--fd-ink-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 }
 
 /* ── Compact / split-screen layout (half monitor beside PMS) ── */
@@ -395,5 +382,14 @@
 
   .fd-placeholder-card {
     padding: var(--fd-space-6) var(--fd-space-5);
+  }
+
+  .fd-sidebar-brand {
+    padding: 28px 22px 24px;
+  }
+
+  .fd-sidebar-brand .fd-sidebar-logo,
+  .fd-sidebar-brand .logo-image {
+    height: 56px;
   }
 }

@@ -10,7 +10,14 @@
   <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png" />
   <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="styles/theme.css" />
   <link rel="stylesheet" href="styles/layout.css" />
   <link rel="stylesheet" href="styles/dashboard.css" />
   <link rel="stylesheet" href="styles/morning-brief.css" />
@@ -22,18 +29,16 @@
 
     <aside class="fd-sidebar" id="fdSidebar" aria-label="Dashboard navigation">
       <div class="fd-sidebar-brand">
-        <img
-          src="../assets/logos/Freedomdesk-logo-full.png?v=20260614"
-          alt=""
-          class="fd-sidebar-logo"
-          width="36"
-          height="36"
-          decoding="async"
-        />
-        <div class="fd-sidebar-brand-text">
-          <span class="fd-sidebar-brand-name">FreedomDesk</span>
-          <span class="fd-sidebar-brand-sub">Practice OS</span>
-        </div>
+        <a href="index.html" class="fd-sidebar-brand-link" aria-label="FreedomDesk home">
+          <img
+            src="../assets/logos/Freedomdesk-logo-full.png?v=20260706"
+            alt="FreedomDesk"
+            class="logo-image fd-sidebar-logo"
+            width="890"
+            height="202"
+            decoding="async"
+          />
+        </a>
       </div>
 
       <nav class="fd-sidebar-nav">
@@ -68,6 +73,7 @@
   <script src="shared/registry.js"></script>
   <script src="shared/utils.js"></script>
   <script src="shared/labels.js"></script>
+  <script src="shared/practice-staff.js"></script>
   <script src="shared/components/dashboard-ui.js"></script>
   <script src="shared/placeholder-module.js"></script>
   <script src="modules/my-day/my-day.js"></script>

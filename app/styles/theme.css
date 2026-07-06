@@ -1,0 +1,91 @@
+/* FreedomDesk — visual design language
+ *
+ * Premium · timeless · calm · professional · human
+ * Prefer whitespace over boxes. Typography creates hierarchy.
+ * Color is intentional, never decorative.
+ *
+ * Brand navy — headings, section titles, important labels, interactive elements.
+ * Neutral ink — body copy, instructions, metadata (keeps the surface calm).
+ *
+ * To evaluate typefaces: change --fd-font-family below.
+ */
+
+:root {
+  /* ── Typography ── */
+  --fd-font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* ── Brand (FreedomDesk signature navy) ── */
+  --fd-navy: #183562;
+  --fd-navy-mid: #24508f;
+  --fd-navy-soft: #3568ad;
+  --fd-navy-muted: #4a5872;
+
+  /* ── Surfaces ── */
+  --fd-surface-base: #f5f5f3;
+  --fd-surface-raised: #ffffff;
+  --fd-surface-sidebar: var(--fd-navy);
+  --fd-surface-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --fd-surface-sidebar-active: rgba(255, 255, 255, 0.1);
+  --fd-surface-overlay: rgba(24, 53, 98, 0.28);
+
+  /* ── Ink (neutral — for reading, not branding) ── */
+  --fd-ink-body: #5a6270;
+  --fd-ink-secondary: #5a6270;
+  --fd-ink-tertiary: #8b919c;
+  --fd-ink-inverse: #ffffff;
+
+  /* ── Structure ── */
+  --fd-radius-sm: 8px;
+  --fd-radius-md: 12px;
+  --fd-radius-lg: 16px;
+  --fd-divider: rgba(24, 53, 98, 0.08);
+  --fd-divider-subtle: rgba(24, 53, 98, 0.05);
+  --fd-shadow-panel: 0 16px 48px rgba(24, 53, 98, 0.1);
+
+  /* ── Intent (use sparingly) ── */
+  --fd-urgent: #a61e2e;
+  --fd-urgent-soft: rgba(166, 30, 46, 0.06);
+  --fd-attention-blue: rgba(24, 53, 98, 0.06);
+  --fd-attention-red: rgba(166, 30, 46, 0.055);
+  --fd-positive: #2a6b4a;
+  --fd-positive-soft: rgba(42, 107, 74, 0.07);
+  --fd-waiting: #8a6a1a;
+  --fd-waiting-soft: rgba(138, 106, 26, 0.08);
+  --fd-interactive: var(--fd-navy-mid);
+}
+
+/* Map legacy marketing tokens → dashboard language */
+body.fd-dashboard {
+  font-family: var(--fd-font-family);
+  color: var(--fd-ink-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --bg-warm: var(--fd-surface-base);
+  --bg: var(--fd-surface-raised);
+  --bg-soft: var(--fd-surface-base);
+  --text: var(--fd-navy);
+  --text-muted: var(--fd-navy-muted);
+  --text-on-navy: rgba(255, 255, 255, 0.78);
+  --border: var(--fd-divider);
+  --border-navy: rgba(24, 53, 98, 0.12);
+  --navy: var(--fd-navy);
+  --navy-mid: var(--fd-navy-mid);
+  --navy-soft: var(--fd-navy-soft);
+  --radius-sm: var(--fd-radius-md);
+  --radius: var(--fd-radius-lg);
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-soft: none;
+  --blue-muted: var(--fd-attention-blue);
+  --red-soft: var(--fd-urgent-soft);
+  --red-deep: var(--fd-urgent);
+  --red: var(--fd-urgent);
+}
+
+body.fd-dashboard button,
+body.fd-dashboard input,
+body.fd-dashboard select,
+body.fd-dashboard textarea {
+  font-family: inherit;
+}

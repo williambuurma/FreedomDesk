@@ -14,6 +14,34 @@ const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..");
 const outputPath = path.join(repoRoot, "data/my-day-preview.json");
+const staffPath = path.join(repoRoot, "data/practice-staff.json");
+
+function loadStaffSettings() {
+  try {
+    return JSON.parse(fs.readFileSync(staffPath, "utf8"));
+  } catch {
+    return {
+      defaultReceptionistId: "receptionist_sarah",
+      defaultDoctorId: "doctor_johnson",
+      receptionists: [{ id: "receptionist_sarah", firstName: "Sarah", displayName: "Sarah" }],
+      doctors: [{ id: "doctor_johnson", displayName: "Dr. Johnson", shortName: "Dr. Johnson" }],
+    };
+  }
+}
+
+function staffRecipientName(staff, roleId) {
+  if (roleId === "front_desk") {
+    const rec = staff.receptionists.find((r) => r.id === staff.defaultReceptionistId);
+    return rec?.firstName || "Sarah";
+  }
+  const doc = staff.doctors.find((d) => d.id === staff.defaultDoctorId);
+  return doc?.displayName || "Dr. Johnson";
+}
+
+function primaryDoctorName(staff) {
+  const doc = staff.doctors.find((d) => d.id === staff.defaultDoctorId);
+  return doc?.displayName || "Dr. Johnson";
+}
 
 const ROLE_CONFIG = {
   dentist: {
@@ -214,6 +242,7 @@ function buildOpportunities(opportunities, roleConfig) {
     .slice(0, roleConfig.maxOpportunities)
     .map((opp) => ({
       id: opp.id,
+      type: opp.type,
       action: opportunityAction(opp),
       title: opp.title,
       description: opp.description,
@@ -351,6 +380,604 @@ function buildTodaysFocus(view, roleConfig) {
   }
 
   return "Today looks balanced. Focus on keeping appointments running on time after lunch.";
+}
+
+function workTaskAction(item) {
+  const text = (
+    item.label +
+    " " +
+    (item.instruction || "") +
+    " " +
+    (item.action || item.recommendation || item.issue || "")
+  ).toLowerCase();
+  const category = item.category || "";
+
+  if (category === "emergency" || /callback|urgent|overnight|emergency|call back/.test(text)) {
+    return {
+      actionLabel: "View call summary",
+      actionHref: "#calls",
+      actionId: "view-summary",
+      panel: "view-summary",
+    };
+  }
+  if (/verify|benefits|insurance|delta|ppo|medicaid|hkd/.test(text)) {
+    return {
+      actionLabel: "Verify insurance",
+      actionHref: "#patients",
+      actionId: "verify-insurance",
+      panel: "verify-insurance",
+    };
+  }
+  if (/schedule|reschedule|cancel|waitlist|slot open|hygiene slot/.test(text)) {
+    return { actionLabel: "Schedule appt", actionHref: "#patients", actionId: "schedule-appt" };
+  }
+  return { actionLabel: "View summary", actionHref: "#calls", actionId: "view-summary" };
+}
+
+function toWorkTask(fields) {
+  const actionMeta = workTaskAction(fields);
+  const actionId = fields.actionId || actionMeta.actionId;
+  const panel =
+    fields.panel ||
+    (actionId === "view-summary" ? "view-summary" : actionMeta.panel);
+
+  return {
+    id: fields.id,
+    label: fields.label,
+    instruction: fields.instruction,
+    priority: fields.priority || "medium",
+    category: fields.category,
+    status: fields.status,
+    recommendedNextStep: fields.recommendedNextStep,
+    actionLabel: fields.actionLabel || actionMeta.actionLabel,
+    actionHref: fields.actionHref || actionMeta.actionHref,
+    actionId,
+    panel,
+    callSummary: fields.callSummary,
+    insurancePanel: fields.insurancePanel,
+  };
+}
+
+function buildAttentionCards(urgentTasks, briefSections, priorities) {
+  const cards = [];
+
+  cards.push({
+    id: "overnight-emergency",
+    type: "call-preview",
+    icon: "📞",
+    patientName: "Mary Johnson",
+    preview: "Son developed swelling overnight.",
+    variant: "red",
+    taskId: "urgent-overnight-emergency",
+    panel: "view-summary",
+    actionLabel: "View call summary",
+  });
+
+  cards.push({
+    id: "overnight-crown",
+    type: "call-preview",
+    icon: "📞",
+    patientName: "Robert Chen",
+    preview: "Temporary crown came off while eating.",
+    variant: "blue",
+    taskId: "overnight-crown-off",
+    panel: "view-summary",
+    actionLabel: "View call summary",
+  });
+
+  const callbackTask = urgentTasks.find(
+    (t) => t.category === "emergency" || /overnight|callback/i.test(t.label)
+  );
+  if (callbackTask) {
+    cards.push({
+      id: "callback-waiting",
+      type: "callback-preview",
+      icon: "☎️",
+      title: "1 Callback Waiting",
+      patientName: "Mary Johnson",
+      preview: "Expecting a return call this morning.",
+      variant: "red",
+      taskId: callbackTask.id,
+      panel: "view-summary",
+      actionLabel: "View call summary",
+    });
+  }
+
+  const insuranceCount = Math.max(
+    priorities.filter((p) => /verify|benefits|insurance/i.test(p.action || "")).length,
+    1
+  );
+
+  cards.push({
+    id: "insurance",
+    type: "count",
+    icon: "🛡️",
+    title:
+      insuranceCount === 1
+        ? "1 Insurance Verification"
+        : `${insuranceCount} Insurance Verifications`,
+    description: "Need to be completed before today's appointments.",
+    variant: "blue",
+  });
+
+  return cards.slice(0, 4);
+}
+
+function buildScheduleGaps(opportunities, staff) {
+  const doctorName = primaryDoctorName(staff);
+  const gaps = [];
+  const cancelOpp = opportunities.find((o) => o.type === "cancellation_recovery");
+
+  if (cancelOpp) {
+    gaps.push({
+      id: "gap-doc-1100",
+      label: "Open",
+      time: "11:00 AM",
+      provider: doctorName,
+      duration: "60 Minutes Available",
+      status: "available",
+    });
+  }
+
+  return gaps;
+}
+
+function overnightCallerInstruction() {
+  return "Mary Johnson (Mother of Liam Johnson) called at 10:47 PM — swelling and fever. Not reached yet.";
+}
+
+function buildCallSummaryForEmergency() {
+  return {
+    patientName: "Liam Johnson",
+    caller: "Mary Johnson (mother)",
+    calledAt: "Yesterday, 10:47 PM",
+    chiefConcern: "Facial swelling and fever",
+    aiSummary:
+      "Parent reports progressive swelling since dinner and low-grade fever. Child is in discomfort but breathing normally. Caller requested same-day evaluation.",
+    recommendedNextStep:
+      "Call back before morning appointments. Schedule same-day emergency eval if symptoms warrant.",
+    urgency: "Urgent",
+    intent: "Same-day emergency eval — child with facial swelling",
+    symptoms: "Swelling and fever reported. Parent concerned overnight.",
+    nextStep: "Review the full summary, then call back before the morning rush.",
+    phone: "(616) 555-0142",
+  };
+}
+
+function buildCallSummaryForCrownOff() {
+  return {
+    patientName: "Robert Chen",
+    caller: "Robert Chen",
+    calledAt: "Yesterday, 8:15 PM",
+    chiefConcern: "Temporary crown dislodged while eating",
+    aiSummary:
+      "Patient reports temporary crown on #19 came off during dinner. Mild sensitivity, no bleeding. Would like guidance before tomorrow's appointment.",
+    recommendedNextStep:
+      "Review call summary and confirm whether patient should come in early or wait for scheduled visit.",
+    urgency: "Routine",
+    intent: "Treatment concern — temporary crown",
+    phone: "(616) 555-0177",
+  };
+}
+
+function buildCallSummaryForNewPatient() {
+  return {
+    patientName: "Finn Leo",
+    caller: "Finn Leo",
+    calledAt: "Yesterday, 9:12 PM",
+    chiefConcern: "New patient — first visit scheduling",
+    aiSummary:
+      "New patient moving to area. Delta Dental PPO. Requested exam and cleaning. Some anxiety about first visit noted.",
+    recommendedNextStep: "Review intake details and confirm paperwork before 8:30 AM arrival.",
+    urgency: "Routine",
+    intent: "New patient intake — first visit",
+    symptoms: "Chief complaint captured on phone. Insurance: Delta Dental PPO.",
+    nextStep: "Review intake details and confirm paperwork before 08:30 arrival.",
+    phone: "(616) 555-0198",
+  };
+}
+
+function buildInsurancePanelForPatient(patientName) {
+  return {
+    company: "Delta Dental PPO",
+    subscriber: patientName,
+    status: "Not verified",
+    coverage: "Primary",
+    lastVerified: "Never",
+    missing: ["Confirm member ID", "Verify crown coverage for #14"],
+    benefitsNote: "Benefits remaining will appear here after verification.",
+  };
+}
+
+function buildSinceYesterday(briefSections, opportunities) {
+  const tokens = [];
+
+  const overnight = briefSections.find((s) => s.id === "overnight_calls");
+  if (overnight?.items?.length) {
+    const total = overnight.items.length;
+    const callbacks = overnight.items.filter((i) =>
+      /urgent|callback|emergency/i.test(i.summary + (i.detail || ""))
+    ).length;
+    tokens.push({
+      id: "overnight",
+      text: total === 1 ? "1 overnight" : `${total} overnight`,
+    });
+    if (callbacks > 0) {
+      tokens.push({
+        id: "callback",
+        text: callbacks === 1 ? "1 callback" : `${callbacks} callback`,
+      });
+    }
+  }
+
+  const emergent = briefSections.find((s) => s.id === "emergent_followups");
+  if (emergent?.items?.length) {
+    const count = emergent.items.length;
+    if (!tokens.some((t) => t.id === "callback")) {
+      tokens.push({
+        id: "emergency",
+        text: count === 1 ? "1 emergency" : `${count} emergency`,
+      });
+    }
+  }
+
+  const newPatients = briefSections.find((s) => s.id === "new_patients_today");
+  if (newPatients?.items?.length) {
+    tokens.push({
+      id: "request",
+      text: newPatients.items.length === 1 ? "1 new patient" : `${newPatients.items.length} new patients`,
+    });
+  }
+
+  const schedule = briefSections.find((s) => s.id === "schedule_snapshot");
+  const cancelCount = schedule?.items?.filter((i) => /cancel/i.test(i.summary)).length || 0;
+  const waitlistCancel = briefSections.find((s) => s.id === "waitlist_cancellations");
+  const cancelItems = waitlistCancel?.items?.length || (cancelCount > 0 ? 1 : 0);
+  if (cancelItems > 0) {
+    tokens.push({
+      id: "cancel",
+      text: cancelItems === 1 ? "1 cancel" : `${Math.min(cancelItems, 2)} cancel`,
+    });
+  }
+
+  const alerts = briefSections.find((s) => s.id === "alerts");
+  const messages = alerts?.items?.filter((i) => /message|note|team|vendor/i.test(i.summary)).length || 0;
+  if (messages > 0) {
+    tokens.push({
+      id: "message",
+      text: messages === 1 ? "1 message" : `${messages} message`,
+    });
+  }
+
+  return {
+    tokens: tokens.slice(0, 6),
+    emptyMessage: "Nothing new overnight.",
+  };
+}
+
+function buildWelcomePriority(workday, staff, roleId) {
+  const greeting = `${timeGreeting()}, ${staffRecipientName(staff, roleId)}.`;
+  const urgent = workday.urgentTasks || [];
+  const today = workday.todayTasks || [];
+  const hasWork = urgent.length > 0 || today.length > 0;
+
+  if (!hasWork) {
+    return {
+      greeting,
+      subline: "You're well prepared — today's schedule looks good.",
+    };
+  }
+
+  if (urgent.length > 0) {
+    return {
+      greeting,
+      subline: "You're well prepared. Let's start with today's priorities.",
+    };
+  }
+
+  return {
+    greeting,
+    subline: "Here's what deserves your attention first today.",
+  };
+}
+
+function buildV3WorkTasks(priorities, patientsAttention, opportunities, briefSections) {
+  const urgentTasks = [];
+  const todayTasks = [];
+  const seen = new Set();
+
+  function push(task, bucket) {
+    if (seen.has(task.id)) return;
+    seen.add(task.id);
+    bucket.push(task);
+  }
+
+  const emergent = briefSections.find((s) => s.id === "emergent_followups");
+  const overnight = briefSections.find((s) => s.id === "overnight_calls");
+  const overnightItem = overnight?.items?.find((i) =>
+    /urgent|emergency|callback/i.test(i.summary + (i.detail || ""))
+  ) || overnight?.items?.[0];
+
+  if (overnightItem || emergent?.items?.length) {
+    const detail = overnightItem?.detail || emergent?.items?.[0]?.detail || "";
+    const timeMatch = detail.match(/\d{1,2}:\d{2}\s*(AM|PM|am|pm)?/) || ["10:47 PM"];
+    push(
+      toWorkTask({
+        id: "urgent-overnight-emergency",
+        label: "Overnight emergency",
+        instruction: overnightCallerInstruction(),
+        priority: "critical",
+        category: "emergency",
+        status: "needs-action",
+        recommendedNextStep: "Call before morning appointments.",
+        actionLabel: "View call summary",
+        actionId: "view-summary",
+        panel: "view-summary",
+        callSummary: buildCallSummaryForEmergency(),
+      }),
+      urgentTasks
+    );
+  }
+
+  push(
+    toWorkTask({
+      id: "overnight-crown-off",
+      label: "Robert Chen — crown came off",
+      instruction: "Temporary crown came off while eating.",
+      priority: "high",
+      category: "callback",
+      status: "needs-action",
+      recommendedNextStep: "Review call summary before returning the call.",
+      actionLabel: "View call summary",
+      actionId: "view-summary",
+      panel: "view-summary",
+      callSummary: buildCallSummaryForCrownOff(),
+    }),
+    urgentTasks
+  );
+
+  for (const patient of patientsAttention) {
+    if (patient.name === "Overnight caller") continue;
+
+    if (/verify|benefits|insurance|delta|ppo/i.test(patient.issue + patient.action)) {
+      const timeMatch = (patient.issue + " " + patient.action).match(/\d{1,2}:\d{2}/);
+      const crownTime = timeMatch ? timeMatch[0] : "10:00";
+      push(
+        toWorkTask({
+          id: patient.id,
+          label: `${patient.name} — crown at ${crownTime}`,
+          instruction: "Delta PPO not verified.",
+          priority: "high",
+          status: "needs-action",
+          recommendedNextStep: `Verify benefits before the ${crownTime} crown seat.`,
+          actionLabel: "Verify insurance",
+          actionId: "verify-insurance",
+          panel: "verify-insurance",
+          insurancePanel: buildInsurancePanelForPatient(patient.name),
+        }),
+        urgentTasks
+      );
+      continue;
+    }
+  }
+
+  for (const rec of priorities) {
+    if (rec.category === "emergency" || seen.has("urgent-overnight-emergency")) continue;
+    if (rec.priority === "critical" || rec.priority === "high") {
+      push(
+        toWorkTask({
+          id: rec.id,
+          label: rec.category === "emergency" ? "Overnight emergency" : "Needs attention",
+          instruction: humanizeInstruction(rec.action || rec.recommendation),
+          priority: rec.priority,
+          category: rec.category,
+        }),
+        urgentTasks
+      );
+    }
+  }
+
+  const newPatients = briefSections.find((s) => s.id === "new_patients_today");
+  if (newPatients?.items?.length) {
+    const item = newPatients.items[0];
+    const timeMatch = item.summary.match(/\d{1,2}:\d{2}/);
+    const time = timeMatch ? timeMatch[0] : "2:00";
+    push(
+      toWorkTask({
+        id: `today-npe-${item.id}`,
+        label: `New patient at ${time}`,
+        instruction: "Delta PPO — finish intake before arrival.",
+        priority: "medium",
+        status: "waiting",
+        actionLabel: "View call summary",
+        actionHref: "#calls",
+        actionId: "view-summary",
+        panel: "view-summary",
+        callSummary: buildCallSummaryForNewPatient(),
+      }),
+      todayTasks
+    );
+  }
+
+  for (const opp of opportunities) {
+    if (
+      (opp.type === "emergency" || /emerg|overnight/i.test(opp.id || "")) &&
+      seen.has("urgent-overnight-emergency")
+    ) {
+      continue;
+    }
+
+    if (opp.type === "cancellation_recovery") {
+      push(
+        toWorkTask({
+          id: opp.id,
+          label: "11:00 hygiene slot open",
+          instruction: "Emma Nguyen cancelled — offer waitlist.",
+          priority: "medium",
+          status: "ready",
+          actionLabel: "Schedule appt",
+          actionHref: "#patients",
+          actionId: "schedule-appt",
+        }),
+        todayTasks
+      );
+      continue;
+    }
+
+    if (opp.type === "emergency") continue;
+
+    if (opp.type === "patient") {
+      if (todayTasks.some((t) => /new patient/i.test(t.label))) continue;
+      push(
+        toWorkTask({
+          id: opp.id,
+          label: "New patient today",
+          instruction: "Finish verification before arrival.",
+          priority: "medium",
+          actionLabel: "View summary",
+          actionHref: "#calls",
+          actionId: "view-summary",
+        }),
+        todayTasks
+      );
+      continue;
+    }
+
+    const instruction = humanizeInstruction(opp.action || opp.title);
+    if (!instruction) continue;
+
+    push(
+      toWorkTask({
+        id: opp.id,
+        label: opp.title?.slice(0, 48) || "This morning",
+        instruction,
+        priority: "medium",
+        category: opp.type,
+      }),
+      todayTasks
+    );
+  }
+
+  for (const rec of priorities) {
+    if (rec.priority === "critical" || rec.priority === "high") continue;
+    if (/verify|insurance|benefits/i.test(rec.action)) continue;
+    if (/emergency|overnight|callback/i.test(rec.action)) continue;
+    push(
+      toWorkTask({
+        id: rec.id,
+        label: "This morning",
+        instruction: humanizeInstruction(rec.action || rec.recommendation),
+        priority: rec.priority,
+        category: rec.category,
+      }),
+      todayTasks
+    );
+  }
+
+  return {
+    urgentTasks: sortByPriority(urgentTasks).slice(0, 3),
+    todayTasks: sortByPriority(todayTasks).slice(0, 4),
+  };
+}
+
+function humanizeInstruction(raw) {
+  if (!raw) return "";
+  return raw
+    .replace(/requires on-call callback within \d+ min SLA/gi, "Call back before 8:30")
+    .replace(/Callback and schedule same-day emergency eval for overnight urgent call[^.]*/gi, "Schedule a same-day eval if appropriate")
+    .replace(/Verify insurance benefits before NPE arrival[^.]*/gi, "Verify benefits before the new patient arrives")
+    .replace(/Verify Delta PPO benefits before crown seat/gi, "Verify Delta PPO before the crown seat")
+    .replace(/Complete verification and prep before the patient arrives/gi, "Finish verification before arrival")
+    .replace(/Offer the cancelled hygiene slot to the waitlist/gi, "Offer the open slot to the waitlist")
+    .replace(/Contact waitlist candidates for[^.]*/gi, "Offer the open slot to the waitlist")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeDisplayTime(time) {
+  if (!time) return null;
+  const cleaned = time.replace(/^~/, "").trim();
+  if (/AM|PM/i.test(cleaned)) return cleaned.replace(/\s+/g, " ");
+  if (/^\d{1,2}:\d{2}$/.test(cleaned)) return formatScheduleTime(cleaned);
+  return cleaned;
+}
+
+function buildHeadsUp(_patientsAttention, briefSections, _opportunities) {
+  const items = [];
+  const seen = new Set();
+
+  function add(time, text, key) {
+    if (seen.has(key)) return;
+    seen.add(key);
+    items.push({ time: normalizeDisplayTime(time), text });
+  }
+
+  const alerts = briefSections.find((s) => s.id === "alerts");
+  if (alerts?.items?.length) {
+    for (const item of alerts.items) {
+      const summary = item.summary || "";
+      if (/rep|sales|patterson|vendor/i.test(summary)) {
+        const timeMatch = summary.match(/\d{1,2}:\d{2}/);
+        add(
+          timeMatch ? timeMatch[0] : "11:30",
+          "Patterson representative arriving",
+          `heads-alert-${item.id}`
+        );
+      } else if (/lab/i.test(summary)) {
+        add(null, "Lab pickup today", `heads-lab-${item.id}`);
+      } else if (/maintenance|equipment/i.test(summary)) {
+        const timeMatch = summary.match(/\d{1,2}:\d{2}/);
+        add(
+          timeMatch ? timeMatch[0] : "2:00",
+          summary.slice(0, 55) || "Equipment maintenance this afternoon",
+          `heads-maint-${item.id}`
+        );
+      }
+    }
+  }
+
+  if (!seen.has("heads-patterson-default")) {
+    add("11:30", "Patterson representative arriving", "heads-patterson-default");
+  }
+  if (!seen.has("heads-lab-default")) {
+    add(null, "Lab pickup today", "heads-lab-default");
+  }
+  if (!seen.has("heads-maint-default")) {
+    add("2:00", "Equipment maintenance in operatory 3", "heads-maint-default");
+  }
+
+  return items.slice(0, 4);
+}
+
+function buildReceptionistV3(roleConfig, brainResult, memory, partialView, staff) {
+  const { morningBrief, opportunities } = brainResult;
+  const roleOpportunities = buildOpportunities(opportunities, roleConfig);
+  const patientsAttention = buildPatients(memory, roleConfig, morningBrief.sections);
+  const priorities = buildPriorities(morningBrief.topRecommendations, roleConfig);
+
+  const workday = buildV3WorkTasks(
+    priorities,
+    patientsAttention,
+    roleOpportunities,
+    morningBrief.sections
+  );
+  const attentionCards = buildAttentionCards(
+    workday.urgentTasks,
+    morningBrief.sections,
+    priorities
+  );
+  const welcome = buildWelcomePriority(workday, staff, roleConfig.id);
+  const headsUp = buildHeadsUp(patientsAttention, morningBrief.sections, roleOpportunities);
+  const scheduleGaps = buildScheduleGaps(roleOpportunities, staff);
+
+  return {
+    welcome,
+    attentionCards,
+    urgentTasks: workday.urgentTasks,
+    todayTasks: workday.todayTasks,
+    scheduleGaps,
+    headsUp,
+  };
 }
 
 function taskActionFor(item) {
@@ -658,6 +1285,135 @@ function buildReceptionistMorningSummary(roleConfig, workday, sinceLastLogin) {
   };
 }
 
+function formatScheduleTime(time24) {
+  if (!time24) return "";
+  const parts = time24.split(":");
+  const hour = parseInt(parts[0], 10);
+  const minute = parts[1] || "00";
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minute} ${suffix}`;
+}
+
+function pluralLine(count, singular, plural) {
+  if (count <= 0) return null;
+  return count === 1 ? `1 ${singular}` : `${count} ${plural}`;
+}
+
+function buildDoctorDaySchedule(_staff) {
+  return [
+    { time: "7:45 AM", procedure: "Morning Brief / Team Huddle", isBlock: true },
+    { time: "8:00 AM", patientName: "Finn Leo", procedure: "Limited Emergency Exam" },
+    { time: "8:30 AM", patientName: "Sarah Mitchell", procedure: "New Patient Exam" },
+    { time: "9:30 AM", patientName: "John Adams", procedure: "Crown Preparation #30" },
+    { time: "10:30 AM", patientName: "Emily Davis", procedure: "Extraction #17" },
+    { time: "12:00 PM", procedure: "Lunch", isBlock: true },
+    { time: "1:00 PM", patientName: "Michael Chen", procedure: "Delivery Crown #14" },
+    { time: "2:00 PM", patientName: "Emma Nguyen", procedure: "Hygiene Check" },
+    { time: "3:00 PM", patientName: "Robert Chen", procedure: "Composite #19" },
+    { time: "4:00 PM", patientName: "—", procedure: "Emergency Appointment", isOpen: true },
+    { time: "5:00 PM", procedure: "Day Complete", isBlock: true },
+  ];
+}
+
+function buildDoctorClinicalPriorities(memory) {
+  const priorities = [];
+
+  function addPriority(label, detail) {
+    priorities.push({ number: priorities.length + 1, label, detail });
+  }
+
+  addPriority(
+    "Finn Leo — emergency exam",
+    "Overnight swelling reported. Review before limited exam at 8:00 AM."
+  );
+
+  const sarah = memory.patients.find((p) => p.identity.lastName === "Mitchell");
+  if (sarah) {
+    addPriority(
+      `${patientDisplayName(sarah)} — crown #14`,
+      "Reports occasional cold sensitivity. Review before seating crown."
+    );
+  }
+
+  const robert = memory.patients.find((p) => p.identity.lastName === "Chen");
+  if (robert) {
+    addPriority(
+      `${patientDisplayName(robert)} — post-op #19`,
+      "Mild soreness reported yesterday. Temporary crown came off overnight — check site at 3:00 PM."
+    );
+  }
+
+  const emma = memory.patients.find((p) => p.identity.lastName === "Nguyen");
+  if (emma) {
+    addPriority(
+      `${patientDisplayName(emma)} — hygiene check`,
+      "Overdue recall. Discuss treatment if appropriate during exam."
+    );
+  }
+
+  return priorities.slice(0, 5);
+}
+
+function buildDoctorTasks() {
+  return [
+    {
+      id: "doc-task-abx",
+      label: "Call in antibiotic for Finn Leo",
+      detail: "Amoxicillin 500mg — pharmacy on file at Meijer.",
+      priority: "high",
+    },
+    {
+      id: "doc-task-path",
+      label: "Review pathology report",
+      detail: "Biopsy #4521 — results uploaded last night.",
+      priority: "medium",
+    },
+    {
+      id: "doc-task-ref",
+      label: "Sign referral letter",
+      detail: "Emily Davis — oral surgery consult for extraction follow-up.",
+      priority: "medium",
+    },
+    {
+      id: "doc-task-cbct",
+      label: "Review CBCT before implant consult",
+      detail: "Michael Chen — implant consult scheduled later this week.",
+      priority: "low",
+    },
+  ];
+}
+
+function buildDoctorWelcome(staff, roleId, priorityCount) {
+  const greeting = `${timeGreeting()}, ${staffRecipientName(staff, roleId)}.`;
+  let subline = "Here's your clinical day at a glance.";
+
+  if (priorityCount >= 2) {
+    const phrase = patientCountPhrase(priorityCount);
+    if (phrase) {
+      subline = `You have a full clinical day. ${phrase.charAt(0).toUpperCase() + phrase.slice(1)}.`;
+    }
+  } else if (priorityCount === 1) {
+    subline = "You have a full clinical day. One patient deserves extra attention.";
+  }
+
+  return { greeting, subline };
+}
+
+function buildDoctorClinicalBrief(brainResult, memory, staff) {
+  const clinicalPriorities = buildDoctorClinicalPriorities(memory);
+  const schedule = buildDoctorDaySchedule(staff);
+  const todaysTasks = buildDoctorTasks();
+  const welcome = buildDoctorWelcome(staff, "dentist", clinicalPriorities.length);
+
+  return {
+    welcome,
+    schedule,
+    clinicalPriorities,
+    todaysTasks,
+  };
+}
+
 function buildQuickActions(roleConfig, priorities) {
   if (roleConfig.id === "dentist") {
     return [
@@ -680,67 +1436,43 @@ function buildQuickActions(roleConfig, priorities) {
   return actions.slice(0, 4);
 }
 
-function buildRoleView(roleConfig, brainResult, memorySummary, memory) {
-  const { morningBrief, opportunities, metrics } = brainResult;
+function buildRoleView(roleConfig, brainResult, memorySummary, memory, staffSettings) {
+  const { morningBrief, opportunities } = brainResult;
+
+  if (roleConfig.id === "dentist") {
+    const clinical = buildDoctorClinicalBrief(brainResult, memory, staffSettings);
+    return {
+      recipientName: staffRecipientName(staffSettings, "dentist"),
+      label:
+        staffSettings.doctors.find((d) => d.id === staffSettings.defaultDoctorId)?.displayName ||
+        roleConfig.label,
+      ...clinical,
+    };
+  }
 
   const priorities = buildPriorities(morningBrief.topRecommendations, roleConfig);
-  const patientsAttention = buildPatients(
-    memory,
-    roleConfig,
-    morningBrief.sections
-  );
+  const patientsAttention = buildPatients(memory, roleConfig, morningBrief.sections);
   const roleOpportunities = buildOpportunities(opportunities, roleConfig);
-  const insight = pickInsight(metrics, roleConfig.insightDepartment, morningBrief.stewardshipNote);
-  const quickActions = buildQuickActions(roleConfig, priorities);
-
   const partialView = {
     priorities,
     patientsAttention,
     opportunities: roleOpportunities,
   };
+  const v3 = buildReceptionistV3(roleConfig, brainResult, memory, partialView, staffSettings);
 
-  const base = {
-    recipientName: roleConfig.recipientName,
-    label: roleConfig.label,
-    morningSummary: buildMorningSummary(roleConfig, partialView),
+  return {
+    recipientName: staffRecipientName(staffSettings, "front_desk"),
+    label: staffSettings.receptionists.find((r) => r.id === staffSettings.defaultReceptionistId)
+      ?.displayName || "Receptionist",
+    welcome: v3.welcome,
+    attentionCards: v3.attentionCards,
+    urgentTasks: v3.urgentTasks,
+    todayTasks: v3.todayTasks,
+    scheduleGaps: v3.scheduleGaps,
+    headsUp: v3.headsUp,
     priorities,
     patientsAttention,
     opportunities: roleOpportunities,
-    insight,
-    quickActions,
-    todaysFocus: buildTodaysFocus(partialView, roleConfig),
-  };
-
-  if (roleConfig.id !== "front_desk") {
-    return base;
-  }
-
-  const sinceLastLogin = buildSinceLastLogin(morningBrief.sections, roleOpportunities);
-  const workday = buildReceptionistWorkday(
-    priorities,
-    patientsAttention,
-    roleOpportunities,
-    morningBrief.sections
-  );
-  const comingUp = buildComingUp(roleOpportunities, patientsAttention, morningBrief.sections);
-  const reminders = buildReminders(morningBrief.sections, morningBrief.stewardshipNote);
-
-  const receptionistPartial = {
-    urgentTasks: workday.urgentTasks,
-    todaysTasks: workday.todaysTasks,
-    patientsAttention,
-    priorities,
-  };
-
-  return {
-    ...base,
-    morningSummary: buildReceptionistMorningSummary(roleConfig, workday, sinceLastLogin),
-    sinceLastLogin,
-    urgentTasks: workday.urgentTasks,
-    todaysTasks: workday.todaysTasks,
-    comingUp,
-    reminders,
-    todaysFocus: buildTodaysFocus(receptionistPartial, roleConfig),
   };
 }
 
@@ -754,10 +1486,17 @@ async function main() {
   const brainResult = brain.runDailyCycle();
   const memory = createMockPracticeMemory();
   const memorySummary = generateMorningMemorySummary(memory);
+  const staffSettings = loadStaffSettings();
 
   const roles = {};
   for (const roleId of Object.keys(ROLE_CONFIG)) {
-    roles[roleId] = buildRoleView(ROLE_CONFIG[roleId], brainResult, memorySummary, memory);
+    roles[roleId] = buildRoleView(
+      ROLE_CONFIG[roleId],
+      brainResult,
+      memorySummary,
+      memory,
+      staffSettings
+    );
   }
 
   const preview = {
@@ -765,6 +1504,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     practiceName: brainResult.morningBrief.practiceName,
     date: brainResult.morningBrief.date,
+    staffSettings,
     stewardshipNote: brainResult.morningBrief.stewardshipNote,
     memorySummary: {
       openTaskCount: memorySummary.openTaskCount,
@@ -782,11 +1522,11 @@ async function main() {
     const view = roles[roleId];
     if (roleId === "front_desk") {
       console.error(
-        `  ${roleId}: ${view.urgentTasks?.length ?? 0} urgent, ${view.todaysTasks?.length ?? 0} today, ${view.comingUp?.length ?? 0} coming up`
+        `  ${roleId}: ${view.urgentTasks?.length ?? 0} urgent, ${view.todayTasks?.length ?? 0} today, ${view.attentionCards?.length ?? 0} attention cards`
       );
     } else {
       console.error(
-        `  ${roleId}: ${view.priorities.length} priorities, ${view.patientsAttention.length} patients, ${view.opportunities.length} opportunities`
+        `  ${roleId}: ${view.schedule?.length ?? 0} schedule slots, ${view.todaysTasks?.length ?? 0} tasks, ${view.clinicalPriorities?.length ?? 0} priorities`
       );
     }
   }

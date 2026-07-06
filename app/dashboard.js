@@ -173,6 +173,9 @@
   }
 
   function init() {
+    if (window.FreedomDeskCoordinationPanel) {
+      window.FreedomDeskCoordinationPanel.init();
+    }
     buildSidebarNav();
     bindShellEvents();
     navigateTo(getModuleIdFromHash(), { replaceHash: false, force: true });

@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="styles/dashboard.css" />
   <link rel="stylesheet" href="styles/morning-brief.css" />
   <link rel="stylesheet" href="styles/my-day.css" />
+  <link rel="stylesheet" href="styles/coordination-panel.css" />
 </head>
 <body class="fd-dashboard">
   <div class="fd-dashboard-layout">
@@ -59,6 +60,31 @@
         </button>
         <h1 class="fd-module-title fd-header-home" id="fdModuleTitle">What should I do next?</h1>
         <div class="fd-header-actions">
+          <div class="fd-header-coordination" aria-label="Coordination">
+            <button
+              type="button"
+              class="fd-coord-trigger"
+              id="fdCoordOpenNotes"
+              aria-label="Notes"
+              title="Notes"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="fd-coord-trigger fd-coord-trigger--team"
+              id="fdCoordOpenTeam"
+              aria-label="Team messages"
+              title="Team"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </button>
+          </div>
           <span class="fd-preview-badge">Internal · Mock data</span>
           <a href="../index.html" class="fd-header-site-link"><span>Marketing site</span> →</a>
         </div>
@@ -70,11 +96,66 @@
     </div>
   </div>
 
+  <div class="fd-coord-overlay" id="fdCoordOverlay" hidden aria-hidden="true">
+    <aside
+      class="fd-coord-panel"
+      id="fdCoordPanel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="fdCoordTitle"
+      data-coord-mode="workspace"
+      hidden
+    >
+      <header class="fd-coord-header">
+        <div class="fd-coord-header-row">
+          <button type="button" class="fd-coord-close" id="fdCoordClose" aria-label="Close panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+          <h2 class="fd-coord-title" id="fdCoordTitle">Notes</h2>
+        </div>
+        <nav class="fd-coord-tabs" id="fdCoordTabs" role="tablist" aria-label="Coordination">
+          <button
+            type="button"
+            class="fd-coord-tab"
+            role="tab"
+            id="fdCoordTabNotes"
+            data-coord-tab="notes"
+            aria-selected="true"
+            aria-controls="fdCoordBody"
+          >
+            Notes
+          </button>
+          <button
+            type="button"
+            class="fd-coord-tab"
+            role="tab"
+            id="fdCoordTabTeam"
+            data-coord-tab="team"
+            aria-selected="false"
+            aria-controls="fdCoordBody"
+            tabindex="-1"
+          >
+            Team
+            <span class="fd-coord-tab-badge">Soon</span>
+          </button>
+        </nav>
+      </header>
+      <div class="fd-coord-body" id="fdCoordBody" role="tabpanel" aria-labelledby="fdCoordTabNotes"></div>
+      <footer class="fd-coord-footer" id="fdCoordFooter" hidden>
+        <p class="fd-coord-related-label">Related</p>
+        <p class="fd-coord-related-placeholder">Messages, tasks, and notes for this patient will appear here.</p>
+      </footer>
+    </aside>
+  </div>
+
   <script src="shared/registry.js"></script>
   <script src="shared/utils.js"></script>
   <script src="shared/labels.js"></script>
   <script src="shared/practice-staff.js"></script>
   <script src="shared/components/dashboard-ui.js"></script>
+  <script src="shared/coordination-panel.js"></script>
   <script src="shared/placeholder-module.js"></script>
   <script src="modules/my-day/my-day.js"></script>
   <script src="modules/my-day/module.js"></script>

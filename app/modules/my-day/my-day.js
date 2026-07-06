@@ -82,15 +82,6 @@
     });
   }
 
-  function panelElements() {
-    return {
-      overlay: $("mdPanelOverlay"),
-      panel: $("mdSidePanel"),
-      content: $("mdPanelContent"),
-      title: $("mdPanelTitle"),
-    };
-  }
-
   function setLayoutVisibility() {
     var isReceptionist = state.roleId === "front_desk";
     var receptionistLayout = $("mdReceptionistLayout");
@@ -193,7 +184,7 @@
     var view = getRoleView();
     if (!view || !state.data) return;
 
-    UI.closeWorkPanel(panelElements());
+    UI.closeWorkPanel();
     renderRoleBar();
     setLayoutVisibility();
 
@@ -209,7 +200,6 @@
     state.eventsBound = true;
 
     UI.bindReasoningToggles(container);
-    var panelEls = panelElements();
 
     document.addEventListener("click", function (event) {
       var roleBtn = event.target.closest("[data-role].fd-ui-role-btn");
@@ -228,28 +218,7 @@
         var panelType = panelBtn.getAttribute("data-panel");
         var taskId = panelBtn.getAttribute("data-task-id");
         var task = state.taskIndex[taskId] || {};
-        UI.openWorkPanel(panelType, task, panelEls);
-      }
-    });
-
-    var closeBtn = $("mdPanelClose");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", function () {
-        UI.closeWorkPanel(panelEls);
-      });
-    }
-
-    if (panelEls.overlay) {
-      panelEls.overlay.addEventListener("click", function (event) {
-        if (event.target === panelEls.overlay) {
-          UI.closeWorkPanel(panelEls);
-        }
-      });
-    }
-
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && panelEls.overlay && !panelEls.overlay.hidden) {
-        UI.closeWorkPanel(panelEls);
+        UI.openWorkPanel(panelType, task);
       }
     });
   }

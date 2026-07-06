@@ -115,14 +115,17 @@ The team never hunts across silos. FreedomDesk filters before it informs.
 
 ## Where It Lives
 
-Coordination is **ambient inside My Day** — not a new sidebar module.
+Coordination is **ambient across the dashboard** — not a new sidebar module.
+
+The **Coordination Panel** is a permanent right-side workspace shell (dashboard level). Every future coordination feature lives inside it.
 
 | Affordance | Where | Purpose |
 |------------|-------|---------|
-| **Notes** | Header, always available | Personal working memory |
-| **Team** | Header, subtle unread dot | Send and read messages |
+| **Panel triggers** | Dashboard header, always available | Open Notes or Team tab |
+| **Coordination Panel** | Slides in from the right | Notes, Team, call summaries, delegation, related context |
 | **Work queue** | Existing My Day sections | Tasks, including delegated work |
-| **Detail panel** | Slides in from the right | Notes, messages, tasks, call summaries |
+
+**Sprint 3A ships:** panel shell, Notes tab, Team placeholder. Call summaries already open in the same panel (context mode).
 
 My Day hierarchy stays the same:
 

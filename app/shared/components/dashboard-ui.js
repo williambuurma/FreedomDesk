@@ -395,32 +395,19 @@
     return renderCallSummaryPanel(task);
   }
 
-  function openWorkPanel(panelType, task, elements) {
-    var els = elements || {};
-    var overlay = els.overlay;
-    var panel = els.panel;
-    var content = els.content;
-    var title = els.title;
-    if (!overlay || !panel || !content) return;
-
-    if (title) title.textContent = panelTitleFor(panelType, task || {});
-    content.innerHTML = renderPanelContent(panelType, task || {});
-
-    overlay.hidden = false;
-    overlay.setAttribute("aria-hidden", "false");
-    panel.hidden = false;
-    document.body.classList.add("md-panel-open");
+  function openWorkPanel(panelType, task, _elements) {
+    var Coord = window.FreedomDeskCoordinationPanel;
+    if (Coord) {
+      Coord.openContext(panelType, task || {});
+      return;
+    }
   }
 
-  function closeWorkPanel(elements) {
-    var els = elements || {};
-    if (els.overlay) {
-      els.overlay.hidden = true;
-      els.overlay.setAttribute("aria-hidden", "true");
+  function closeWorkPanel(_elements) {
+    var Coord = window.FreedomDeskCoordinationPanel;
+    if (Coord) {
+      Coord.close();
     }
-    if (els.panel) els.panel.hidden = true;
-    if (els.content) els.content.innerHTML = "";
-    document.body.classList.remove("md-panel-open");
   }
 
   /**
@@ -1142,6 +1129,7 @@
     renderHeadsUpList: renderHeadsUpList,
     openWorkPanel: openWorkPanel,
     closeWorkPanel: closeWorkPanel,
+    panelTitleFor: panelTitleFor,
     renderPanelContent: renderPanelContent,
     renderTodaysFocus: renderTodaysFocus,
     renderRoleSwitcher: renderRoleSwitcher,

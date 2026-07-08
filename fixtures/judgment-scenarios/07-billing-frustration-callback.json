@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "id": "07-billing-frustration-callback",
+    "title": "Billing dispute with missed callback frustration",
+    "category": "billing",
+    "description": "Caller upset about statement balance and prior callback failure — route to billing team."
+  },
+  "transcript": {
+    "id": "call_billing_frustration_007",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "billing-frustration",
+    "afterHours": false,
+    "durationSeconds": 110,
+    "receivedAt": "2026-07-08T15:30:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "My name is Karen Webb. I got a bill for four hundred fifty dollars and nobody called me back from yesterday." },
+      { "speaker": "aly", "text": "I'm sorry about that. Let me get your information for our billing team." },
+      { "speaker": "patient", "text": "616-555-0105." },
+      { "speaker": "patient", "text": "I've been calling all day about this charge." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "BILLING",
+      "callerName": "Karen Webb",
+      "phone": "+16165550105"
+    },
+    "psychology": {
+      "emotion": "frustrated",
+      "matchedRulesIncludes": ["PSY_FRUSTRATED_CALLBACK", "PSY_FRUSTRATED_HOLD"],
+      "deferAdminQuestions": true
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "recommendedNextStepContains": "billing"
+    },
+    "summary": {
+      "intent": "BILLING",
+      "urgency": "routine",
+      "callerName": "Karen Webb"
+    },
+    "practiceBrainSignal": {
+      "intent": "billing",
+      "urgency": "routine"
+    }
+  }
+}

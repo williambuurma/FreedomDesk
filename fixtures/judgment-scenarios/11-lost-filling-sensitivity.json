@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "id": "11-lost-filling-sensitivity",
+    "title": "Lost filling with cold sensitivity",
+    "category": "lost-filling",
+    "description": "Existing patient lost filling — priority repair scheduling."
+  },
+  "transcript": {
+    "id": "call_lost_filling_011",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "lost-filling",
+    "afterHours": false,
+    "durationSeconds": 90,
+    "receivedAt": "2026-07-08T11:30:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "Hi, my name is Sue Hall. I lost a filling and my tooth hurts when I drink cold water." },
+      { "speaker": "aly", "text": "Let me get your details. Phone number?" },
+      { "speaker": "patient", "text": "616-555-0107." },
+      { "speaker": "aly", "text": "Date of birth?" },
+      { "speaker": "patient", "text": "September 22, 1983." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "TREATMENT_SCHEDULE",
+      "callerName": "Sue Hall",
+      "phone": "+16165550107",
+      "dateOfBirth": "1983-09-22",
+      "symptomsIncludes": ["pain"]
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "priority",
+      "sameDayEmergency": false,
+      "matchedRulesIncludes": ["TRIAGE_MILD_PAIN"]
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["appointment.type"]
+    },
+    "summary": {
+      "intent": "TREATMENT_SCHEDULE",
+      "urgency": "priority",
+      "callerName": "Sue Hall"
+    },
+    "practiceBrainSignal": {
+      "intent": "treatment_scheduling",
+      "urgency": "routine"
+    }
+  }
+}

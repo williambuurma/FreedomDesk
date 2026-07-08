@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "id": "17-referral-dental-evaluation",
+    "title": "Physician referral for dental evaluation",
+    "category": "referral",
+    "description": "Medical referral for oral evaluation — should route as new patient intake."
+  },
+  "transcript": {
+    "id": "call_referral_017",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "referral",
+    "afterHours": false,
+    "durationSeconds": 100,
+    "receivedAt": "2026-07-08T16:30:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "Hi, my name is Kim Adams. My doctor referred me for a dental evaluation." },
+      { "speaker": "aly", "text": "We can help with that. Phone number?" },
+      { "speaker": "patient", "text": "616-555-0113." },
+      { "speaker": "aly", "text": "Have you been to our office before?" },
+      { "speaker": "patient", "text": "No, I've never been there. I just moved to Grand Rapids." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "NEW_PATIENT",
+      "callerName": "Kim Adams",
+      "phone": "+16165550113",
+      "isNewPatient": true
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["caller.dateOfBirth", "insurance.program", "appointment.preference"],
+      "appointmentType": "New Patient Exam",
+      "recommendedNextStepContains": "new patient"
+    },
+    "summary": {
+      "intent": "NEW_PATIENT",
+      "urgency": "routine",
+      "callerName": "Kim Adams",
+      "actionItemTypesIncludes": ["schedule_appointment"]
+    },
+    "practiceBrainSignal": {
+      "intent": "new_patient",
+      "urgency": "routine",
+      "appointmentType": "new_patient_exam",
+      "emotionalFlagsIncludes": ["highAnxiety"]
+    }
+  }
+}

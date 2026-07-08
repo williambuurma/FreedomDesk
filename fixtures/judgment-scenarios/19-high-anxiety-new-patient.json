@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "id": "19-high-anxiety-new-patient",
+    "title": "High dental anxiety new patient",
+    "category": "high-anxiety",
+    "description": "First visit after years away — nervous and scared; reassurance before admin."
+  },
+  "transcript": {
+    "id": "call_high_anxiety_019",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "high-anxiety-new-patient",
+    "afterHours": false,
+    "durationSeconds": 150,
+    "receivedAt": "2026-07-08T11:00:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "Hi, my name is Mia Torres. I'm nervous and scared about my first visit — I just moved here and need a new dentist." },
+      { "speaker": "aly", "text": "Thank you for calling — you're in the right place. Can I start with your date of birth?" },
+      { "speaker": "patient", "text": "January 2, 1990." },
+      { "speaker": "aly", "text": "Phone number?" },
+      { "speaker": "patient", "text": "616-555-0115." },
+      { "speaker": "patient", "text": "I hate the dentist but I know I need a check-up." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "NEW_PATIENT",
+      "callerName": "Mia Torres",
+      "phone": "+16165550115",
+      "dateOfBirth": "1990-01-02",
+      "isNewPatient": true
+    },
+    "psychology": {
+      "emotion": "dental_anxiety",
+      "matchedRulesIncludes": ["PSY_DENTAL_ANXIETY", "PSY_ANXIOUS"],
+      "deferAdminQuestions": true,
+      "toneStrategy": "reassure_before_admin"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["insurance.program", "appointment.preference"],
+      "appointmentType": "New Patient Exam",
+      "recommendedNextStepContains": "new patient"
+    },
+    "summary": {
+      "intent": "NEW_PATIENT",
+      "urgency": "routine",
+      "callerName": "Mia Torres",
+      "actionItemTypesIncludes": ["schedule_appointment"]
+    },
+    "practiceBrainSignal": {
+      "intent": "new_patient",
+      "urgency": "routine",
+      "appointmentType": "new_patient_exam",
+      "emotionalFlagsIncludes": ["highAnxiety"]
+    }
+  }
+}

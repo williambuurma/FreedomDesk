@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "id": "02-broken-tooth-pain",
+    "title": "Broken tooth with active pain",
+    "category": "broken-tooth",
+    "description": "Caller fractured a molar while eating — same-day eval expected."
+  },
+  "transcript": {
+    "id": "call_broken_tooth_002",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "broken-tooth-pain",
+    "afterHours": false,
+    "durationSeconds": 95,
+    "receivedAt": "2026-07-08T10:15:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Thank you for calling Cascade Family Dentistry. This is Aly. How can I help you?" },
+      { "speaker": "patient", "text": "Hi, my name is Jake Miller. I have a broken tooth from eating popcorn and it really hurts." },
+      { "speaker": "aly", "text": "I'm sorry to hear that. What's a good phone number to reach you?" },
+      { "speaker": "patient", "text": "616-555-0101." },
+      { "speaker": "aly", "text": "Which tooth is it, and when did it happen?" },
+      { "speaker": "patient", "text": "Upper right molar — it happened at lunch today. The edge is sharp and every time I bite down it aches." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "EMERGENCY",
+      "callerName": "Jake Miller",
+      "phone": "+16165550101",
+      "symptomsIncludes": ["broken tooth"],
+      "chiefConcernContains": ["broken tooth"]
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "urgent",
+      "sameDayEmergency": true,
+      "routingActionContains": "same_day",
+      "matchedRulesIncludes": ["TRIAGE_BROKEN_TOOTH_PAIN"]
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["caller.dateOfBirth", "insurance.program"],
+      "appointmentType": "Emergency Eval",
+      "recommendedNextStepContains": "same-day"
+    },
+    "summary": {
+      "intent": "EMERGENCY",
+      "urgency": "urgent",
+      "sameDayEmergency": true,
+      "humanReviewNeeded": true,
+      "callerName": "Jake Miller",
+      "commLogNoteContains": ["broken tooth"],
+      "missingInformationIncludes": ["caller.dateOfBirth"]
+    },
+    "practiceBrainSignal": {
+      "intent": "emergency",
+      "urgency": "urgent",
+      "sameDayEmergency": true,
+      "appointmentType": "emergency_eval"
+    }
+  }
+}

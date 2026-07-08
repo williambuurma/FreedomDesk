@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "id": "06-insurance-delta-confusion",
+    "title": "Insurance network question — Delta disambiguation",
+    "category": "insurance",
+    "description": "Caller unsure whether employer Delta is accepted — classify only, never promise coverage."
+  },
+  "transcript": {
+    "id": "call_insurance_delta_006",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "insurance-delta",
+    "afterHours": false,
+    "durationSeconds": 85,
+    "receivedAt": "2026-07-08T14:00:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "Hi, my name is Tom Reed. I'm confused about whether you accept Delta Dental through my employer." },
+      { "speaker": "aly", "text": "Happy to help clarify. What's the best number to reach you?" },
+      { "speaker": "patient", "text": "616-555-0104." },
+      { "speaker": "patient", "text": "I don't understand the difference between PPO and the state plan." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "INSURANCE",
+      "callerName": "Tom Reed",
+      "phone": "+16165550104",
+      "insuranceProgram": "delta_dental_ppo"
+    },
+    "psychology": {
+      "emotion": "confused",
+      "matchedRulesIncludes": ["PSY_CONFUSED_LANGUAGE"],
+      "deferAdminQuestions": false
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsExcludes": ["insurance.program"]
+    },
+    "summary": {
+      "intent": "INSURANCE",
+      "urgency": "routine",
+      "callerName": "Tom Reed",
+      "commLogNoteContains": ["Delta"]
+    },
+    "practiceBrainSignal": {
+      "intent": "insurance_question",
+      "urgency": "routine",
+      "insuranceProgram": "delta_dental_ppo"
+    }
+  }
+}

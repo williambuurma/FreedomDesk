@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "id": "12-broken-denture-repair",
+    "title": "Broken denture — repair consult",
+    "category": "broken-denture",
+    "description": "Caller needs denture repair appointment — typed treatment, not generic scheduling."
+  },
+  "transcript": {
+    "id": "call_broken_denture_012",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "broken-denture",
+    "afterHours": false,
+    "durationSeconds": 80,
+    "receivedAt": "2026-07-08T12:00:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "My name is Frank Ortiz. My denture broke in half this morning." },
+      { "speaker": "aly", "text": "I'm sorry about that. Best phone number?" },
+      { "speaker": "patient", "text": "616-555-0108." },
+      { "speaker": "aly", "text": "Date of birth?" },
+      { "speaker": "patient", "text": "February 2, 1955." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "TREATMENT_SCHEDULE",
+      "callerName": "Frank Ortiz",
+      "phone": "+16165550108",
+      "dateOfBirth": "1955-02-02"
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["appointment.type"]
+    },
+    "summary": {
+      "intent": "TREATMENT_SCHEDULE",
+      "urgency": "routine",
+      "callerName": "Frank Ortiz"
+    },
+    "practiceBrainSignal": {
+      "intent": "treatment_scheduling",
+      "urgency": "routine"
+    }
+  }
+}

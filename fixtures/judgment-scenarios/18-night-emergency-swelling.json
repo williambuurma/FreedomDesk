@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "id": "18-night-emergency-swelling",
+    "title": "After-hours severe pain with swelling",
+    "category": "night-emergency",
+    "description": "Night caller with severe pain and facial swelling — on-call callback required."
+  },
+  "transcript": {
+    "id": "call_night_emergency_018",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "night-emergency",
+    "afterHours": true,
+    "durationSeconds": 115,
+    "receivedAt": "2026-07-08T03:45:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "You've reached Cascade Family Dentistry after hours. This is Aly." },
+      { "speaker": "patient", "text": "My name is Leo Brown. I have severe pain and swelling on my left cheek." },
+      { "speaker": "aly", "text": "I'm sorry you're in pain. Phone number?" },
+      { "speaker": "patient", "text": "616-555-0114." },
+      { "speaker": "patient", "text": "It started yesterday and kept me up all night." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "EMERGENCY",
+      "callerName": "Leo Brown",
+      "phone": "+16165550114",
+      "symptomsIncludes": ["swelling", "pain"],
+      "symptomDetails": { "swelling": true }
+    },
+    "psychology": {
+      "emotion": "pain",
+      "matchedRulesIncludes": ["PSY_PAIN_DISTRESS"],
+      "deferAdminQuestions": true
+    },
+    "triage": {
+      "urgency": "urgent",
+      "sameDayEmergency": true,
+      "routingActionContains": "on_call",
+      "matchedRulesIncludes": ["TRIAGE_PAIN_SWELLING"]
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["caller.dateOfBirth", "insurance.program"],
+      "appointmentType": "Emergency Eval",
+      "recommendedNextStepContains": "on-call"
+    },
+    "summary": {
+      "intent": "EMERGENCY",
+      "urgency": "urgent",
+      "sameDayEmergency": true,
+      "afterHours": true,
+      "humanReviewNeeded": true,
+      "callerName": "Leo Brown",
+      "actionItemTypesIncludes": ["on_call_callback"]
+    },
+    "practiceBrainSignal": {
+      "intent": "emergency",
+      "urgency": "urgent",
+      "afterHours": true,
+      "sameDayEmergency": true,
+      "appointmentType": "emergency_eval",
+      "emotionalFlagsIncludes": ["painDistress"]
+    }
+  }
+}

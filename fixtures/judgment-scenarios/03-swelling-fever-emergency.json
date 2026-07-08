@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "id": "03-swelling-fever-emergency",
+    "title": "Facial swelling with fever",
+    "category": "swelling",
+    "description": "Red-flag combination — immediate escalation per emergency protocol."
+  },
+  "transcript": {
+    "id": "call_swelling_fever_003",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "swelling-fever",
+    "afterHours": false,
+    "durationSeconds": 120,
+    "receivedAt": "2026-07-08T11:00:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly. How can I help?" },
+      { "speaker": "patient", "text": "My name is Maria Santos. My cheek is swelling badly and I have a fever of 101." },
+      { "speaker": "aly", "text": "I'm going to get some details for our team right away. Phone number?" },
+      { "speaker": "patient", "text": "616-555-0102." },
+      { "speaker": "patient", "text": "The swelling started yesterday and today I can barely open my mouth." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "EMERGENCY",
+      "callerName": "Maria Santos",
+      "phone": "+16165550102",
+      "symptomsIncludes": ["swelling", "fever"],
+      "symptomDetails": { "swelling": true, "fever": true }
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "emergency",
+      "sameDayEmergency": true,
+      "routingActionContains": "immediate",
+      "matchedRulesIncludes": ["TRIAGE_FEVER_SWELLING"]
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["caller.dateOfBirth", "insurance.program"],
+      "appointmentType": "Emergency Eval",
+      "recommendedNextStepContains": "Escalate"
+    },
+    "summary": {
+      "intent": "EMERGENCY",
+      "urgency": "emergency",
+      "sameDayEmergency": true,
+      "humanReviewNeeded": true,
+      "callerName": "Maria Santos",
+      "commLogNoteContains": ["swelling"],
+      "actionItemTypesIncludes": ["on_call_callback"]
+    },
+    "practiceBrainSignal": {
+      "intent": "emergency",
+      "urgency": "emergency",
+      "sameDayEmergency": true,
+      "appointmentType": "emergency_eval",
+      "emotionalFlagsIncludes": ["painDistress"]
+    }
+  }
+}

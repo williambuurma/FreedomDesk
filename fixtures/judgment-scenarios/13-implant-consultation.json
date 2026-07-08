@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "id": "13-implant-consultation",
+    "title": "Implant consultation request",
+    "category": "implant",
+    "description": "Existing patient requesting implant consult — treatment type must be captured."
+  },
+  "transcript": {
+    "id": "call_implant_013",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "implant-consult",
+    "afterHours": false,
+    "durationSeconds": 95,
+    "receivedAt": "2026-07-08T13:30:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "Hi, my name is Grace Lee. Dr. Buurma mentioned implants at my last visit and I'd like to schedule an implant consultation." },
+      { "speaker": "aly", "text": "Happy to help. Date of birth?" },
+      { "speaker": "patient", "text": "April 5, 1965." },
+      { "speaker": "aly", "text": "Phone number?" },
+      { "speaker": "patient", "text": "616-555-0109." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "TREATMENT_SCHEDULE",
+      "callerName": "Grace Lee",
+      "phone": "+16165550109",
+      "dateOfBirth": "1965-04-05"
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["appointment.type"]
+    },
+    "summary": {
+      "intent": "TREATMENT_SCHEDULE",
+      "urgency": "routine",
+      "callerName": "Grace Lee"
+    },
+    "practiceBrainSignal": {
+      "intent": "treatment_scheduling",
+      "urgency": "routine"
+    }
+  }
+}

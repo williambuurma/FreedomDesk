@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "id": "01-emergency-toothache-overnight",
+    "title": "Overnight toothache with worsening pain",
+    "category": "emergency",
+    "description": "After-hours caller with spreading jaw pain — on-call routing required."
+  },
+  "transcriptRef": "fixtures/calls/toothache-overnight.json",
+  "expectations": {
+    "understanding": {
+      "intent": "EMERGENCY",
+      "callerName": "Finn Leo",
+      "phone": "+16161231356",
+      "dateOfBirth": "1997-05-10",
+      "symptomsIncludes": ["toothache"],
+      "chiefConcernContains": ["toothache"]
+    },
+    "psychology": {
+      "emotion": "pain",
+      "matchedRulesIncludes": ["PSY_PAIN_DISTRESS"],
+      "deferAdminQuestions": true
+    },
+    "triage": {
+      "urgency": "urgent",
+      "sameDayEmergency": true,
+      "routingActionContains": "on_call",
+      "matchedRulesIncludes": ["TRIAGE_SEVERE_PAIN_WORSENING"]
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["insurance.program"],
+      "appointmentType": "Emergency Eval",
+      "recommendedNextStepContains": "on-call"
+    },
+    "summary": {
+      "intent": "EMERGENCY",
+      "urgency": "urgent",
+      "sameDayEmergency": true,
+      "afterHours": true,
+      "humanReviewNeeded": true,
+      "callerName": "Finn Leo",
+      "commLogNoteContains": ["toothache", "on-call"],
+      "actionItemTypesIncludes": ["on_call_callback"],
+      "missingInformationIncludes": ["insurance.program"]
+    },
+    "practiceBrainSignal": {
+      "intent": "emergency",
+      "urgency": "urgent",
+      "afterHours": true,
+      "sameDayEmergency": true,
+      "appointmentType": "emergency_eval",
+      "emotionalFlagsIncludes": ["painDistress"]
+    }
+  }
+}

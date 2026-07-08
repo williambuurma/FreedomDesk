@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "id": "16-medication-question-pre-op",
+    "title": "Pre-procedure medication question",
+    "category": "medication",
+    "description": "Caller asks about ibuprofen before root canal — route to clinical team, not treatment scheduling."
+  },
+  "transcript": {
+    "id": "call_medication_016",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "medication-question",
+    "afterHours": false,
+    "durationSeconds": 65,
+    "receivedAt": "2026-07-08T15:00:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "My name is Jack Ford. Can I take ibuprofen before my root canal tomorrow?" },
+      { "speaker": "aly", "text": "That's a great question for our clinical team. Phone number?" },
+      { "speaker": "patient", "text": "616-555-0112." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "GENERAL_INFO",
+      "callerName": "Jack Ford",
+      "phone": "+16165550112"
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "recommendedNextStepContains": "clinical"
+    },
+    "summary": {
+      "intent": "GENERAL_INFO",
+      "urgency": "routine",
+      "callerName": "Jack Ford"
+    },
+    "practiceBrainSignal": {
+      "intent": "general_info",
+      "urgency": "routine"
+    }
+  }
+}

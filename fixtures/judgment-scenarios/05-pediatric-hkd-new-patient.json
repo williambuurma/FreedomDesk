@@ -1,0 +1,58 @@
+{
+  "meta": {
+    "id": "05-pediatric-hkd-new-patient",
+    "title": "Pediatric new patient with Healthy Kids Dental",
+    "category": "pediatric",
+    "description": "Guardian scheduling first visit for child — HKD program classification required."
+  },
+  "transcript": {
+    "id": "call_pediatric_hkd_005",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "pediatric-hkd",
+    "afterHours": false,
+    "durationSeconds": 140,
+    "receivedAt": "2026-07-08T13:00:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly. How can I help you today?" },
+      { "speaker": "patient", "text": "Hi, this is Lisa Park. My son Ethan has never been to a dentist and I'd like to get him in for a check-up." },
+      { "speaker": "aly", "text": "We'd be happy to help. Can I get Ethan's date of birth and your phone number?" },
+      { "speaker": "patient", "text": "Ethan was born March 14, 2018. My number is 616-555-0103." },
+      { "speaker": "aly", "text": "Does Ethan have dental insurance?" },
+      { "speaker": "patient", "text": "He has Healthy Kids Dental through the state." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "NEW_PATIENT",
+      "callerName": "Lisa Park",
+      "phone": "+16165550103",
+      "isNewPatient": true,
+      "insuranceProgram": "healthy_kids_dental"
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["caller.dateOfBirth", "appointment.preference"],
+      "appointmentType": "New Patient Exam",
+      "recommendedNextStepContains": "new patient"
+    },
+    "summary": {
+      "intent": "NEW_PATIENT",
+      "urgency": "routine",
+      "callerName": "Lisa Park",
+      "commLogNoteContains": ["Healthy Kids Dental"],
+      "actionItemTypesIncludes": ["schedule_appointment"]
+    },
+    "practiceBrainSignal": {
+      "intent": "new_patient",
+      "urgency": "routine",
+      "appointmentType": "new_patient_exam",
+      "insuranceProgram": "healthy_kids_dental"
+    }
+  }
+}

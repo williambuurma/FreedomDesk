@@ -4,6 +4,11 @@
 
 export { processCallTranscript } from "./processCall.ts";
 export {
+  loadJudgmentScenarios,
+  validateJudgmentScenario,
+  formatScenarioFailures,
+} from "./judgment/index.ts";
+export {
   analyzeConversation,
   analyzeTranscriptTurns,
   determineNextGoal,

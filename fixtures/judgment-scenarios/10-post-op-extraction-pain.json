@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "id": "10-post-op-extraction-pain",
+    "title": "Post-operative extraction pain — after hours distress",
+    "category": "post-op",
+    "description": "Caller had extraction yesterday; uncontrolled pain keeping them awake — urgent same-day review."
+  },
+  "transcript": {
+    "id": "call_post_op_010",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "post-op-pain",
+    "afterHours": true,
+    "durationSeconds": 130,
+    "receivedAt": "2026-07-08T22:30:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "You've reached Cascade Family Dentistry after hours. This is Aly." },
+      { "speaker": "patient", "text": "My name is Dan Price. I had an extraction yesterday and the pain keeps me up all night." },
+      { "speaker": "aly", "text": "I'm sorry you're dealing with that. Phone number?" },
+      { "speaker": "patient", "text": "616-555-0106." },
+      { "speaker": "patient", "text": "It's gotten worse since this afternoon — about an 8 out of 10." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "EMERGENCY",
+      "callerName": "Dan Price",
+      "phone": "+16165550106",
+      "symptomsIncludes": ["pain"],
+      "symptomDetails": { "painLevel": "8" }
+    },
+    "psychology": {
+      "emotion": "pain",
+      "matchedRulesIncludes": ["PSY_PAIN_DISTRESS"],
+      "deferAdminQuestions": true
+    },
+    "triage": {
+      "urgency": "urgent",
+      "sameDayEmergency": true,
+      "routingActionContains": "on_call",
+      "matchedRulesIncludes": ["TRIAGE_SEVERE_PAIN_WORSENING"]
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["caller.dateOfBirth"],
+      "appointmentType": "Emergency Eval",
+      "recommendedNextStepContains": "on-call"
+    },
+    "summary": {
+      "intent": "EMERGENCY",
+      "urgency": "urgent",
+      "sameDayEmergency": true,
+      "afterHours": true,
+      "humanReviewNeeded": true,
+      "callerName": "Dan Price",
+      "actionItemTypesIncludes": ["on_call_callback"]
+    },
+    "practiceBrainSignal": {
+      "intent": "emergency",
+      "urgency": "urgent",
+      "afterHours": true,
+      "sameDayEmergency": true,
+      "appointmentType": "emergency_eval",
+      "emotionalFlagsIncludes": ["painDistress"]
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "id": "14-crown-came-off",
+    "title": "Crown came off — reseat needed",
+    "category": "crown-off",
+    "description": "Caller lost temporary crown — crown seat appointment type required."
+  },
+  "transcript": {
+    "id": "call_crown_off_014",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "crown-came-off",
+    "afterHours": false,
+    "durationSeconds": 100,
+    "receivedAt": "2026-07-08T14:45:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "My name is Henry Kim. My crown came off while I was eating lunch and I need a crown seat." },
+      { "speaker": "aly", "text": "Let me get your information. Date of birth?" },
+      { "speaker": "patient", "text": "July 12, 1980." },
+      { "speaker": "aly", "text": "Phone?" },
+      { "speaker": "patient", "text": "616-555-0110." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "TREATMENT_SCHEDULE",
+      "callerName": "Henry Kim",
+      "phone": "+16165550110",
+      "dateOfBirth": "1980-07-12"
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "priority",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["appointment.type"]
+    },
+    "summary": {
+      "intent": "TREATMENT_SCHEDULE",
+      "urgency": "priority",
+      "callerName": "Henry Kim"
+    },
+    "practiceBrainSignal": {
+      "intent": "treatment_scheduling",
+      "urgency": "routine"
+    }
+  }
+}

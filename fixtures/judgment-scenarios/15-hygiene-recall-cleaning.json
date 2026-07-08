@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "id": "15-hygiene-recall-cleaning",
+    "title": "Hygiene recall — six-month cleaning",
+    "category": "hygiene-recall",
+    "description": "Existing patient due for prophy and periodic exam."
+  },
+  "transcript": {
+    "id": "call_hygiene_015",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "hygiene-recall",
+    "afterHours": false,
+    "durationSeconds": 70,
+    "receivedAt": "2026-07-08T10:00:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "Hi, my name is Irene Wu. I'm due for my six-month cleaning and check-up." },
+      { "speaker": "aly", "text": "Happy to schedule that. Date of birth?" },
+      { "speaker": "patient", "text": "August 9, 1992." },
+      { "speaker": "aly", "text": "Phone number?" },
+      { "speaker": "patient", "text": "616-555-0111." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "SCHEDULE_EXISTING",
+      "callerName": "Irene Wu",
+      "phone": "+16165550111",
+      "dateOfBirth": "1992-08-09",
+      "isNewPatient": false
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["appointment.type"],
+      "appointmentType": "Prophy + Periodic Exam"
+    },
+    "summary": {
+      "intent": "SCHEDULE_EXISTING",
+      "urgency": "routine",
+      "callerName": "Irene Wu"
+    },
+    "practiceBrainSignal": {
+      "intent": "hygiene_recall",
+      "urgency": "routine"
+    }
+  }
+}

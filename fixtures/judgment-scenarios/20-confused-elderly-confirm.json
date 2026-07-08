@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "id": "20-confused-elderly-confirm",
+    "title": "Confused elderly patient — appointment confirmation",
+    "category": "confused-elderly",
+    "description": "Elderly caller confused about upcoming appointment time — slow pace, gentle clarification."
+  },
+  "transcript": {
+    "id": "call_confused_elderly_020",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "confused-elderly",
+    "afterHours": false,
+    "durationSeconds": 120,
+    "receivedAt": "2026-07-08T09:30:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "Hello, my name is Nora Bell. I don't understand what you mean about my appointment letter." },
+      { "speaker": "aly", "text": "I'm happy to help clarify. Are you calling to confirm an appointment?" },
+      { "speaker": "patient", "text": "I don't know what to do. I think I have a cleaning tomorrow but I'm not sure." },
+      { "speaker": "aly", "text": "Let me look that up. Date of birth?" },
+      { "speaker": "patient", "text": "October 15, 1945." },
+      { "speaker": "aly", "text": "Phone number?" },
+      { "speaker": "patient", "text": "616-555-0116." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "CONFIRM",
+      "callerName": "Nora Bell",
+      "phone": "+16165550116",
+      "dateOfBirth": "1945-10-15"
+    },
+    "psychology": {
+      "emotion": "confused",
+      "matchedRulesIncludes": ["PSY_CONFUSED_LANGUAGE", "PSY_CONFUSED_UNCERTAIN"],
+      "deferAdminQuestions": true,
+      "toneStrategy": "clarify_gently"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsExcludes": ["caller.dateOfBirth"]
+    },
+    "summary": {
+      "intent": "CONFIRM",
+      "urgency": "routine",
+      "callerName": "Nora Bell"
+    },
+    "practiceBrainSignal": {
+      "intent": "confirm",
+      "urgency": "routine"
+    }
+  }
+}

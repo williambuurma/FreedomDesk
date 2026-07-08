@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "id": "08-reschedule-existing-patient",
+    "title": "Existing patient reschedule request",
+    "category": "reschedule",
+    "description": "Caller needs to move Tuesday hygiene appointment — existing appointment details missing."
+  },
+  "transcript": {
+    "id": "call_reschedule_008",
+    "practiceId": "practice_cascade_family_gr",
+    "scenario": "reschedule",
+    "afterHours": false,
+    "durationSeconds": 75,
+    "receivedAt": "2026-07-08T09:00:00.000Z",
+    "turns": [
+      { "speaker": "aly", "text": "Cascade Family Dentistry, this is Aly." },
+      { "speaker": "patient", "text": "Hi, my name is Amy Chen. I need to reschedule my appointment for next Tuesday." },
+      { "speaker": "aly", "text": "Of course. Can I confirm your date of birth?" },
+      { "speaker": "patient", "text": "March 3, 1988." }
+    ]
+  },
+  "expectations": {
+    "understanding": {
+      "intent": "RESCHEDULE",
+      "callerName": "Amy Chen",
+      "dateOfBirth": "1988-03-03",
+      "isNewPatient": false
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["appointment.existing"]
+    },
+    "summary": {
+      "intent": "RESCHEDULE",
+      "urgency": "routine",
+      "callerName": "Amy Chen",
+      "missingInformationIncludes": ["appointment.existing"]
+    },
+    "practiceBrainSignal": {
+      "intent": "cancel_reschedule",
+      "urgency": "routine"
+    }
+  }
+}

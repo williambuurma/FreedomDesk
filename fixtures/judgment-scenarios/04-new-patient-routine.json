@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "id": "04-new-patient-routine",
+    "title": "Routine new patient exam request",
+    "category": "new-patient",
+    "description": "New to Grand Rapids — Delta PPO through employer, cleaning and check-up."
+  },
+  "transcriptRef": "fixtures/calls/new-patient-exam.json",
+  "expectations": {
+    "understanding": {
+      "intent": "NEW_PATIENT",
+      "callerName": "Finn Leo",
+      "phone": "+16165550198",
+      "dateOfBirth": "1995-05-11",
+      "isNewPatient": true,
+      "insuranceProgram": "delta_dental_ppo",
+      "chiefConcernContains": ["new patient"]
+    },
+    "psychology": {
+      "emotion": "unknown"
+    },
+    "triage": {
+      "urgency": "routine",
+      "sameDayEmergency": false
+    },
+    "frontDesk": {
+      "missingFieldsIncludes": ["appointment.preference"],
+      "appointmentType": "New Patient Exam",
+      "recommendedNextStepContains": "new patient"
+    },
+    "summary": {
+      "intent": "NEW_PATIENT",
+      "urgency": "routine",
+      "sameDayEmergency": false,
+      "humanReviewNeeded": true,
+      "callerName": "Finn Leo",
+      "commLogNoteContains": ["New Patient", "Delta Dental PPO"],
+      "actionItemTypesIncludes": ["schedule_appointment"],
+      "missingInformationIncludes": ["appointment.preference"]
+    },
+    "practiceBrainSignal": {
+      "intent": "new_patient",
+      "urgency": "routine",
+      "appointmentType": "new_patient_exam",
+      "insuranceProgram": "delta_dental_ppo",
+      "emotionalFlagsIncludes": ["highAnxiety"]
+    }
+  }
+}

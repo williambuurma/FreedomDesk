@@ -3,6 +3,8 @@
  */
 
 import { processCallTranscript } from "../processCall.ts";
+import { formatStageReasoning } from "../reasoning/format.ts";
+import type { ReasoningTrace } from "../reasoning/types.ts";
 import type {
   FrontDeskExpectations,
   JudgmentExpectations,
@@ -276,11 +278,27 @@ function validatePracticeBrainSignal(
   return failures;
 }
 
+const REASONING_STAGE_KEY: Record<ReasoningStage, keyof ReasoningTrace> = {
+  Understanding: "understanding",
+  Psychology: "psychology",
+  Triage: "triage",
+  FrontDesk: "frontDesk",
+  Summary: "summary",
+  PracticeBrain: "practiceBrain",
+};
+
 function stageResult(
   stage: ReasoningStage,
-  failures: string[]
+  failures: string[],
+  reasoning?: ReasoningTrace
 ): StageValidationResult {
-  return { stage, passed: failures.length === 0, failures };
+  const stageReasoning = reasoning?.[REASONING_STAGE_KEY[stage]];
+  const evidence =
+    failures.length > 0 && stageReasoning
+      ? formatStageReasoning(stageReasoning)
+      : undefined;
+
+  return { stage, passed: failures.length === 0, failures, evidence };
 }
 
 export function validateJudgmentScenario(input: {
@@ -288,32 +306,38 @@ export function validateJudgmentScenario(input: {
   transcript: MockCallTranscript;
   expectations: JudgmentExpectations;
 }): ScenarioValidationResult {
-  const { summary, signal, analysis } = processCallTranscript(input.transcript);
+  const { summary, signal, analysis, reasoning } = processCallTranscript(input.transcript);
 
   const stages: StageValidationResult[] = [
     stageResult(
       "Understanding",
-      validateUnderstanding(analysis.understanding, input.expectations.understanding)
+      validateUnderstanding(analysis.understanding, input.expectations.understanding),
+      reasoning
     ),
     stageResult(
       "Psychology",
-      validatePsychology(analysis.psychology, input.expectations.psychology)
+      validatePsychology(analysis.psychology, input.expectations.psychology),
+      reasoning
     ),
     stageResult(
       "Triage",
-      validateTriage(analysis.triage, input.expectations.triage)
+      validateTriage(analysis.triage, input.expectations.triage),
+      reasoning
     ),
     stageResult(
       "FrontDesk",
-      validateFrontDesk(analysis.frontDesk, input.expectations.frontDesk)
+      validateFrontDesk(analysis.frontDesk, input.expectations.frontDesk),
+      reasoning
     ),
     stageResult(
       "Summary",
-      validateSummary(summary, input.expectations.summary)
+      validateSummary(summary, input.expectations.summary),
+      reasoning
     ),
     stageResult(
       "PracticeBrain",
-      validatePracticeBrainSignal(signal, input.expectations.practiceBrainSignal)
+      validatePracticeBrainSignal(signal, input.expectations.practiceBrainSignal),
+      reasoning
     ),
   ];
 
@@ -329,8 +353,9 @@ export function validateJudgmentScenario(input: {
 export function formatScenarioFailures(result: ScenarioValidationResult): string {
   const failed = result.stages.filter((stage) => !stage.passed);
   if (failed.length === 0) return "";
-  const lines = failed.map(
-    (stage) => `  [${stage.stage}] ${stage.failures.join("; ")}`
-  );
+  const lines = failed.flatMap((stage) => {
+    const base = `  [${stage.stage}] ${stage.failures.join("; ")}`;
+    return stage.evidence ? [base, `    evidence:\n${stage.evidence.split("\n").map((l) => `      ${l}`).join("\n")}`] : [base];
+  });
   return `${result.scenarioId} (${result.title}):\n${lines.join("\n")}`;
 }

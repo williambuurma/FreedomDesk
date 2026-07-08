@@ -2,19 +2,21 @@
  * V1 proof loop — mock transcript through conversation intelligence to summary + signal.
  */
 
-import { assessFrontDesk } from "./frontDesk.ts";
-import { assessEmotion } from "./psychology.ts";
+import { assessFrontDeskWithReasoning } from "./frontDesk.ts";
+import { assessEmotionWithReasoning } from "./psychology.ts";
 import { createStateFromTranscript } from "./state.ts";
-import { buildCallSummary, applyAnalysisToState } from "./summary.ts";
-import { toCallSummarySignal } from "./signal.ts";
-import { assessUrgency } from "./triage.ts";
+import { buildCallSummaryWithReasoning, applyAnalysisToState } from "./summary.ts";
+import { toCallSummarySignalWithReasoning } from "./signal.ts";
+import { assessUrgencyWithReasoning } from "./triage.ts";
 import type { ConversationAnalysis } from "./engine.ts";
+import type { ReasoningTrace } from "./reasoning/types.ts";
+import { assembleReasoningTrace } from "./reasoning/assembleTrace.ts";
 import type {
   MockCallTranscript,
   ProcessCallResult,
   TranscriptTurn,
 } from "./types.ts";
-import { understandTranscript } from "./understanding.ts";
+import { understandTranscriptWithReasoning } from "./understanding.ts";
 
 function patientUtterances(turns: TranscriptTurn[]): string {
   return turns
@@ -29,29 +31,51 @@ function patientUtterances(turns: TranscriptTurn[]): string {
  */
 export function processCallTranscript(
   transcript: MockCallTranscript
-): ProcessCallResult & { analysis: ConversationAnalysis; state: ReturnType<typeof applyAnalysisToState> } {
-  const understanding = understandTranscript(transcript.turns);
-  const urgency = assessUrgency(understanding, understanding.intent);
-  const frontDesk = assessFrontDesk(
+): ProcessCallResult & {
+  analysis: ConversationAnalysis;
+  state: ReturnType<typeof applyAnalysisToState>;
+  reasoning: ReasoningTrace;
+} {
+  const understandingResult = understandTranscriptWithReasoning(transcript.turns);
+  const understanding = understandingResult.output;
+
+  const urgencyResult = assessUrgencyWithReasoning(understanding, understanding.intent);
+  const urgency = urgencyResult.output;
+
+  const frontDeskResult = assessFrontDeskWithReasoning(
     understanding,
     urgency,
     understanding.intent,
     transcript.afterHours
   );
-  const psychology = assessEmotion(patientUtterances(transcript.turns));
+  const frontDesk = frontDeskResult.output;
+
+  const psychologyResult = assessEmotionWithReasoning(patientUtterances(transcript.turns));
+  const psychology = psychologyResult.output;
 
   let state = createStateFromTranscript(transcript);
   state = applyAnalysisToState(state, understanding, urgency, frontDesk, psychology);
 
-  const summary = buildCallSummary({
+  const summaryResult = buildCallSummaryWithReasoning({
     transcript,
     understanding,
     urgency,
     frontDesk,
     psychology,
   });
+  const summary = summaryResult.output;
 
-  const signal = toCallSummarySignal(summary);
+  const signalResult = toCallSummarySignalWithReasoning(summary);
+  const signal = signalResult.output;
+
+  const reasoning = assembleReasoningTrace({
+    understanding: understandingResult,
+    psychology: psychologyResult,
+    triage: urgencyResult,
+    frontDesk: frontDeskResult,
+    summary: summaryResult,
+    practiceBrain: signalResult,
+  });
 
   const analysis: ConversationAnalysis = {
     understanding,
@@ -59,7 +83,8 @@ export function processCallTranscript(
     triage: urgency,
     frontDesk,
     summary,
+    reasoning,
   };
 
-  return { summary, signal, analysis, state };
+  return { summary, signal, analysis, state, reasoning };
 }

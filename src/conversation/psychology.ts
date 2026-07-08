@@ -20,9 +20,7 @@
  * No LLM calls. No cross-brain imports; engine.ts orchestrates.
  */
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+import type { ReasoningFact, StageReasoning } from "./reasoning/types.ts";
 
 /** Caller emotion label for this turn. */
 export type PsychologyEmotion =
@@ -65,6 +63,21 @@ export interface PsychologyAnalysis {
   matchedRules: string[];
   /** Confidence in this assessment (0–1). No match → 0. */
   confidence: number;
+}
+
+export interface PsychologyResult {
+  output: PsychologyAnalysis;
+  reasoning: StageReasoning<
+    {
+      emotion: PsychologyEmotion;
+      toneStrategy: ToneStrategy;
+      deferAdminQuestions: boolean;
+    },
+    Pick<
+      PsychologyAnalysis,
+      "emotion" | "toneStrategy" | "emotionalBurden" | "deferAdminQuestions"
+    >
+  >;
 }
 
 // ---------------------------------------------------------------------------
@@ -310,6 +323,15 @@ function computeConfidence(matched: PsychologyRule[]): number {
   return Math.round((0.5 + signalStrength * 0.35 + breadth * 0.15) * 100) / 100;
 }
 
+function fact(
+  id: string,
+  description: string,
+  value: unknown,
+  source: string
+): ReasoningFact {
+  return { id, description, value, source };
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -320,11 +342,33 @@ function computeConfidence(matched: PsychologyRule[]): number {
  * Conversation history merging belongs in engine.ts. This function stays pure
  * and testable per utterance.
  */
-export function assessEmotion(message: string): PsychologyAnalysis {
+export function assessEmotionWithReasoning(message: string): PsychologyResult {
   const normalized = normalizeMessage(message);
 
   if (!normalized) {
-    return { ...UNKNOWN_ANALYSIS };
+    const output = { ...UNKNOWN_ANALYSIS };
+    return {
+      output,
+      reasoning: {
+        stage: "Psychology",
+        inputs: { messageLength: 0 },
+        facts: [fact("FACT_EMPTY_MESSAGE", "No patient text to assess", true, "input")],
+        rulesFired: [],
+        decision: {
+          emotion: output.emotion,
+          toneStrategy: output.toneStrategy,
+          deferAdminQuestions: output.deferAdminQuestions,
+        },
+        confidence: 0,
+        rationale: ["Empty message — default to standard tone"],
+        output: {
+          emotion: output.emotion,
+          toneStrategy: output.toneStrategy,
+          emotionalBurden: output.emotionalBurden,
+          deferAdminQuestions: output.deferAdminQuestions,
+        },
+      },
+    };
   }
 
   const matched = PSYCHOLOGY_RULES.filter((rule) =>
@@ -332,7 +376,36 @@ export function assessEmotion(message: string): PsychologyAnalysis {
   );
 
   if (matched.length === 0) {
-    return { ...UNKNOWN_ANALYSIS };
+    const output = { ...UNKNOWN_ANALYSIS };
+    return {
+      output,
+      reasoning: {
+        stage: "Psychology",
+        inputs: { messageLength: normalized.length },
+        facts: [
+          fact("FACT_MESSAGE", "Normalized patient text length", normalized.length, "input"),
+        ],
+        rulesFired: [
+          {
+            ruleId: "PSY_DEFAULT_UNKNOWN",
+            description: "No psychology rule matched — standard tone",
+          },
+        ],
+        decision: {
+          emotion: output.emotion,
+          toneStrategy: output.toneStrategy,
+          deferAdminQuestions: output.deferAdminQuestions,
+        },
+        confidence: 0,
+        rationale: ["No emotional signal detected"],
+        output: {
+          emotion: output.emotion,
+          toneStrategy: output.toneStrategy,
+          emotionalBurden: output.emotionalBurden,
+          deferAdminQuestions: output.deferAdminQuestions,
+        },
+      },
+    };
   }
 
   const sorted = [...matched].sort((a, b) => b.weight - a.weight);
@@ -348,7 +421,7 @@ export function assessEmotion(message: string): PsychologyAnalysis {
     deferAdminQuestions = deferAdminQuestions || rule.deferAdminQuestions;
   }
 
-  return {
+  const output: PsychologyAnalysis = {
     emotion: primary.emotion,
     emotionalBurden,
     toneStrategy: primary.toneStrategy,
@@ -358,4 +431,39 @@ export function assessEmotion(message: string): PsychologyAnalysis {
     matchedRules: matched.map((rule) => rule.id),
     confidence: computeConfidence(matched),
   };
+
+  return {
+    output,
+    reasoning: {
+      stage: "Psychology",
+      inputs: { messageLength: normalized.length },
+      facts: [
+        fact("FACT_MESSAGE", "Normalized patient text length", normalized.length, "input"),
+        fact("FACT_PRIMARY_EMOTION", "Primary emotion from highest-weight rule", primary.emotion, primary.id),
+        fact("FACT_MATCH_COUNT", "Psychology rules matched", matched.length, "PSYCHOLOGY_RULES"),
+      ],
+      rulesFired: matched.map((rule) => ({
+        ruleId: rule.id,
+        description: rule.reason,
+        weight: rule.weight,
+      })),
+      decision: {
+        emotion: output.emotion,
+        toneStrategy: output.toneStrategy,
+        deferAdminQuestions: output.deferAdminQuestions,
+      },
+      confidence: output.confidence,
+      rationale: output.reasons,
+      output: {
+        emotion: output.emotion,
+        toneStrategy: output.toneStrategy,
+        emotionalBurden: output.emotionalBurden,
+        deferAdminQuestions: output.deferAdminQuestions,
+      },
+    },
+  };
+}
+
+export function assessEmotion(message: string): PsychologyAnalysis {
+  return assessEmotionWithReasoning(message).output;
 }

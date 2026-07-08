@@ -3,6 +3,7 @@
  * See CALL_FLOWS.md required summary fields per intent.
  */
 
+import type { ReasoningFact, ReasoningRuleFire, StageReasoning } from "./reasoning/types.ts";
 import type {
   CallIntent,
   FrontDeskAssessment,
@@ -10,6 +11,27 @@ import type {
   PatientUnderstanding,
   UrgencyAssessment,
 } from "./types.ts";
+
+export interface FrontDeskResult {
+  output: FrontDeskAssessment;
+  reasoning: StageReasoning<
+    {
+      missingFields: string[];
+      appointmentType: string | null;
+      recommendedNextStep: string;
+    },
+    FrontDeskAssessment
+  >;
+}
+
+function fact(
+  id: string,
+  description: string,
+  value: unknown,
+  source: string
+): ReasoningFact {
+  return { id, description, value, source };
+}
 
 const REQUIRED_BY_INTENT: Record<CallIntent, string[]> = {
   NEW_PATIENT: [
@@ -103,13 +125,70 @@ function recommendedNextStep(
   return "Review summary and complete any missing fields before next patient contact";
 }
 
-export function assessFrontDesk(
+function nextStepRuleId(
+  intent: CallIntent,
+  urgency: UrgencyAssessment,
+  afterHours: boolean,
+  missing: string[]
+): ReasoningRuleFire {
+  if (urgency.urgency === "emergency") {
+    return {
+      ruleId: "FD_NEXT_EMERGENCY",
+      description: "Emergency urgency — immediate escalation path",
+    };
+  }
+  if (urgency.urgency === "urgent" && afterHours) {
+    return {
+      ruleId: "FD_NEXT_URGENT_AFTER_HOURS",
+      description: "Urgent after-hours — on-call callback SLA",
+    };
+  }
+  if (urgency.urgency === "urgent") {
+    return {
+      ruleId: "FD_NEXT_URGENT_BUSINESS",
+      description: "Urgent during hours — same-day eval or callback",
+    };
+  }
+  if (intent === "NEW_PATIENT") {
+    if (missing.includes("appointment.preference")) {
+      return {
+        ruleId: "FD_NEXT_NEW_PATIENT_INCOMPLETE",
+        description: "New patient missing preference — submit request",
+      };
+    }
+    return {
+      ruleId: "FD_NEXT_NEW_PATIENT",
+      description: "New patient complete enough — confirm exam in PMS",
+    };
+  }
+  if (intent === "BILLING") {
+    return {
+      ruleId: "FD_NEXT_BILLING",
+      description: "Billing intent — route to billing team",
+    };
+  }
+  return {
+    ruleId: "FD_NEXT_DEFAULT",
+    description: "Default — review summary and fill gaps",
+  };
+}
+
+export function assessFrontDeskWithReasoning(
   understanding: PatientUnderstanding,
   urgency: UrgencyAssessment,
   intent: CallIntent,
   afterHours: boolean
-): FrontDeskAssessment {
+): FrontDeskResult {
   const required = REQUIRED_BY_INTENT[intent] ?? REQUIRED_BY_INTENT.OTHER;
+  const fieldChecks: ReasoningFact[] = required.map((field) =>
+    fact(
+      `FACT_FIELD_${field.replace(/\./g, "_").toUpperCase()}`,
+      `Required field ${field}`,
+      fieldPresent(field, understanding, urgency) ? "present" : "missing",
+      "REQUIRED_BY_INTENT"
+    )
+  );
+
   const missingFields = required.filter(
     (field) => !fieldPresent(field, understanding, urgency)
   );
@@ -120,18 +199,85 @@ export function assessFrontDesk(
     !missingFields.includes("insurance.program")
   ) {
     missingFields.push("insurance.program");
+    fieldChecks.push(
+      fact(
+        "FACT_FIELD_INSURANCE_PROGRAM_AMBIGUOUS",
+        "Carrier named but program unknown",
+        "missing",
+        "insurance_disambiguation"
+      )
+    );
   }
 
-  return {
+  const appointmentType = appointmentTypeForIntent(intent, understanding);
+  const nextStep = recommendedNextStep(
+    intent,
+    urgency,
+    afterHours,
+    missingFields
+  );
+
+  const nextStepRule = nextStepRuleId(intent, urgency, afterHours, missingFields);
+  const completeness =
+    required.length === 0
+      ? 1
+      : (required.length - missingFields.length) / required.length;
+
+  const output: FrontDeskAssessment = {
     missingFields,
-    appointmentType: appointmentTypeForIntent(intent, understanding),
-    recommendedNextStep: recommendedNextStep(
-      intent,
-      urgency,
-      afterHours,
-      missingFields
-    ),
+    appointmentType,
+    recommendedNextStep: nextStep,
   };
+
+  return {
+    output,
+    reasoning: {
+      stage: "FrontDesk",
+      inputs: { intent, afterHours, urgency: urgency.urgency },
+      facts: [
+        fact("FACT_REQUIRED_FIELDS", "Required fields for intent", required, "REQUIRED_BY_INTENT"),
+        ...fieldChecks,
+        fact("FACT_APPOINTMENT_TYPE", "Mapped appointment type", appointmentType, "appointmentTypeForIntent"),
+      ],
+      rulesFired: [
+        {
+          ruleId: `FD_REQUIRED_${intent}`,
+          description: `Required field set for ${intent}`,
+        },
+        nextStepRule,
+        ...(understanding.insuranceProgram === "unknown" && understanding.insuranceCarrier
+          ? [
+              {
+                ruleId: "FD_INSURANCE_DISAMBIGUATION",
+                description: "Carrier without program — flag insurance.program missing",
+              },
+            ]
+          : []),
+      ],
+      decision: {
+        missingFields,
+        appointmentType,
+        recommendedNextStep: nextStep,
+      },
+      confidence: Math.round(Math.max(0.5, completeness) * 100) / 100,
+      rationale: [
+        missingFields.length
+          ? `Missing ${missingFields.length} required field(s): ${missingFields.join(", ")}`
+          : "All required fields present for intent",
+        nextStepRule.description,
+      ],
+      output,
+    },
+  };
+}
+
+export function assessFrontDesk(
+  understanding: PatientUnderstanding,
+  urgency: UrgencyAssessment,
+  intent: CallIntent,
+  afterHours: boolean
+): FrontDeskAssessment {
+  return assessFrontDeskWithReasoning(understanding, urgency, intent, afterHours).output;
 }
 
 export function insuranceProgramLabel(program: InsuranceProgram): string {

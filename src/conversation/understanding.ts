@@ -3,12 +3,30 @@
  * Deterministic rules only; no LLM. See docs/CALL_FLOWS.md intent table.
  */
 
+import type { ReasoningFact, ReasoningRuleFire, StageReasoning } from "./reasoning/types.ts";
 import type {
   CallIntent,
   InsuranceProgram,
   PatientUnderstanding,
   TranscriptTurn,
 } from "./types.ts";
+
+export interface UnderstandingResult {
+  output: PatientUnderstanding;
+  reasoning: StageReasoning<
+    { intent: CallIntent; intentSignals: string[] },
+    Pick<
+      PatientUnderstanding,
+      | "intent"
+      | "callerName"
+      | "phone"
+      | "dateOfBirth"
+      | "insuranceProgram"
+      | "chiefConcern"
+      | "symptoms"
+    >
+  >;
+}
 
 function patientText(turns: TranscriptTurn[]): string {
   return turns
@@ -192,15 +210,22 @@ function classifyIntent(text: string): {
   intent: CallIntent;
   confidence: number;
   signals: string[];
+  rulesFired: ReasoningRuleFire[];
 } {
   const lower = text.toLowerCase();
   let best: IntentRule | null = null;
   const signals: string[] = [];
+  const rulesFired: ReasoningRuleFire[] = [];
 
   for (const rule of INTENT_RULES) {
     for (const pattern of rule.patterns) {
       if (pattern.test(lower)) {
         signals.push(rule.id);
+        rulesFired.push({
+          ruleId: rule.id,
+          description: `Intent pattern matched → ${rule.intent}`,
+          weight: rule.weight,
+        });
         if (!best || rule.weight > best.weight) {
           best = rule;
         }
@@ -210,11 +235,21 @@ function classifyIntent(text: string): {
   }
 
   if (!best) {
-    return { intent: "OTHER", confidence: 0.3, signals: [] };
+    return {
+      intent: "OTHER",
+      confidence: 0.3,
+      signals: [],
+      rulesFired: [
+        {
+          ruleId: "INTENT_DEFAULT_OTHER",
+          description: "No intent rule matched — default to OTHER",
+        },
+      ],
+    };
   }
 
   const confidence = Math.min(0.95, 0.55 + best.weight * 0.04);
-  return { intent: best.intent, confidence, signals };
+  return { intent: best.intent, confidence, signals, rulesFired };
 }
 
 function extractSymptoms(text: string): string[] {
@@ -311,12 +346,27 @@ function inferNewPatient(text: string, intent: CallIntent): boolean | null {
   return null;
 }
 
+function fact(
+  id: string,
+  description: string,
+  value: unknown,
+  source: string
+): ReasoningFact {
+  return { id, description, value, source };
+}
+
 /**
  * Extract structured understanding from a full mock transcript.
  */
-export function understandTranscript(turns: TranscriptTurn[]): PatientUnderstanding {
+export function understandTranscriptWithReasoning(
+  turns: TranscriptTurn[]
+): UnderstandingResult {
   const text = patientText(turns);
-  const { intent, confidence, signals } = classifyIntent(text);
+  const turnCount = turns.filter(
+    (t) => t.speaker === "patient" || t.speaker === "caller"
+  ).length;
+
+  const { intent, confidence, signals, rulesFired } = classifyIntent(text);
   const symptoms = extractSymptoms(text);
   const symptomDetails = extractSymptomDetails(text);
   const callerName = parseName(text);
@@ -336,7 +386,7 @@ export function understandTranscript(turns: TranscriptTurn[]): PatientUnderstand
     insuranceProgram: insuranceProgram !== "unknown" ? 0.8 : 0.4,
   };
 
-  return {
+  const output: PatientUnderstanding = {
     intent,
     intentConfidence: confidence,
     intentSignals: signals,
@@ -351,6 +401,54 @@ export function understandTranscript(turns: TranscriptTurn[]): PatientUnderstand
     symptomDetails,
     perFieldConfidence,
   };
+
+  const facts: ReasoningFact[] = [
+    fact("FACT_PATIENT_TURNS", "Patient/caller turn count", turnCount, "transcript"),
+    fact("FACT_CALLER_NAME", "Parsed caller name", callerName, "parseName"),
+    fact("FACT_PHONE", "Parsed phone", phone, "parsePhone"),
+    fact("FACT_DOB", "Parsed date of birth", dateOfBirth, "parseDateOfBirth"),
+    fact("FACT_SYMPTOMS", "Extracted symptoms", symptoms, "extractSymptoms"),
+    fact("FACT_SYMPTOM_DETAILS", "Symptom detail flags", symptomDetails, "extractSymptomDetails"),
+    fact("FACT_INSURANCE_PROGRAM", "Insurance program classification", insuranceProgram, "classifyInsuranceProgram"),
+    fact("FACT_IS_NEW_PATIENT", "New patient inference", isNewPatient, "inferNewPatient"),
+    fact("FACT_CHIEF_CONCERN", "Inferred chief concern", chiefConcern, "inferChiefConcern"),
+  ];
+
+  const rationale: string[] = [];
+  if (rulesFired.length > 0) {
+    const winner = rulesFired.reduce((a, b) =>
+      (b.weight ?? 0) > (a.weight ?? 0) ? b : a
+    );
+    rationale.push(`Intent ${intent} selected — highest-weight rule ${winner.ruleId}`);
+  }
+  if (insuranceProgram === "unknown" && insuranceCarrier) {
+    rationale.push("Carrier named but program not disambiguated");
+  }
+
+  const reasoning: UnderstandingResult["reasoning"] = {
+    stage: "Understanding",
+    inputs: { patientTurnCount: turnCount, afterHours: undefined },
+    facts,
+    rulesFired,
+    decision: { intent, intentSignals: signals },
+    confidence,
+    rationale,
+    output: {
+      intent,
+      callerName,
+      phone,
+      dateOfBirth,
+      insuranceProgram,
+      chiefConcern,
+      symptoms,
+    },
+  };
+
+  return { output, reasoning };
+}
+
+export function understandTranscript(turns: TranscriptTurn[]): PatientUnderstanding {
+  return understandTranscriptWithReasoning(turns).output;
 }
 
 /** Single-utterance entry point used by engine.ts turn loop stub. */

@@ -105,6 +105,8 @@ export interface StageValidationResult {
   stage: ReasoningStage;
   passed: boolean;
   failures: string[];
+  /** Structured reasoning evidence for this stage when validation failed. */
+  evidence?: string;
 }
 
 export interface ScenarioValidationResult {

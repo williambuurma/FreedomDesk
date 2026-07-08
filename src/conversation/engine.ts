@@ -5,17 +5,18 @@
  * merges their outputs. See docs/FREEDOMDESK_BRAIN_ARCHITECTURE.md.
  */
 
-import { assessFrontDesk, type FrontDeskAssessment } from "./frontDesk.ts";
-import { assessEmotion, type PsychologyAnalysis } from "./psychology.ts";
+import { assessFrontDeskWithReasoning, type FrontDeskAssessment } from "./frontDesk.ts";
+import { assessEmotionWithReasoning, type PsychologyAnalysis } from "./psychology.ts";
 import type { ConversationState } from "./state.ts";
 import type { CallSummary } from "./types.ts";
-import { assessUrgency } from "./triage.ts";
+import { assessUrgencyWithReasoning } from "./triage.ts";
 import {
-  understandPatientMessage,
-  understandTranscript,
+  understandTranscriptWithReasoning,
 } from "./understanding.ts";
 import type { PatientUnderstanding } from "./types.ts";
 import type { UrgencyAssessment, TranscriptTurn } from "./types.ts";
+import type { ReasoningTrace } from "./reasoning/types.ts";
+import { assembleReasoningTrace } from "./reasoning/assembleTrace.ts";
 
 // ---------------------------------------------------------------------------
 // Goal selection — stub precedence; full spec in FREEDOMDESK_BRAIN_ARCHITECTURE.md §20
@@ -85,6 +86,7 @@ export interface ConversationAnalysis {
   triage: TriageAnalysis;
   frontDesk: FrontDeskAssessment;
   summary: SummaryAnalysis;
+  reasoning?: ReasoningTrace;
 }
 
 /**
@@ -94,15 +96,31 @@ export function analyzeConversation(
   message: string,
   options?: { afterHours?: boolean; intent?: PatientUnderstanding["intent"] }
 ): ConversationAnalysis {
-  const understanding = understandPatientMessage(message);
-  const psychology = assessEmotion(message);
-  const triage = assessUrgency(understanding, understanding.intent);
-  const frontDesk = assessFrontDesk(
+  const understandingResult = understandTranscriptWithReasoning([
+    { speaker: "patient", text: message },
+  ]);
+  const understanding = understandingResult.output;
+
+  const psychologyResult = assessEmotionWithReasoning(message);
+  const psychology = psychologyResult.output;
+
+  const triageResult = assessUrgencyWithReasoning(understanding, understanding.intent);
+  const triage = triageResult.output;
+
+  const frontDeskResult = assessFrontDeskWithReasoning(
     understanding,
     triage,
     understanding.intent,
     options?.afterHours ?? false
   );
+  const frontDesk = frontDeskResult.output;
+
+  const reasoning = assembleReasoningTrace({
+    understanding: understandingResult,
+    psychology: psychologyResult,
+    triage: triageResult,
+    frontDesk: frontDeskResult,
+  });
 
   return {
     understanding,
@@ -110,6 +128,7 @@ export function analyzeConversation(
     triage,
     frontDesk,
     summary: {},
+    reasoning,
   };
 }
 
@@ -120,19 +139,34 @@ export function analyzeTranscriptTurns(
   turns: TranscriptTurn[],
   afterHours = false
 ): ConversationAnalysis {
-  const understanding = understandTranscript(turns);
+  const understandingResult = understandTranscriptWithReasoning(turns);
+  const understanding = understandingResult.output;
+
   const patientText = turns
     .filter((t) => t.speaker === "patient" || t.speaker === "caller")
     .map((t) => t.text)
     .join(" ");
-  const psychology = assessEmotion(patientText);
-  const triage = assessUrgency(understanding, understanding.intent);
-  const frontDesk = assessFrontDesk(
+
+  const psychologyResult = assessEmotionWithReasoning(patientText);
+  const psychology = psychologyResult.output;
+
+  const triageResult = assessUrgencyWithReasoning(understanding, understanding.intent);
+  const triage = triageResult.output;
+
+  const frontDeskResult = assessFrontDeskWithReasoning(
     understanding,
     triage,
     understanding.intent,
     afterHours
   );
+  const frontDesk = frontDeskResult.output;
+
+  const reasoning = assembleReasoningTrace({
+    understanding: understandingResult,
+    psychology: psychologyResult,
+    triage: triageResult,
+    frontDesk: frontDeskResult,
+  });
 
   return {
     understanding,
@@ -140,6 +174,7 @@ export function analyzeTranscriptTurns(
     triage,
     frontDesk,
     summary: {},
+    reasoning,
   };
 }
 

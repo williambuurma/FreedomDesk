@@ -3,12 +3,30 @@
  * L1 deterministic rules; cannot be lowered by fluency. See CALL_FLOWS § decision trees.
  */
 
+import type { ReasoningFact, StageReasoning } from "./reasoning/types.ts";
 import type {
   CallIntent,
   PatientUnderstanding,
   UrgencyAssessment,
   UrgencyLevel,
 } from "./types.ts";
+
+export interface TriageResult {
+  output: UrgencyAssessment;
+  reasoning: StageReasoning<
+    { urgency: UrgencyLevel; sameDayEmergency: boolean; routingAction: string },
+    Pick<UrgencyAssessment, "urgency" | "sameDayEmergency" | "routingAction">
+  >;
+}
+
+function fact(
+  id: string,
+  description: string,
+  value: unknown,
+  source: string
+): ReasoningFact {
+  return { id, description, value, source };
+}
 
 interface TriageRule {
   id: string;
@@ -105,12 +123,25 @@ function urgencyRank(level: UrgencyLevel): number {
   return { emergency: 4, urgent: 3, priority: 2, routine: 1 }[level];
 }
 
-export function assessUrgency(
+export function assessUrgencyWithReasoning(
   understanding: PatientUnderstanding,
   intent: CallIntent
-): UrgencyAssessment {
+): TriageResult {
+  const inputs = {
+    intent,
+    symptomCount: understanding.symptoms.length,
+    symptomDetails: understanding.symptomDetails,
+  };
+
+  const facts: ReasoningFact[] = [
+    fact("FACT_INTENT", "Call intent from Understanding", intent, "understanding"),
+    fact("FACT_SYMPTOMS", "Reported symptoms", understanding.symptoms, "understanding"),
+    fact("FACT_SYMPTOM_DETAILS", "Symptom detail flags", understanding.symptomDetails, "understanding"),
+    fact("FACT_CHIEF_CONCERN", "Chief concern text", understanding.chiefConcern, "understanding"),
+  ];
+
   if (intent !== "EMERGENCY" && understanding.symptoms.length === 0) {
-    return {
+    const output: UrgencyAssessment = {
       urgency: "routine",
       sameDayEmergency: false,
       matchedRules: [],
@@ -118,16 +149,48 @@ export function assessUrgency(
       routingAction: "standard_scheduling",
       confidence: 0.85,
     };
+    return {
+      output,
+      reasoning: {
+        stage: "Triage",
+        inputs,
+        facts,
+        rulesFired: [
+          {
+            ruleId: "TRIAGE_ROUTINE_NO_SYMPTOMS",
+            description: "No symptoms and non-emergency intent — routine scheduling",
+          },
+        ],
+        decision: {
+          urgency: output.urgency,
+          sameDayEmergency: output.sameDayEmergency,
+          routingAction: output.routingAction,
+        },
+        confidence: output.confidence,
+        rationale: output.reasons,
+        output: {
+          urgency: output.urgency,
+          sameDayEmergency: output.sameDayEmergency,
+          routingAction: output.routingAction,
+        },
+      },
+    };
   }
 
   let best: TriageRule | null = null;
   const matchedRules: string[] = [];
   const reasons: string[] = [];
+  const rulesFired: { ruleId: string; description: string; weight?: number }[] = [];
 
   for (const rule of TRIAGE_RULES) {
     if (rule.test(understanding)) {
       matchedRules.push(rule.id);
       reasons.push(rule.reason);
+      rulesFired.push({
+        ruleId: rule.id,
+        description: rule.reason,
+        weight: rule.weight,
+      });
       if (!best || rule.weight > best.weight) {
         best = rule;
       }
@@ -135,7 +198,7 @@ export function assessUrgency(
   }
 
   if (!best) {
-    return {
+    const output: UrgencyAssessment = {
       urgency: intent === "EMERGENCY" ? "priority" : "routine",
       sameDayEmergency: false,
       matchedRules,
@@ -143,9 +206,37 @@ export function assessUrgency(
       routingAction: "schedule_next_available",
       confidence: 0.7,
     };
+    return {
+      output,
+      reasoning: {
+        stage: "Triage",
+        inputs,
+        facts,
+        rulesFired: rulesFired.length
+          ? rulesFired
+          : [
+              {
+                ruleId: "TRIAGE_FALLBACK",
+                description: "Emergency intent without red-flag match — priority scheduling",
+              },
+            ],
+        decision: {
+          urgency: output.urgency,
+          sameDayEmergency: output.sameDayEmergency,
+          routingAction: output.routingAction,
+        },
+        confidence: output.confidence,
+        rationale: output.reasons,
+        output: {
+          urgency: output.urgency,
+          sameDayEmergency: output.sameDayEmergency,
+          routingAction: output.routingAction,
+        },
+      },
+    };
   }
 
-  return {
+  const output: UrgencyAssessment = {
     urgency: best.urgency,
     sameDayEmergency: best.sameDay,
     matchedRules,
@@ -153,4 +244,36 @@ export function assessUrgency(
     routingAction: best.routingAction,
     confidence: Math.min(0.98, 0.75 + best.weight * 0.002),
   };
+
+  return {
+    output,
+    reasoning: {
+      stage: "Triage",
+      inputs,
+      facts,
+      rulesFired,
+      decision: {
+        urgency: output.urgency,
+        sameDayEmergency: output.sameDayEmergency,
+        routingAction: output.routingAction,
+      },
+      confidence: output.confidence,
+      rationale: [
+        `Highest-weight triage rule ${best.id} → ${best.urgency}`,
+        ...reasons,
+      ],
+      output: {
+        urgency: output.urgency,
+        sameDayEmergency: output.sameDayEmergency,
+        routingAction: output.routingAction,
+      },
+    },
+  };
+}
+
+export function assessUrgency(
+  understanding: PatientUnderstanding,
+  intent: CallIntent
+): UrgencyAssessment {
+  return assessUrgencyWithReasoning(understanding, intent).output;
 }

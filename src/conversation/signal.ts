@@ -2,8 +2,33 @@
  * Adapter — Conversation Summary → Practice Brain CallSummarySignal.
  */
 
+import type { ReasoningFact, StageReasoning } from "./reasoning/types.ts";
 import type { CallSummarySignal } from "../practice-brain/types.ts";
 import type { CallSummary } from "./types.ts";
+
+export interface PracticeBrainSignalResult {
+  output: CallSummarySignal;
+  reasoning: StageReasoning<
+    {
+      intent: string;
+      urgency: string;
+      completenessScore: number;
+    },
+    Pick<
+      CallSummarySignal,
+      "intent" | "urgency" | "afterHours" | "sameDayEmergency" | "completenessScore"
+    >
+  >;
+}
+
+function fact(
+  id: string,
+  description: string,
+  value: unknown,
+  source: string
+): ReasoningFact {
+  return { id, description, value, source };
+}
 
 function intentToSignalIntent(intent: CallSummary["intent"]): string {
   const map: Record<string, string> = {
@@ -55,6 +80,79 @@ function completenessScore(summary: CallSummary): number {
   const base = present / Math.max(required.length, 1);
   const penalty = summary.missingInformation.length * 0.05;
   return Math.max(0.4, Math.min(1, base - penalty));
+}
+
+export function toCallSummarySignalWithReasoning(
+  summary: CallSummary
+): PracticeBrainSignalResult {
+  const output = toCallSummarySignal(summary);
+  const rulesFired: { ruleId: string; description: string }[] = [
+    {
+      ruleId: `PB_INTENT_MAP_${summary.intent}`,
+      description: `Map call intent ${summary.intent} → signal intent ${output.intent}`,
+    },
+    {
+      ruleId: "PB_COMPLETENESS",
+      description: "Compute completeness score from required fields and missing info",
+    },
+  ];
+
+  if (output.emotionalFlags?.length) {
+    rulesFired.push({
+      ruleId: "PB_EMOTIONAL_FLAGS",
+      description: `Derive emotional flags: ${output.emotionalFlags.join(", ")}`,
+    });
+  }
+  if (summary.urgency === "priority") {
+    rulesFired.push({
+      ruleId: "PB_URGENCY_PRIORITY_MAP",
+      description: "Map priority urgency → routine for signal contract",
+    });
+  }
+
+  const rationale: string[] = [
+    `Signal intent ${output.intent} from summary intent ${summary.intent}`,
+    `Completeness ${output.completenessScore} (${summary.missingInformation.length} missing field penalty)`,
+  ];
+  if (output.emotionalFlags?.length) {
+    rationale.push(`Emotional flags: ${output.emotionalFlags.join(", ")}`);
+  }
+
+  return {
+    output,
+    reasoning: {
+      stage: "PracticeBrain",
+      inputs: {
+        callId: summary.callId,
+        summaryIntent: summary.intent,
+        summaryUrgency: summary.urgency,
+        missingFieldCount: summary.missingInformation.length,
+      },
+      facts: [
+        fact("FACT_SUMMARY_INTENT", "Source summary intent", summary.intent, "callSummary"),
+        fact("FACT_SUMMARY_URGENCY", "Source summary urgency", summary.urgency, "callSummary"),
+        fact("FACT_MISSING_COUNT", "Missing information count", summary.missingInformation.length, "callSummary"),
+        fact("FACT_SIGNAL_INTENT", "Mapped signal intent", output.intent, "intentToSignalIntent"),
+        fact("FACT_COMPLETENESS", "Completeness score", output.completenessScore, "completenessScore"),
+        fact("FACT_EMOTIONAL_FLAGS", "Emotional flags", output.emotionalFlags ?? [], "emotionalFlags"),
+      ],
+      rulesFired,
+      decision: {
+        intent: output.intent,
+        urgency: output.urgency,
+        completenessScore: output.completenessScore,
+      },
+      confidence: output.completenessScore,
+      rationale,
+      output: {
+        intent: output.intent,
+        urgency: output.urgency,
+        afterHours: output.afterHours,
+        sameDayEmergency: output.sameDayEmergency,
+        completenessScore: output.completenessScore,
+      },
+    },
+  };
 }
 
 export function toCallSummarySignal(summary: CallSummary): CallSummarySignal {

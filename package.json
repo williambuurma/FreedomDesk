@@ -6,7 +6,7 @@
   "scripts": {
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
-    "test": "node --test src/engine/prompt-context-builder.test.js && node --experimental-strip-types --test src/conversation/psychology.test.ts && node --experimental-strip-types --test src/conversation/proofLoop.test.ts && node --experimental-strip-types --test src/practice-brain/practiceBrain.test.ts && node --experimental-strip-types --test src/practice-memory/practiceMemory.test.ts && node --experimental-strip-types --test src/reflection-engine/reflection.test.ts && node --test scripts/morning-brief-preview.test.js && node --test scripts/my-day-preview.test.js",
+    "test": "node --test src/engine/prompt-context-builder.test.js && node --experimental-strip-types --test src/conversation/psychology.test.ts && node --experimental-strip-types --test src/conversation/reasoning.test.ts && node --experimental-strip-types --test src/conversation/proofLoop.test.ts && node --experimental-strip-types --test src/practice-brain/practiceBrain.test.ts && node --experimental-strip-types --test src/practice-memory/practiceMemory.test.ts && node --experimental-strip-types --test src/reflection-engine/reflection.test.ts && node --test scripts/morning-brief-preview.test.js && node --test scripts/my-day-preview.test.js",
     "test:judgment": "node --experimental-strip-types --test src/conversation/judgmentSuite.test.ts",
     "proof:v1": "node --experimental-strip-types scripts/run-v1-proof-loop.js",
     "preview:morning-brief": "node scripts/generate-morning-brief-preview.js",

@@ -16,11 +16,21 @@ export {
   type ConversationGoal,
   type EngineDecision,
 } from "./engine.ts";
-export { buildCallSummary } from "./summary.ts";
-export { toCallSummarySignal } from "./signal.ts";
-export { understandTranscript, understandPatientMessage } from "./understanding.ts";
-export { assessUrgency } from "./triage.ts";
-export { assessEmotion } from "./psychology.ts";
+export { buildCallSummary, buildCallSummaryWithReasoning } from "./summary.ts";
+export { toCallSummarySignal, toCallSummarySignalWithReasoning } from "./signal.ts";
+export { understandTranscript, understandTranscriptWithReasoning, understandPatientMessage } from "./understanding.ts";
+export { assessUrgency, assessUrgencyWithReasoning } from "./triage.ts";
+export { assessEmotion, assessEmotionWithReasoning } from "./psychology.ts";
+export { assessFrontDesk, assessFrontDeskWithReasoning } from "./frontDesk.ts";
+export {
+  type ReasoningTrace,
+  type StageReasoning,
+  type ReasoningFact,
+  type ReasoningRuleFire,
+  formatReasoningTrace,
+  formatStageReasoning,
+  assembleReasoningTrace,
+} from "./reasoning/index.ts";
 
 export type {
   CallSummary,

@@ -4,6 +4,7 @@
 
 import { assessFrontDesk, insuranceProgramLabel } from "./frontDesk.ts";
 import type { PsychologyAnalysis } from "./psychology.ts";
+import type { ReasoningFact, StageReasoning } from "./reasoning/types.ts";
 import type { ConversationState } from "./state.ts";
 import type {
   CallSummary,
@@ -12,6 +13,30 @@ import type {
   PatientUnderstanding,
   UrgencyAssessment,
 } from "./types.ts";
+
+export interface SummaryResult {
+  output: CallSummary;
+  reasoning: StageReasoning<
+    {
+      humanReviewNeeded: boolean;
+      overallConfidence: number;
+      actionItemCount: number;
+    },
+    Pick<
+      CallSummary,
+      "intent" | "urgency" | "humanReviewNeeded" | "missingInformation"
+    >
+  >;
+}
+
+function fact(
+  id: string,
+  description: string,
+  value: unknown,
+  source: string
+): ReasoningFact {
+  return { id, description, value, source };
+}
 
 function formatPhoneDisplay(e164: string | null): string {
   if (!e164) return "unknown";
@@ -163,6 +188,83 @@ function computeConfidence(
     overall: Math.round(overall * 100) / 100,
     notes,
     humanReviewNeeded,
+  };
+}
+
+export function buildCallSummaryWithReasoning(input: {
+  transcript: MockCallTranscript;
+  understanding: PatientUnderstanding;
+  urgency: UrgencyAssessment;
+  frontDesk: FrontDeskAssessment;
+  psychology: PsychologyAnalysis;
+}): SummaryResult {
+  const summary = buildCallSummary(input);
+  const { understanding, urgency, frontDesk, psychology } = input;
+
+  const rulesFired: { ruleId: string; description: string }[] = [];
+
+  if (urgency.routingAction === "on_call_callback") {
+    rulesFired.push({
+      ruleId: "SUM_ACTION_ON_CALL",
+      description: "Urgent routing — on-call callback action item",
+    });
+  } else if (urgency.urgency === "emergency") {
+    rulesFired.push({
+      ruleId: "SUM_ACTION_EMERGENCY",
+      description: "Emergency urgency — escalation action item",
+    });
+  }
+  if (understanding.intent === "NEW_PATIENT") {
+    rulesFired.push({
+      ruleId: "SUM_ACTION_NEW_PATIENT",
+      description: "New patient — schedule appointment action item",
+    });
+  }
+  if (frontDesk.missingFields.includes("insurance.program")) {
+    rulesFired.push({
+      ruleId: "SUM_ACTION_INSURANCE_CALLBACK",
+      description: "Insurance program ambiguous — clarification callback",
+    });
+  }
+  if (summary.humanReviewNeeded) {
+    rulesFired.push({
+      ruleId: "SUM_HUMAN_REVIEW",
+      description: "Human review flagged by confidence rules",
+    });
+  }
+
+  return {
+    output: summary,
+    reasoning: {
+      stage: "Summary",
+      inputs: {
+        callId: input.transcript.id,
+        afterHours: input.transcript.afterHours,
+        intent: understanding.intent,
+        urgency: urgency.urgency,
+      },
+      facts: [
+        fact("FACT_UPSTREAM_INTENT", "Intent from Understanding", understanding.intent, "understanding"),
+        fact("FACT_UPSTREAM_URGENCY", "Urgency from Triage", urgency.urgency, "triage"),
+        fact("FACT_MISSING_FIELDS", "Missing fields from Front Desk", frontDesk.missingFields, "frontDesk"),
+        fact("FACT_PSYCHOLOGY_EMOTION", "Caller emotion", psychology.emotion, "psychology"),
+        fact("FACT_CONFIDENCE_NOTES", "Confidence adjustment notes", summary.confidence.notes, "computeConfidence"),
+      ],
+      rulesFired,
+      decision: {
+        humanReviewNeeded: summary.humanReviewNeeded,
+        overallConfidence: summary.confidence.overall,
+        actionItemCount: summary.actionItems.length,
+      },
+      confidence: summary.confidence.overall,
+      rationale: summary.confidence.notes,
+      output: {
+        intent: summary.intent,
+        urgency: summary.urgency,
+        humanReviewNeeded: summary.humanReviewNeeded,
+        missingInformation: summary.missingInformation,
+      },
+    },
   };
 }
 

@@ -1,0 +1,105 @@
+{
+  "id": "call_toothache_overnight_001",
+  "practiceId": "practice_cascade_family_gr",
+  "scenario": "toothache-overnight",
+  "afterHours": true,
+  "durationSeconds": 109,
+  "receivedAt": "2026-07-08T02:15:00.000Z",
+  "turns": [
+    {
+      "speaker": "aly",
+      "start": 0,
+      "text": "Thank you for calling Cascade Family Dentistry. You've reached our after-hours line. This is Aly. How can I help you?"
+    },
+    {
+      "speaker": "patient",
+      "start": 4.77,
+      "text": "Hey, I have an awful toothache that's kept me up all night. Are you open?"
+    },
+    {
+      "speaker": "aly",
+      "start": 10.13,
+      "text": "I'm sorry to hear that. Unfortunately, our office is closed until Monday morning."
+    },
+    {
+      "speaker": "aly",
+      "start": 15.01,
+      "text": "But we do have an on-call team that reviews urgent situations like this, and someone will follow up with you as soon as possible."
+    },
+    {
+      "speaker": "aly",
+      "start": 21.97,
+      "text": "I'm going to gather a little information so I can pass it along to our on-call team. Let's start with your name and date of birth."
+    },
+    {
+      "speaker": "patient",
+      "start": 28.93,
+      "text": "My name is Finn Leo. My birthday is May 10, 1997."
+    },
+    {
+      "speaker": "aly",
+      "start": 33.97,
+      "text": "Perfect. What is a good phone number to reach you at?"
+    },
+    {
+      "speaker": "patient",
+      "start": 37.41,
+      "text": "616-123-1356."
+    },
+    {
+      "speaker": "aly",
+      "start": 42.77,
+      "text": "Do you have dental insurance?"
+    },
+    {
+      "speaker": "patient",
+      "start": 44.85,
+      "text": "Yeah, I have Delta Dental."
+    },
+    {
+      "speaker": "aly",
+      "start": 47.25,
+      "text": "Great. Thank you. Can you tell me where the pain is coming from and when it started?"
+    },
+    {
+      "speaker": "patient",
+      "start": 52.37,
+      "text": "It's my bottom molar on the right side. I noticed it a couple days ago, but it's gotten worse today and it's starting to spread into my jaw."
+    },
+    {
+      "speaker": "aly",
+      "start": 60.61,
+      "text": "I'll make a note of that. On a scale from 1 to 10, how bad is it right now, and how bad was it at its worst?"
+    },
+    {
+      "speaker": "patient",
+      "start": 66.37,
+      "text": "Before it was only a 1 or 2, but today it's climbed up to about a 6."
+    },
+    {
+      "speaker": "aly",
+      "start": 72.77,
+      "text": "Okay. Have you noticed any facial swelling, fever, or difficulty swallowing?"
+    },
+    {
+      "speaker": "patient",
+      "start": 78.05,
+      "text": "No, I don't think so."
+    },
+    {
+      "speaker": "aly",
+      "start": 80.13,
+      "text": "Okay, that's good. I'm sending your information to the on-call team now."
+    },
+    {
+      "speaker": "aly",
+      "start": 84.77,
+      "text": "Keep your phone nearby because one of our staff members will be calling you shortly."
+    },
+    {
+      "speaker": "patient",
+      "start": 100.85,
+      "text": "Okay, thank you so much."
+    }
+  ]
+}

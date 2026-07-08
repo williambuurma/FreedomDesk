@@ -1,8 +1,8 @@
 {
   "previewMode": true,
-  "generatedAt": "2026-07-06T00:54:05.451Z",
+  "generatedAt": "2026-07-08T22:40:06.317Z",
   "practiceName": "Cascade Family Dentistry",
-  "date": "2026-07-06",
+  "date": "2026-07-08",
   "staffSettings": {
     "defaultReceptionistId": "receptionist_sarah",
     "defaultDoctorId": "doctor_johnson",
@@ -228,30 +228,6 @@
             "symptoms": "Swelling and fever reported. Parent concerned overnight.",
             "nextStep": "Review the full summary, then call back before the morning rush.",
             "phone": "(616) 555-0142"
-          },
-          "contextEngine": {
-            "patientName": "Liam Johnson",
-            "issue": "Overnight swelling and fever",
-            "urgency": "urgent",
-            "urgencyLabel": "Urgent",
-            "recommendation": "Call back before morning appointments.",
-            "related": [
-              {
-                "type": "call",
-                "label": "Overnight call — 10:47 PM",
-                "detail": "Parent reports progressive swelling since dinner and low-grade fever."
-              },
-              {
-                "type": "appointment",
-                "label": "Same-day emergency eval",
-                "detail": "Finn Leo has 8:00 AM limited exam — consider squeeze-in if warranted."
-              },
-              {
-                "type": "contact",
-                "label": "Callback waiting",
-                "detail": "Mary Johnson expects a return call this morning."
-              }
-            ]
           }
         },
         {
@@ -276,30 +252,6 @@
             "urgency": "Routine",
             "intent": "Treatment concern — temporary crown",
             "phone": "(616) 555-0177"
-          },
-          "contextEngine": {
-            "patientName": "Robert Chen",
-            "issue": "Temporary crown came off overnight",
-            "urgency": "attention",
-            "urgencyLabel": "Before 3:00 PM",
-            "recommendation": "Confirm whether patient should come in early or wait for today's visit.",
-            "related": [
-              {
-                "type": "call",
-                "label": "Last night's call — 8:15 PM",
-                "detail": "Temporary crown on #19 dislodged during dinner. Mild sensitivity, no bleeding."
-              },
-              {
-                "type": "appointment",
-                "label": "Today's appointment",
-                "detail": "Composite #19 at 3:00 PM with Dr. Johnson."
-              },
-              {
-                "type": "treatment",
-                "label": "Post-op follow-up",
-                "detail": "Mild soreness reported yesterday — check site at visit."
-              }
-            ]
           }
         },
         {
@@ -324,35 +276,6 @@
               "Verify crown coverage for #14"
             ],
             "benefitsNote": "Benefits remaining will appear here after verification."
-          },
-          "contextEngine": {
-            "patientName": "Sarah Mitchell",
-            "issue": "Insurance question during treatment review",
-            "urgency": "attention",
-            "urgencyLabel": "Before 10:00",
-            "recommendation": "Confirm coverage before presenting crown fee.",
-            "related": [
-              {
-                "type": "call",
-                "label": "Called yesterday about crown seat",
-                "detail": "Reports occasional cold sensitivity on #14."
-              },
-              {
-                "type": "appointment",
-                "label": "Today's appointment",
-                "detail": "Crown seat #14 at 10:00 AM with Dr. Johnson."
-              },
-              {
-                "type": "insurance",
-                "label": "Delta PPO — not verified",
-                "detail": "Annual max may be near exhaustion. Member ID not confirmed."
-              },
-              {
-                "type": "treatment",
-                "label": "Incomplete treatment discussion",
-                "detail": "Patient deferred seat until benefits confirmed."
-              }
-            ]
           }
         }
       ],
@@ -418,7 +341,7 @@
       ],
       "priorities": [
         {
-          "id": "rec_1783299245449_11",
+          "id": "rec_1783550406315_11",
           "action": "Overnight urgent call requires on-call callback within 30 min SLA",
           "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
           "priority": "critical",
@@ -426,7 +349,7 @@
           "category": "emergency"
         },
         {
-          "id": "rec_1783299245448_1",
+          "id": "rec_1783550406315_1",
           "action": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
           "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
           "priority": "critical",
@@ -434,7 +357,7 @@
           "category": "emergency"
         },
         {
-          "id": "rec_1783299245449_3",
+          "id": "rec_1783550406315_3",
           "action": "Verify insurance benefits before NPE arrival; note emotional flags for clinical prep.",
           "reason": "New patient first impression depends on honest insurance handling and anxiety-aware prep — Constitution truth before efficiency.",
           "priority": "medium",
@@ -444,7 +367,7 @@
       ],
       "patientsAttention": [
         {
-          "id": "brief_item_rec_1783299245449_11",
+          "id": "brief_item_rec_1783550406315_11",
           "name": "Overnight caller",
           "issue": "Overnight urgent call requires on-call callback within 30 min SLA",
           "action": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
@@ -452,7 +375,7 @@
           "priority": "critical"
         },
         {
-          "id": "brief_item_rec_1783299245448_1",
+          "id": "brief_item_rec_1783550406315_1",
           "name": "Overnight caller",
           "issue": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
           "action": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",

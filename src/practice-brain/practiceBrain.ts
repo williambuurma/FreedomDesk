@@ -64,6 +64,11 @@ import type {
 
 export const PRACTICE_BRAIN_VERSION = "practice-brain-v1";
 
+export interface PracticeBrainRunOptions {
+  /** When false, use current awareness (preserves ingested call signals). Default true. */
+  refresh?: boolean;
+}
+
 export interface PracticeBrainDependencies {
   awareness: IDailyAwareness;
   memory: IPracticeMemory;
@@ -179,8 +184,14 @@ export class PracticeBrain {
    * Generate the doctor and team Morning Brief (POS §12).
    * Primary entry point for daily Chief of Staff delivery.
    */
-  generateMorningBrief(date?: string): MorningBrief {
-    const awareness = this.refreshAwareness(date);
+  generateMorningBrief(
+    date?: string,
+    options: PracticeBrainRunOptions = {}
+  ): MorningBrief {
+    const awareness =
+      options.refresh === false
+        ? this.getAwareness(date)
+        : this.refreshAwareness(date);
     const memory = this.getMemory();
     const metrics = this.computeMetrics(awareness, memory);
     const opportunities = this.detectOpportunities(awareness, memory, metrics);
@@ -206,9 +217,15 @@ export class PracticeBrain {
    * Full daily intelligence cycle — single call for batch jobs and tests.
    * FUTURE: Emit PracticeBrainRunCompleted event for analytics pipeline.
    */
-  runDailyCycle(date?: string): PracticeBrainRunResult {
+  runDailyCycle(
+    date?: string,
+    options: PracticeBrainRunOptions = {}
+  ): PracticeBrainRunResult {
     const runAt = new Date().toISOString();
-    const awareness = this.refreshAwareness(date);
+    const awareness =
+      options.refresh === false
+        ? this.getAwareness(date)
+        : this.refreshAwareness(date);
     const memory = this.getMemory();
     const metrics = this.computeMetrics(awareness, memory);
     const opportunities = this.detectOpportunities(awareness, memory, metrics);

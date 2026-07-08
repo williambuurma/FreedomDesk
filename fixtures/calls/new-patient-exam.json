@@ -1,0 +1,46 @@
+{
+  "id": "call_new_patient_001",
+  "practiceId": "practice_cascade_family_gr",
+  "scenario": "new-patient-exam",
+  "afterHours": false,
+  "durationSeconds": 170,
+  "receivedAt": "2026-07-08T14:30:00.000Z",
+  "turns": [
+    {
+      "speaker": "aly",
+      "text": "Thank you for calling Cascade Family Dentistry. This is Aly. How can I help you today?"
+    },
+    {
+      "speaker": "patient",
+      "text": "Hey, I just moved to the Grand Rapids area and I need a new dentist. I'd like to book an appointment."
+    },
+    {
+      "speaker": "aly",
+      "text": "We'd love to welcome you. Can I start with your full name and date of birth?"
+    },
+    {
+      "speaker": "patient",
+      "text": "My name is Finn Leo and my birthday is May 11, 1995."
+    },
+    {
+      "speaker": "aly",
+      "text": "And what's the best phone number to reach you?"
+    },
+    {
+      "speaker": "patient",
+      "text": "616-555-0198."
+    },
+    {
+      "speaker": "aly",
+      "text": "Do you have dental insurance?"
+    },
+    {
+      "speaker": "patient",
+      "text": "I have Delta Dental through my employer."
+    },
+    {
+      "speaker": "patient",
+      "text": "Mostly a cleaning and check-up. I'm also wondering about cosmetic options for my smile."
+    }
+  ]
+}

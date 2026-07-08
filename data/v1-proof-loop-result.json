@@ -1,0 +1,104 @@
+{
+  "proofLoopVersion": "v1",
+  "generatedAt": "2026-07-08T22:40:06.184Z",
+  "fixture": "fixtures/calls/toothache-overnight.json",
+  "transcript": {
+    "id": "call_toothache_overnight_001",
+    "scenario": "toothache-overnight",
+    "afterHours": true,
+    "turnCount": 19
+  },
+  "conversationIntelligence": {
+    "intent": "EMERGENCY",
+    "urgency": "urgent",
+    "psychologyEmotion": "pain"
+  },
+  "callSummary": {
+    "$schema": "https://freedomdesk.com/schemas/call-summary/v1",
+    "id": "summary_call_toothache_overnight_001",
+    "practiceId": "practice_cascade_family_gr",
+    "callId": "call_toothache_overnight_001",
+    "timestamp": "2026-07-08T02:15:00.000Z",
+    "durationSeconds": 109,
+    "afterHours": true,
+    "intent": "EMERGENCY",
+    "urgency": "urgent",
+    "sameDayEmergency": true,
+    "caller": {
+      "name": "Finn Leo",
+      "phone": "+16161231356",
+      "isNewPatient": null,
+      "dateOfBirth": "1997-05-10"
+    },
+    "chiefConcern": "toothache; bottom molar on the right side; since a couple days ago, but it's gotten worse today and it's starting to spread into my jaw",
+    "missingInformation": [
+      "insurance.program"
+    ],
+    "recommendedNextStep": "Flag for on-call callback within practice SLA; keep caller phone nearby",
+    "humanReviewNeeded": true,
+    "confidence": {
+      "overall": 0.67,
+      "notes": [
+        "Delta program not disambiguated (PPO vs Medicaid) — verify before acceptance language",
+        "Missing fields: insurance.program",
+        "Caller pain distress noted — triage prioritized over admin questions",
+        "Triage rules: TRIAGE_SEVERE_PAIN_WORSENING, TRIAGE_MILD_PAIN"
+      ],
+      "humanReviewNeeded": true
+    },
+    "openDentalCommLogNote": "FreedomDesk Emergency call (after hours). Caller: Finn Leo, (616) 123-1356. Chief concern: toothache; bottom molar on the right side; since a couple days ago, but it's gotten worse today and it's starting to spread into my jaw. Symptoms: toothache. No fever or facial swelling reported. Insurance noted: Delta Dental (Unknown — verify at visit). Benefits not verified on call. Urgency: urgent — same-day flag. Next step: Flag for on-call callback within practice SLA; keep caller phone nearby. Missing: insurance.program.",
+    "actionItems": [
+      {
+        "type": "on_call_callback",
+        "assignee": "on_call_dentist",
+        "priority": "urgent",
+        "notes": "toothache; bottom molar on the right side; since a couple days ago, but it's gotten worse today and it's starting to spread into my jaw"
+      },
+      {
+        "type": "general_callback",
+        "assignee": "front_desk",
+        "priority": "routine",
+        "notes": "Clarify Delta PPO vs Medicaid program before visit"
+      }
+    ],
+    "insurance": {
+      "carrier": "Delta Dental",
+      "program": "unknown",
+      "memberId": null
+    },
+    "emergency": {
+      "symptoms": [
+        "toothache"
+      ],
+      "swelling": false,
+      "fever": false,
+      "trauma": false,
+      "painLevel": "severe",
+      "duration": "a couple days ago, but it's gotten worse today and it's starting to spread into my jaw",
+      "routingAction": "on_call_callback"
+    }
+  },
+  "practiceBrainSignal": {
+    "callId": "call_toothache_overnight_001",
+    "practiceId": "practice_cascade_family_gr",
+    "intent": "emergency",
+    "urgency": "urgent",
+    "receivedAt": "2026-07-08T02:15:00.000Z",
+    "afterHours": true,
+    "sameDayEmergency": true,
+    "appointmentType": "emergency_eval",
+    "insuranceProgram": "unknown",
+    "emotionalFlags": [
+      "painDistress"
+    ],
+    "completenessScore": 1,
+    "missingFields": [
+      "insurance.program"
+    ],
+    "patientReferenceId": "pat_ref_finn_leo"
+  },
+  "ingested": true,
+  "morningBriefSections": 10,
+  "recommendationCount": 14,
+  "opportunityCount": 11
+}

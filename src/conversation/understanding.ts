@@ -1,0 +1,325 @@
+/**
+ * Understanding Brain — extract facts and intent from caller speech.
+ * Deterministic rules only; no LLM. See docs/CALL_FLOWS.md intent table.
+ */
+
+import type {
+  CallIntent,
+  InsuranceProgram,
+  PatientUnderstanding,
+  TranscriptTurn,
+} from "./types.ts";
+
+function patientText(turns: TranscriptTurn[]): string {
+  return turns
+    .filter((t) => t.speaker === "patient" || t.speaker === "caller")
+    .map((t) => t.text)
+    .join(" ");
+}
+
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return raw;
+}
+
+function parseName(text: string): string | null {
+  const patterns = [
+    /(?:my name is|this is|i'm|i am)\s+([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+and|\s*[,.]|$)/i,
+    /(?:my name is|this is|i'm|i am)\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) return match[1].trim();
+  }
+  return null;
+}
+
+function parsePhone(text: string): string | null {
+  const match = text.match(/\b(\d{3}[-.\s]?\d{3}[-.\s]?\d{4})\b/);
+  return match ? normalizePhone(match[1]) : null;
+}
+
+const MONTHS: Record<string, string> = {
+  january: "01",
+  february: "02",
+  march: "03",
+  april: "04",
+  may: "05",
+  june: "06",
+  july: "07",
+  august: "08",
+  september: "09",
+  october: "10",
+  november: "11",
+  december: "12",
+};
+
+function parseDateOfBirth(text: string): string | null {
+  const named = text.match(
+    /(?:birthday is|born on|date of birth is|my birthday is)\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i
+  );
+  if (named) {
+    const month = MONTHS[named[1].toLowerCase()];
+    if (month) {
+      const day = named[2].padStart(2, "0");
+      return `${named[3]}-${month}-${day}`;
+    }
+  }
+  const numeric = text.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (numeric) {
+    return `${numeric[3]}-${numeric[1].padStart(2, "0")}-${numeric[2].padStart(2, "0")}`;
+  }
+  return null;
+}
+
+function classifyInsuranceProgram(text: string): InsuranceProgram {
+  const lower = text.toLowerCase();
+  if (/healthy kids|hkd/.test(lower)) return "healthy_kids_dental";
+  if (/medicaid|state insurance/.test(lower)) return "michigan_medicaid";
+  if (/delta/.test(lower)) {
+    if (/employer|work|through my job/.test(lower)) return "delta_dental_ppo";
+    if (/medicaid|state/.test(lower)) return "delta_dental_medicaid";
+    return "unknown";
+  }
+  if (/no insurance|self[- ]?pay|cash/.test(lower)) return "none";
+  if (/bcbs|cigna|metlife|ppo/.test(lower)) return "ppo_other";
+  return "unknown";
+}
+
+function parseInsuranceCarrier(text: string): string | null {
+  if (/delta dental|delta/.test(text.toLowerCase())) return "Delta Dental";
+  if (/bcbs|blue cross/.test(text.toLowerCase())) return "BCBS Michigan";
+  if (/no insurance|self[- ]?pay/.test(text.toLowerCase())) return null;
+  return null;
+}
+
+interface IntentRule {
+  id: string;
+  intent: CallIntent;
+  weight: number;
+  patterns: RegExp[];
+}
+
+const INTENT_RULES: IntentRule[] = [
+  {
+    id: "INTENT_EMERGENCY",
+    intent: "EMERGENCY",
+    weight: 10,
+    patterns: [
+      /toothache|tooth ache|awful pain|kept me up|can't sleep.*pain|swelling|bleeding|broken tooth|emergency|severe pain|knocked out/,
+    ],
+  },
+  {
+    id: "INTENT_NEW_PATIENT",
+    intent: "NEW_PATIENT",
+    weight: 8,
+    patterns: [
+      /new dentist|first visit|never been|new patient|just moved|new to the area/,
+    ],
+  },
+  {
+    id: "INTENT_RESCHEDULE",
+    intent: "RESCHEDULE",
+    weight: 7,
+    patterns: [/reschedule|move my appointment|change my appointment|different time/],
+  },
+  {
+    id: "INTENT_CANCEL",
+    intent: "CANCEL",
+    weight: 7,
+    patterns: [/cancel my appointment|can't make it|need to cancel/],
+  },
+  {
+    id: "INTENT_CONFIRM",
+    intent: "CONFIRM",
+    weight: 6,
+    patterns: [/confirm my appointment|calling about my appointment/],
+  },
+  {
+    id: "INTENT_TREATMENT",
+    intent: "TREATMENT_SCHEDULE",
+    weight: 7,
+    patterns: [/crown seat|root canal|extraction|implant|denture|filling/],
+  },
+  {
+    id: "INTENT_SCHEDULE",
+    intent: "SCHEDULE_EXISTING",
+    weight: 5,
+    patterns: [/schedule|make an appointment|book an appointment|cleaning|checkup|check-up/],
+  },
+  {
+    id: "INTENT_INSURANCE",
+    intent: "INSURANCE",
+    weight: 6,
+    patterns: [/do you take|in network|accept.*insurance|insurance question/],
+  },
+  {
+    id: "INTENT_BILLING",
+    intent: "BILLING",
+    weight: 6,
+    patterns: [/bill|balance|payment|statement|charge/],
+  },
+];
+
+function classifyIntent(text: string): {
+  intent: CallIntent;
+  confidence: number;
+  signals: string[];
+} {
+  const lower = text.toLowerCase();
+  let best: IntentRule | null = null;
+  const signals: string[] = [];
+
+  for (const rule of INTENT_RULES) {
+    for (const pattern of rule.patterns) {
+      if (pattern.test(lower)) {
+        signals.push(rule.id);
+        if (!best || rule.weight > best.weight) {
+          best = rule;
+        }
+        break;
+      }
+    }
+  }
+
+  if (!best) {
+    return { intent: "OTHER", confidence: 0.3, signals: [] };
+  }
+
+  const confidence = Math.min(0.95, 0.55 + best.weight * 0.04);
+  return { intent: best.intent, confidence, signals };
+}
+
+function extractSymptoms(text: string): string[] {
+  const symptoms: string[] = [];
+  const lower = text.toLowerCase();
+  if (/toothache|tooth ache/.test(lower)) symptoms.push("toothache");
+  if (/pain/.test(lower)) symptoms.push("pain");
+  if (/swelling/.test(lower)) symptoms.push("swelling");
+  if (/fever/.test(lower)) symptoms.push("fever");
+  if (/bleeding/.test(lower)) symptoms.push("bleeding");
+  if (/broken tooth/.test(lower)) symptoms.push("broken tooth");
+  return symptoms;
+}
+
+function extractSymptomDetails(text: string): PatientUnderstanding["symptomDetails"] {
+  const lower = text.toLowerCase();
+  const details: PatientUnderstanding["symptomDetails"] = {};
+
+  if (/swelling/.test(lower)) {
+    details.swelling = !/no swelling|don't think so|no, i don't/.test(lower);
+  }
+  if (/fever/.test(lower)) {
+    details.fever = !/no fever|don't think so|no, i don't/.test(lower);
+  }
+  if (/broken|knocked out|trauma/.test(lower)) {
+    details.trauma = true;
+  }
+
+  const painScale = text.match(/(?:about |a |it's |at )(\d{1,2})(?:\s*out of|\s*\/)/i);
+  if (painScale) {
+    details.painLevel = painScale[1];
+  } else if (/severe|awful|really bad|kept me up/.test(lower)) {
+    details.painLevel = "severe";
+  }
+
+  const duration = text.match(
+    /(?:since|started|noticed it)\s+([^.?!]+(?:ago|last night|yesterday|today|couple days)[^.?!]*)/i
+  );
+  if (duration) {
+    details.duration = duration[1].trim();
+  }
+
+  const location = text.match(
+    /(?:bottom|top|upper|lower)\s+(?:molar|tooth|left|right)[^.?!]*/i
+  );
+  if (location) {
+    details.location = location[0].trim();
+  }
+
+  return details;
+}
+
+function inferChiefConcern(
+  intent: CallIntent,
+  text: string,
+  symptoms: string[],
+  details: PatientUnderstanding["symptomDetails"]
+): string | null {
+  if (intent === "EMERGENCY" && symptoms.length > 0) {
+    const parts = [...symptoms];
+    if (details.location) parts.push(details.location);
+    if (details.duration) parts.push(`since ${details.duration}`);
+    return parts.join("; ");
+  }
+  if (intent === "NEW_PATIENT") {
+    if (/cleaning|check-?up/.test(text.toLowerCase())) {
+      return "New patient exam and cleaning — new to area";
+    }
+    return "New patient exam — new to area";
+  }
+  if (/broken tooth/.test(text.toLowerCase())) {
+    return "Broken tooth";
+  }
+  return null;
+}
+
+function inferNewPatient(text: string): boolean | null {
+  const lower = text.toLowerCase();
+  if (/new dentist|first visit|never been|new to the area|just moved/.test(lower)) {
+    return true;
+  }
+  if (/current patient|been there before|existing patient/.test(lower)) {
+    return false;
+  }
+  return null;
+}
+
+/**
+ * Extract structured understanding from a full mock transcript.
+ */
+export function understandTranscript(turns: TranscriptTurn[]): PatientUnderstanding {
+  const text = patientText(turns);
+  const { intent, confidence, signals } = classifyIntent(text);
+  const symptoms = extractSymptoms(text);
+  const symptomDetails = extractSymptomDetails(text);
+  const callerName = parseName(text);
+  const phone = parsePhone(text);
+  const dateOfBirth = parseDateOfBirth(text);
+  const insuranceCarrier = parseInsuranceCarrier(text);
+  const insuranceProgram = classifyInsuranceProgram(text);
+  const isNewPatient = inferNewPatient(text);
+  const chiefConcern = inferChiefConcern(intent, text, symptoms, symptomDetails);
+
+  const perFieldConfidence: Record<string, number> = {
+    intent: confidence,
+    callerName: callerName ? 0.9 : 0,
+    phone: phone ? 0.92 : 0,
+    dateOfBirth: dateOfBirth ? 0.88 : 0,
+    chiefConcern: chiefConcern ? 0.85 : 0,
+    insuranceProgram: insuranceProgram !== "unknown" ? 0.8 : 0.4,
+  };
+
+  return {
+    intent,
+    intentConfidence: confidence,
+    intentSignals: signals,
+    callerName,
+    phone,
+    dateOfBirth,
+    isNewPatient,
+    chiefConcern,
+    insuranceCarrier,
+    insuranceProgram,
+    symptoms,
+    symptomDetails,
+    perFieldConfidence,
+  };
+}
+
+/** Single-utterance entry point used by engine.ts turn loop stub. */
+export function understandPatientMessage(message: string): PatientUnderstanding {
+  return understandTranscript([{ speaker: "patient", text: message }]);
+}

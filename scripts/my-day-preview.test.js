@@ -162,7 +162,9 @@ describe("My Day dashboard module", () => {
     assert.match(template, /mdReceptionistLayout/);
     assert.match(template, /mdDoctorLayout/);
     assert.match(template, /mdRoleBar/);
-    assert.match(template, /mdPanelOverlay/);
+    assert.match(template, /class="md-workspace"/);
+    assert.match(template, /md-workspace-primary/);
+    assert.match(template, /md-workspace-secondary/);
     assert.match(template, /mdDoctorSchedule/);
   });
 

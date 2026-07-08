@@ -34,6 +34,7 @@ Each concept has **one owning document**. Other specs may reference it but must 
 | Product decision filter | [`FREEDOMDESK_PRINCIPLES.md`](FREEDOMDESK_PRINCIPLES.md) | What we build, what we reject, how features should behave |
 | Market, personas, business context | [`FREEDOMDESK_CONTEXT.md`](FREEDOMDESK_CONTEXT.md) | Why FreedomDesk exists, who we serve, West Michigan focus, HIPAA posture |
 | Daily surfaces & person model | [`FREEDOMDESK_OPERATING_MODEL.md`](FREEDOMDESK_OPERATING_MODEL.md) | Person, Responsibility, My Day, Morning Brief, End of Day, Practice Intelligence, Office DNA glossary |
+| Operating intelligence (philosophical definition) | [`OPERATING_INTELLIGENCE.md`](OPERATING_INTELLIGENCE.md) | What operating intelligence is — observe, understand, remember, connect, anticipate, coordinate, learn, ignore |
 | Intelligence product vision | [`FREEDOMDESK_INTELLIGENCE.md`](FREEDOMDESK_INTELLIGENCE.md) | Unified intelligence layer — questions, proactive signals, decade-scale value |
 | Knowledge structure & consumption | [`KNOWLEDGE_ENGINE.md`](KNOWLEDGE_ENGINE.md) | Universal / regional / office layers; versioning; no domain facts in brain code |
 | Practice-specific profiles (Layer 3) | [`FREEDOMDESK_OFFICE_DNA.md`](FREEDOMDESK_OFFICE_DNA.md) | Scheduling, insurance, clinical workflows, staff preferences per office |
@@ -79,77 +80,81 @@ The canonical product and domain context. Defines *why* we exist, *who* we serve
 
 How FreedomDesk works alongside practice management software and how people experience it every day. Defines the person model, responsibilities, My Day, Morning Brief, End of Day, and the canonical glossary used across sibling specs.
 
-#### 5. [FREEDOMDESK_INTELLIGENCE.md](FREEDOMDESK_INTELLIGENCE.md)
+#### 5. [OPERATING_INTELLIGENCE.md](OPERATING_INTELLIGENCE.md)
+
+The philosophical foundation for what *operating intelligence* means — FreedomDesk's permanent intellectual identity beyond any channel or surface. Defines what intelligence observes, understands, remembers, connects, anticipates, recommends, coordinates, and learns; what it ignores; how it routes attention; and what a perfect practice would no longer have to think about.
+
+#### 6. [FREEDOMDESK_INTELLIGENCE.md](FREEDOMDESK_INTELLIGENCE.md)
 
 The flagship product specification for FreedomDesk as the unified intelligence layer of a dental practice — how it answers questions, acts proactively, and compounds value across roles and time.
 
 ### Knowledge & reasoning
 
-#### 6. [KNOWLEDGE_ENGINE.md](KNOWLEDGE_ENGINE.md)
+#### 7. [KNOWLEDGE_ENGINE.md](KNOWLEDGE_ENGINE.md)
 
 The single source of truth for all knowledge implementation. Governs what FreedomDesk knows, how knowledge is structured across universal, regional, and office layers, and how it is versioned, resolved per practice, and consumed by reasoning systems — without embedding domain facts in brain code.
 
-#### 7. [FREEDOMDESK_OFFICE_DNA.md](FREEDOMDESK_OFFICE_DNA.md)
+#### 8. [FREEDOMDESK_OFFICE_DNA.md](FREEDOMDESK_OFFICE_DNA.md)
 
 The canonical definition of practice-specific operating profiles (Layer 3 knowledge). Governs what belongs in an office profile — scheduling, insurance, clinical workflows, staff preferences, and front-desk rules.
 
-#### 8. [FREEDOMDESK_BRAIN_ARCHITECTURE.md](FREEDOMDESK_BRAIN_ARCHITECTURE.md)
+#### 9. [FREEDOMDESK_BRAIN_ARCHITECTURE.md](FREEDOMDESK_BRAIN_ARCHITECTURE.md)
 
 The canonical reference for conversation intelligence. Governs how FreedomDesk reasons about patient calls — the five-brain model, conversation loop, and design rules for behaving like a careful dental team member rather than a keyword matcher or script reader.
 
-#### 9. [EMOTIONAL_INTELLIGENCE_ENGINE.md](EMOTIONAL_INTELLIGENCE_ENGINE.md)
+#### 10. [EMOTIONAL_INTELLIGENCE_ENGINE.md](EMOTIONAL_INTELLIGENCE_ENGINE.md)
 
 The canonical reference for emotionally intelligent conversation. Governs how FreedomDesk perceives, reasons about, and adapts to caller emotion — principles, assessment dimensions, interaction disciplines, and measurable outcomes — without scripts or phrase libraries.
 
 ### Practice intelligence & experience
 
-#### 10. [PRACTICE_OPERATING_SYSTEM.md](PRACTICE_OPERATING_SYSTEM.md)
+#### 11. [PRACTICE_OPERATING_SYSTEM.md](PRACTICE_OPERATING_SYSTEM.md)
 
 The founding architecture for FreedomDesk as an AI Chief of Staff — daily awareness, opportunity detection, role-specific success, recommendations, and practice-wide operational intelligence beyond individual calls.
 
-#### 11. [CONTINUOUS_LEARNING_ENGINE.md](CONTINUOUS_LEARNING_ENGINE.md)
+#### 12. [CONTINUOUS_LEARNING_ENGINE.md](CONTINUOUS_LEARNING_ENGINE.md)
 
 The canonical reference for organizational learning. Governs how FreedomDesk improves from every interaction — pattern detection, practice memory, recommendation governance, human review, and improvement cycles — without machine learning training or autonomous behavior change.
 
-#### 12. [USER_EXPERIENCE_PHILOSOPHY.md](USER_EXPERIENCE_PHILOSOPHY.md)
+#### 13. [USER_EXPERIENCE_PHILOSOPHY.md](USER_EXPERIENCE_PHILOSOPHY.md)
 
 The canonical product experience document. Governs how FreedomDesk should feel to the practice team — morning briefings, role-specific homepages, task hierarchy, end-of-day confidence, voice and language, and the principle that FreedomDesk is an operating intelligence platform, not a dashboard.
 
 ### Domain & calls
 
-#### 13. [DENTAL_WORKFLOWS.md](DENTAL_WORKFLOWS.md)
+#### 14. [DENTAL_WORKFLOWS.md](DENTAL_WORKFLOWS.md)
 
 How private dental practices actually operate — scheduling, insurance, emergencies, hygiene recall, treatment coordination, and front-desk communication. Operational truth for engineers and dental consultants.
 
-#### 14. [CALL_FLOWS.md](CALL_FLOWS.md)
+#### 15. [CALL_FLOWS.md](CALL_FLOWS.md)
 
 The canonical phone conversation design. Governs per-intent call structure, triage rules, slot collection, decision trees, and structured summary schemas — optimized for West Michigan independent general dentistry and aligned with Open Dental-ready front-desk output.
 
 ### Planning & delivery
 
-#### 15. [FEATURE_BACKLOG.md](FEATURE_BACKLOG.md)
+#### 16. [FEATURE_BACKLOG.md](FEATURE_BACKLOG.md)
 
 The permanent product backlog — long-term ideas organized by capability area. Sprints pull from here; [`ROADMAP.md`](ROADMAP.md) schedules delivery; [`USER_EXPERIENCE_PHILOSOPHY.md`](USER_EXPERIENCE_PHILOSOPHY.md) governs how items must feel.
 
-#### 16. [ROADMAP.md](ROADMAP.md)
+#### 17. [ROADMAP.md](ROADMAP.md)
 
 Phased delivery plan from the current marketing site and dashboard prototypes to the full production AI phone platform. Use for phase scope and dependencies before starting implementation work.
 
-#### 17. [V1_FOUNDATION.md](V1_FOUNDATION.md)
+#### 18. [V1_FOUNDATION.md](V1_FOUNDATION.md)
 
 The document every engineer reads before writing code. V1 success criteria, decision filter, and explicit deferrals — not a feature backlog.
 
 ### Engineering & integrations
 
-#### 18. [ARCHITECTURE.md](ARCHITECTURE.md)
+#### 19. [ARCHITECTURE.md](ARCHITECTURE.md)
 
 Technical architecture reference for senior engineers — current Phase 0 implementation, target production architecture, security model, data flows, telephony pipeline, multi-tenancy, and coding standards. **Not** a substitute for brain or intelligence specs.
 
-#### 19. [PRACTICE_MANAGEMENT_SOFTWARE.md](PRACTICE_MANAGEMENT_SOFTWARE.md)
+#### 20. [PRACTICE_MANAGEMENT_SOFTWARE.md](PRACTICE_MANAGEMENT_SOFTWARE.md)
 
 Open Dental (priority), Eaglesoft, Dentrix, CareStack — APIs, data models, and integration patterns for West Michigan independent general dentistry.
 
-#### 20. [INTEGRATIONS.md](INTEGRATIONS.md)
+#### 21. [INTEGRATIONS.md](INTEGRATIONS.md)
 
 Third-party services catalog (telephony, voice, email, CRM, PMS connectors). **Currently empty** — integration detail is partially covered in [`ARCHITECTURE.md`](ARCHITECTURE.md) until this document is populated.
 
@@ -194,7 +199,7 @@ Full definitions live in [`FREEDOMDESK_OPERATING_MODEL.md`](FREEDOMDESK_OPERATIN
 | **Practice Brain** | Daily intelligence loop (`src/practice-brain/`) — awareness, recommendations |
 | **Business Brain** | Per-call scheduling/hours brain in the five-brains model — not the same as Practice Brain |
 | **Five Brains** | Understanding, Psychology, Triage, Front Desk, Business — merged by orchestrator |
-| **Operating intelligence** | FreedomDesk's product identity — intelligence layer alongside the PMS |
+| **Operating intelligence** | FreedomDesk's product identity — defined philosophically in `OPERATING_INTELLIGENCE.md`; intelligence layer alongside the PMS |
 
 Implementation maps: [`src/README.md`](../src/README.md), [`app/README.md`](../app/README.md).
 

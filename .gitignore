@@ -1,6 +1,23 @@
+# Dependencies
 node_modules/
-# Server (local dev only)
 server/node_modules/
+
+# Local environment & deploy cache
 .env
+.env.*
+.vercel/
+
+# macOS & archive junk
 .DS_Store
-.vercel
+**/.DS_Store
+__MACOSX/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Demo audio pipeline — regeneratable intermediates (committed copies may remain tracked)
+*.aiff
+audio/transcription-raw.json
+*-alignment.json
+new-patient-starts.json

@@ -285,7 +285,8 @@
     return html;
   }
 
-  function renderCallSummaryPanel(task) {
+  function renderCallSummaryPanel(task, options) {
+    var opts = options || {};
     var summary = task.callSummary || {};
     var urgency = summary.urgency || (task.priority === "critical" ? "Urgent" : "Routine");
     var urgencyClass =
@@ -302,16 +303,32 @@
       );
     }
 
+    var headerHtml = "";
+    if (!opts.compact) {
+      headerHtml =
+        '<p class="fd-ui-panel-patient-name">' +
+        escapeHtml(summary.patientName || task.label || "Patient") +
+        "</p>" +
+        '<span class="fd-ui-panel-urgency' +
+        urgencyClass +
+        '">' +
+        escapeHtml(urgency) +
+        "</span>";
+    }
+
+    var nextStepHtml = "";
+    if (!opts.compact && (summary.recommendedNextStep || summary.nextStep)) {
+      nextStepHtml =
+        '<div class="fd-ui-panel-next-block">' +
+        '<p class="fd-ui-panel-subhead">Recommended next step</p>' +
+        '<p class="fd-ui-panel-next-text">' +
+        escapeHtml(summary.recommendedNextStep || summary.nextStep) +
+        "</p></div>";
+    }
+
     return (
       '<div class="fd-ui-panel-call-summary">' +
-      '<p class="fd-ui-panel-patient-name">' +
-      escapeHtml(summary.patientName || task.label || "Patient") +
-      "</p>" +
-      '<span class="fd-ui-panel-urgency' +
-      urgencyClass +
-      '">' +
-      escapeHtml(urgency) +
-      "</span>" +
+      headerHtml +
       fact("Caller", summary.caller) +
       fact("Date & time", summary.calledAt) +
       fact("Chief concern", summary.chiefConcern || summary.intent) +
@@ -322,13 +339,7 @@
           escapeHtml(summary.aiSummary) +
           "</p></div>"
         : fact("Reason for call", summary.intent)) +
-      (summary.recommendedNextStep || summary.nextStep
-        ? '<div class="fd-ui-panel-next-block">' +
-          '<p class="fd-ui-panel-subhead">Recommended next step</p>' +
-          '<p class="fd-ui-panel-next-text">' +
-          escapeHtml(summary.recommendedNextStep || summary.nextStep) +
-          "</p></div>"
-        : "") +
+      nextStepHtml +
       (summary.phone
         ? '<p class="fd-ui-panel-phone"><span>Callback number</span> ' +
           escapeHtml(summary.phone) +
@@ -390,9 +401,29 @@
     return task.label || "Details";
   }
 
-  function renderPanelContent(panelType, task) {
+  function renderPanelContent(panelType, task, options) {
+    var opts = options || {};
     if (panelType === "verify-insurance") return renderInsurancePanel(task);
-    return renderCallSummaryPanel(task);
+    return renderCallSummaryPanel(task, opts);
+  }
+
+  function renderContextPanel(panelType, task, contextOptions) {
+    var ctxOpts = contextOptions || {};
+    var Engine = window.FreedomDeskContextEngine;
+    if (!Engine) {
+      return renderPanelContent(panelType, task);
+    }
+
+    var ctx = Engine.resolve(panelType, task || {});
+    var html =
+      Engine.renderSituationHeader(ctx) +
+      Engine.renderRecommendation(ctx) +
+      '<div class="fd-ctx-detail">' +
+      renderPanelContent(panelType, task, { compact: true }) +
+      "</div>" +
+      Engine.renderContextCapture(ctx, ctxOpts.attachedNotes || []);
+
+    return '<div class="fd-coord-context">' + html + "</div>";
   }
 
   function openWorkPanel(panelType, task, _elements) {
@@ -1131,6 +1162,7 @@
     closeWorkPanel: closeWorkPanel,
     panelTitleFor: panelTitleFor,
     renderPanelContent: renderPanelContent,
+    renderContextPanel: renderContextPanel,
     renderTodaysFocus: renderTodaysFocus,
     renderRoleSwitcher: renderRoleSwitcher,
     renderSectionCard: renderSectionCard,

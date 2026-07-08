@@ -266,6 +266,237 @@ body.fd-coord-open {
   line-height: 1.5;
 }
 
+.fd-coord-related-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fd-coord-related-item {
+  padding: var(--fd-space-3) 0;
+  border-bottom: 1px solid var(--fd-divider-subtle);
+}
+
+.fd-coord-related-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.fd-coord-related-type {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fd-navy-mid);
+}
+
+.fd-coord-related-text {
+  margin: 0 0 2px;
+  font-size: var(--fd-text-sm);
+  font-weight: 500;
+  color: var(--fd-navy);
+  line-height: 1.45;
+}
+
+.fd-coord-related-detail {
+  margin: 0;
+  font-size: var(--fd-text-xs);
+  color: var(--fd-ink-tertiary);
+  line-height: 1.5;
+}
+
+/* ── Context Engine (Sprint 3B) ── */
+
+.fd-coord-context {
+  padding: 0;
+}
+
+.fd-ctx-situation {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--fd-space-3);
+  padding: var(--fd-space-4) var(--fd-space-5);
+  background: var(--fd-surface-base);
+  border-bottom: 1px solid var(--fd-divider-subtle);
+}
+
+.fd-ctx-situation-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.fd-ctx-situation-line {
+  margin: 0;
+  font-size: var(--fd-text-base);
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--fd-navy);
+  letter-spacing: -0.015em;
+}
+
+.fd-ctx-patient {
+  font-weight: 600;
+}
+
+.fd-ctx-sep {
+  margin: 0 0.35em;
+  color: var(--fd-ink-tertiary);
+  font-weight: 400;
+}
+
+.fd-ctx-issue {
+  color: var(--fd-navy-muted);
+  font-weight: 500;
+}
+
+.fd-ctx-urgency {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  line-height: 1.3;
+}
+
+.fd-ctx-urgency-urgent {
+  background: var(--fd-attention-red);
+  color: var(--fd-urgent);
+}
+
+.fd-ctx-urgency-attention {
+  background: rgba(36, 80, 143, 0.1);
+  color: var(--fd-navy-mid);
+}
+
+.fd-ctx-recommendation {
+  padding: var(--fd-space-3) var(--fd-space-5);
+  background: rgba(24, 53, 98, 0.03);
+  border-bottom: 1px solid var(--fd-divider-subtle);
+}
+
+.fd-ctx-recommendation-text {
+  margin: 0;
+  font-size: var(--fd-text-sm);
+  line-height: 1.55;
+  color: var(--fd-navy);
+}
+
+.fd-ctx-recommendation-label {
+  font-weight: 600;
+  color: var(--fd-navy-mid);
+}
+
+.fd-ctx-detail {
+  padding: var(--fd-space-5);
+}
+
+.fd-ctx-detail .fd-ui-panel-call-summary,
+.fd-ctx-detail .fd-ui-panel-insurance {
+  padding: 0;
+}
+
+.fd-ctx-capture {
+  padding: var(--fd-space-4) var(--fd-space-5) var(--fd-space-5);
+  border-top: 1px solid var(--fd-divider-subtle);
+  background: var(--fd-surface-base);
+}
+
+.fd-ctx-capture-label {
+  display: block;
+  margin-bottom: var(--fd-space-2);
+  font-size: var(--fd-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fd-ink-tertiary);
+}
+
+.fd-ctx-capture-input {
+  display: block;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: var(--fd-space-3);
+  border: 1px solid var(--fd-divider);
+  border-radius: var(--fd-radius-md);
+  background: var(--fd-surface-raised);
+  font-family: inherit;
+  font-size: var(--fd-text-sm);
+  line-height: 1.55;
+  color: var(--fd-navy);
+  resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fd-ctx-capture-input::placeholder {
+  color: var(--fd-ink-tertiary);
+}
+
+.fd-ctx-capture-input:focus {
+  outline: none;
+  border-color: rgba(36, 80, 143, 0.35);
+  box-shadow: 0 0 0 3px rgba(36, 80, 143, 0.08);
+}
+
+.fd-ctx-capture-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--fd-space-2);
+}
+
+.fd-ctx-capture-save {
+  padding: 7px 12px;
+  border: none;
+  border-radius: var(--fd-radius-sm);
+  background: var(--fd-navy);
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--fd-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.fd-ctx-capture-save:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.fd-ctx-capture-save:not(:disabled):hover {
+  opacity: 0.92;
+}
+
+.fd-ctx-attached-list {
+  list-style: none;
+  margin: var(--fd-space-3) 0 0;
+  padding: 0;
+}
+
+.fd-ctx-attached-item {
+  padding: var(--fd-space-2) 0;
+  border-top: 1px solid var(--fd-divider-subtle);
+}
+
+.fd-ctx-attached-text {
+  margin: 0;
+  font-size: var(--fd-text-sm);
+  line-height: 1.5;
+  color: var(--fd-navy-muted);
+}
+
+.fd-coord-note-context {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--fd-navy-mid);
+}
+
 /* ── Notes tab ── */
 
 .fd-coord-notes {
@@ -537,10 +768,6 @@ body.fd-coord-open {
 }
 
 /* ── Context views (call summary, insurance, future delegation) ── */
-
-.fd-coord-context {
-  padding: var(--fd-space-5);
-}
 
 .fd-coord-panel .fd-ui-panel-patient-name {
   font-size: var(--fd-text-xl);

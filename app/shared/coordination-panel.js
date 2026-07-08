@@ -8,12 +8,15 @@
   var NOTES_STORAGE_KEY = "freedomdesk_coord_notes";
   var Utils = window.FreedomDeskUtils;
   var UI = window.FreedomDeskUI;
+  var ContextEngine = window.FreedomDeskContextEngine;
 
   var state = {
     mode: "workspace",
     activeTab: "notes",
     contextType: null,
     contextTask: null,
+    contextEngine: null,
+    contextKey: null,
     notes: [],
     initialized: false,
     eventsBound: false,
@@ -121,6 +124,13 @@
     } else {
       listHtml = '<ul class="fd-coord-notes-list" aria-label="Your notes">';
       sorted.forEach(function (note) {
+        var contextHtml = "";
+        if (note.context && note.context.patientName) {
+          contextHtml =
+            '<span class="fd-coord-note-context">' +
+            escapeHtml(note.context.patientName) +
+            "</span>";
+        }
         listHtml +=
           '<li class="fd-coord-note' +
           (note.pinned ? " fd-coord-note--pinned" : "") +
@@ -128,6 +138,7 @@
           escapeHtml(note.id) +
           '">' +
           '<div class="fd-coord-note-main">' +
+          contextHtml +
           '<p class="fd-coord-note-text">' +
           escapeHtml(note.text) +
           "</p>" +
@@ -184,11 +195,39 @@
     );
   }
 
+  function notesForContext(contextKey) {
+    if (!contextKey) return [];
+    return state.notes.filter(function (note) {
+      return note.context && note.context.contextKey === contextKey;
+    });
+  }
+
   function renderContextBody() {
     if (!UI || !state.contextType) return "";
+
+    var attachedNotes = notesForContext(state.contextKey);
+    if (UI.renderContextPanel) {
+      return UI.renderContextPanel(state.contextType, state.contextTask || {}, { attachedNotes: attachedNotes });
+    }
     return (
-      '<div class="fd-coord-context">' + UI.renderPanelContent(state.contextType, state.contextTask || {}) + "</div>"
+      '<div class="fd-coord-context">' +
+      UI.renderPanelContent(state.contextType, state.contextTask || {}) +
+      "</div>"
     );
+  }
+
+  function renderFooter() {
+    if (!els.footer || state.mode !== "context" || !state.contextEngine) return;
+
+    els.footer.hidden = false;
+  }
+
+  function renderFooterContent() {
+    if (!els.footer || !state.contextEngine || !ContextEngine) return;
+
+    els.footer.innerHTML =
+      '<p class="fd-coord-related-label">Related context</p>' +
+      ContextEngine.renderRelatedList(state.contextEngine.related);
   }
 
   function renderBody() {
@@ -196,7 +235,13 @@
 
     if (state.mode === "context") {
       els.body.innerHTML = renderContextBody();
+      renderFooterContent();
+      renderFooter();
       return;
+    }
+
+    if (els.footer) {
+      els.footer.hidden = true;
     }
 
     if (state.activeTab === "team") {
@@ -209,6 +254,13 @@
   }
 
   function onBodyClick(event) {
+    var ctxSaveBtn = event.target.closest("#fdCtxNoteSave");
+    if (ctxSaveBtn && els.body && els.body.contains(ctxSaveBtn)) {
+      var ctxInput = $("fdCtxNoteInput");
+      if (ctxInput) addContextNote(ctxInput.value);
+      return;
+    }
+
     var saveBtn = event.target.closest("#fdCoordNoteSave");
     if (saveBtn && els.body && els.body.contains(saveBtn)) {
       var input = $("fdCoordNoteInput");
@@ -222,6 +274,10 @@
   function onBodyInput(event) {
     if (event.target && event.target.id === "fdCoordNoteInput") {
       updateNoteSaveState();
+      return;
+    }
+    if (event.target && event.target.id === "fdCtxNoteInput") {
+      updateContextNoteSaveState();
     }
   }
 
@@ -229,6 +285,11 @@
     if (event.target && event.target.id === "fdCoordNoteInput" && event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       addNote(event.target.value);
+      return;
+    }
+    if (event.target && event.target.id === "fdCtxNoteInput" && event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      addContextNote(event.target.value);
     }
   }
 
@@ -253,6 +314,33 @@
     });
     saveNotes();
     renderBody();
+  }
+
+  function addContextNote(text) {
+    var trimmed = (text || "").trim();
+    if (!trimmed || !state.contextEngine) return;
+
+    state.notes.unshift({
+      id: generateNoteId(),
+      text: trimmed,
+      createdAt: new Date().toISOString(),
+      pinned: false,
+      context: {
+        contextKey: state.contextKey,
+        patientName: state.contextEngine.patientName,
+        issue: state.contextEngine.issue,
+        taskId: state.contextTask && state.contextTask.id,
+      },
+    });
+    saveNotes();
+    renderBody();
+  }
+
+  function updateContextNoteSaveState() {
+    var input = $("fdCtxNoteInput");
+    var saveBtn = $("fdCtxNoteSave");
+    if (!input || !saveBtn) return;
+    saveBtn.disabled = !input.value.trim();
   }
 
   function updateNoteSaveState() {
@@ -292,11 +380,19 @@
     }
   }
 
-  function contextTitleFor(panelType, task) {
+  function contextTitleFor(panelType, task, ctx) {
+    if (ctx && ctx.patientName) return ctx.patientName;
     if (UI && typeof UI.panelTitleFor === "function") {
       return UI.panelTitleFor(panelType, task || {});
     }
     return "Details";
+  }
+
+  function resolveContextEngine(panelType, task) {
+    if (ContextEngine) {
+      return ContextEngine.resolve(panelType, task || {});
+    }
+    return null;
   }
 
   function open(options) {
@@ -307,13 +403,18 @@
       setMode("context");
       state.contextType = opts.contextType;
       state.contextTask = opts.contextTask || {};
+      state.contextEngine = resolveContextEngine(state.contextType, state.contextTask);
+      state.contextKey = state.contextEngine ? state.contextEngine.contextKey : null;
       if (els.title) {
-        els.title.textContent = opts.title || contextTitleFor(state.contextType, state.contextTask);
+        els.title.textContent =
+          opts.title || contextTitleFor(state.contextType, state.contextTask, state.contextEngine);
       }
     } else {
       setMode("workspace");
       state.contextType = null;
       state.contextTask = null;
+      state.contextEngine = null;
+      state.contextKey = null;
       setActiveTab(opts.tab || "notes");
     }
 
@@ -358,6 +459,8 @@
     setBodyOpen(false);
     state.contextType = null;
     state.contextTask = null;
+    state.contextEngine = null;
+    state.contextKey = null;
   }
 
   function isOpen() {

@@ -4,7 +4,7 @@
 
 FreedomDesk answers phone calls, gathers the information your office needs, and delivers organized call summaries so your team can stay focused on patients in the chair. Built by **Dr. William Buurma DDS**, a practicing general dentist in Michigan — not as a replacement for your front desk, but as calm, reliable phone coverage that captures opportunities and protects patient experience.
 
-**Primary market:** Grand Rapids metro and West Michigan independent general dentistry (1–3 doctors, 4–8 operatories, Open Dental–first). See [docs/FREEDOMDESK_CONTEXT.md](docs/FREEDOMDESK_CONTEXT.md).
+**Primary market:** Grand Rapids metro and West Michigan independent general dentistry (1–3 doctors, 4–8 operatories, Open Dental–first). See [docs/README.md](docs/README.md) for the full documentation index and reading order.
 
 ---
 
@@ -23,20 +23,18 @@ FreedomDesk answers phone calls, gathers the information your office needs, and 
 
 ---
 
-## Documentation Index
+## Documentation
 
-This repository is the **FreedomDesk knowledge base and marketing site**. Before writing code or designing call flows, read these documents in order:
+This repository is the **FreedomDesk knowledge base and marketing site**.
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
-| [docs/FREEDOMDESK_CONTEXT.md](docs/FREEDOMDESK_CONTEXT.md) | Everyone | Product vision, personas, principles, HIPAA posture, competitive positioning |
-| [docs/DENTAL_WORKFLOWS.md](docs/DENTAL_WORKFLOWS.md) | Engineers + dental consultants | How private dental practices actually operate — scheduling, insurance, emergencies, communication |
-| [docs/PRACTICE_MANAGEMENT_SOFTWARE.md](docs/PRACTICE_MANAGEMENT_SOFTWARE.md) | Integration engineers | Open Dental, Eaglesoft, Dentrix, CareStack — APIs, data models, integration patterns |
-| [docs/CALL_FLOWS.md](docs/CALL_FLOWS.md) | Voice/AI engineers + consultants | Canonical call scripts, decision trees, triage rules, summary schemas |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Senior engineers | System architecture, security, data flows, coding standards |
-| [docs/ROADMAP.md](docs/ROADMAP.md) | Product + engineering | Phased delivery plan from marketing site to full production platform |
-| [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Integration engineers | Third-party services (telephony, voice, email, CRM, PMS connectors) |
-| [DEPLOY.md](DEPLOY.md) | DevOps | Vercel deployment for the marketing site and lead API |
+**→ [docs/README.md](docs/README.md) is the canonical documentation index and reading order** for engineers, product, dental consultants, and AI agents. It includes an authority map (which document owns which concept), the full required reading sequence, and task-specific entry points.
+
+Product vision is defined in the Constitution, Principles, Context, Intelligence, and Operating Model documents — not in the empty root [`VISION.md`](VISION.md) placeholder.
+
+| Quick link | Purpose |
+|------------|---------|
+| [docs/README.md](docs/README.md) | **Start here** — index, reading order, authority map |
+| [DEPLOY.md](DEPLOY.md) | Vercel deployment for the marketing site and lead API |
 
 ---
 
@@ -59,7 +57,7 @@ FreedomDesk/
 ├── supabase/
 │   └── leads.sql           # Lead capture table schema
 ├── scripts/                # Audio generation, alignment utilities
-└── docs/                   # Knowledge base (start here)
+└── docs/                   # Knowledge base — start at docs/README.md
 ```
 
 ---
@@ -195,7 +193,7 @@ When contributing to FreedomDesk, internalize these non-negotiables:
 4. **PMS-aware.** Scheduling language, patient lookup, and write-back must respect each practice management system's data model and API constraints.
 5. **Sound human.** The voice agent ("Aly") is a calm, experienced front desk coordinator — not a robot, not a chatbot, not an "AI assistant."
 
-Full standards: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [.cursor/rules/freedomdesk.mdc](.cursor/rules/freedomdesk.mdc).
+Full standards: [docs/README.md](docs/README.md) → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [.cursor/rules/freedomdesk.mdc](.cursor/rules/freedomdesk.mdc).
 
 ---
 

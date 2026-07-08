@@ -7,7 +7,7 @@ alwaysApply: true
 
 AI phone front desk for **West Michigan independent private dental practices** — built by Dr. William Buurma DDS (practicing GP, Michigan). Answers calls, collects structured intake, triages emergencies, delivers PMS-ready summaries. **Supports** the front desk; never replaces clinical judgment.
 
-**Read first:** `docs/FREEDOMDESK_CONTEXT.md` → `docs/DENTAL_WORKFLOWS.md` → `docs/CALL_FLOWS.md` → `docs/ARCHITECTURE.md` → `docs/USER_EXPERIENCE_PHILOSOPHY.md` (for dashboard/UI work)
+**Documentation entry point:** `docs/README.md` — canonical index, reading order, and authority map. Read that file first; it defers to the Constitution and lists which document owns each concept. Product vision lives in Constitution → Principles → Context → Intelligence → Operating Model — **not** in the empty root `VISION.md` placeholder.
 
 ## Target Practice (Grand Rapids profile)
 
@@ -69,7 +69,8 @@ Structured JSON per `docs/CALL_FLOWS.md`. Required by intent:
 
 ## When Building
 
-1. `docs/ROADMAP.md` — phase scope
-2. `docs/DENTAL_WORKFLOWS.md` — operational truth
-3. `docs/PRACTICE_MANAGEMENT_SOFTWARE.md` — Open Dental first
-4. Prefer implementation that reduces front desk clicks over shaving call seconds
+1. `docs/README.md` — confirm reading order and owning document for your task
+2. `docs/ROADMAP.md` — phase scope
+3. `docs/DENTAL_WORKFLOWS.md` — operational truth
+4. `docs/PRACTICE_MANAGEMENT_SOFTWARE.md` — Open Dental first
+5. Prefer implementation that reduces front desk clicks over shaving call seconds

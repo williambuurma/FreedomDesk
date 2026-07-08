@@ -74,7 +74,7 @@ FreedomDesk is a **multi-tenant SaaS platform** that sits between inbound phone 
 
 ## Current Implementation (Phase 0)
 
-The repository today implements the **marketing site and lead capture funnel** only.
+The repository today implements the **marketing site, lead capture funnel, dashboard preview, and intelligence-layer prototypes**. The production phone agent is not yet wired.
 
 ### Stack
 
@@ -115,6 +115,12 @@ JSON { ok, stored, emailSent }
 | `supabase/leads.sql` | Lead table schema |
 | `demo-player.js` | Demo audio playback with transcript sync |
 | `voice/persona.json` | Voice agent persona definition |
+| `app/` | Internal dashboard preview (My Day, Morning Brief) — mock data |
+| `src/engine/prompt-context-builder.js` | Assembles LLM prompt context from `knowledge/` |
+| `src/conversation/` | Conversation orchestrator and brain stubs (not telephony-connected) |
+| `src/practice-brain/` | Daily awareness, Morning Brief generation (preview scripts) |
+| `knowledge/manifest.json` | Knowledge document catalog for prompt assembly |
+| `config/practices/` | Example Office DNA (Layer 3) practice configs |
 
 ### Local vs. production
 

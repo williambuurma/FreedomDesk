@@ -22,12 +22,13 @@ const MORNING_BRIEF_SECTIONS = [
   "mbStewardship",
 ];
 
-const PLACEHOLDER_MODULES = [
+const V1_WIRED_MODULES = ["my-day", "morning-brief", "settings"];
+
+const DEFERRED_PLACEHOLDER_MODULES = [
   "calls",
   "patients",
   "opportunities",
   "analytics",
-  "settings",
 ];
 
 describe("Morning Brief preview data", () => {
@@ -55,7 +56,7 @@ describe("Morning Brief preview data", () => {
 });
 
 describe("FreedomDesk dashboard shell", () => {
-  test("core shell files exist and wire all modules", () => {
+  test("core shell files exist and wire V1 preview modules", () => {
     const indexHtml = fs.readFileSync(path.join(appRoot, "index.html"), "utf8");
 
     assert.ok(fs.existsSync(path.join(appRoot, "index.html")));
@@ -67,13 +68,23 @@ describe("FreedomDesk dashboard shell", () => {
 
     assert.match(indexHtml, /dashboard\.js/);
     assert.match(indexHtml, /modules\/morning-brief\/module\.js/);
+    assert.match(indexHtml, /modules\/my-day\/module\.js/);
+    assert.match(indexHtml, /V1 preview scope/);
 
-    for (const mod of PLACEHOLDER_MODULES) {
+    for (const mod of V1_WIRED_MODULES) {
+      assert.match(indexHtml, new RegExp(`modules/${mod}/`));
+    }
+
+    for (const mod of DEFERRED_PLACEHOLDER_MODULES) {
       assert.ok(
         fs.existsSync(path.join(appRoot, "modules", mod, mod + ".js")),
-        `placeholder module missing: ${mod}`
+        `deferred placeholder module file should remain: ${mod}`
       );
-      assert.match(indexHtml, new RegExp(`modules/${mod}/${mod}\\.js`));
+      assert.doesNotMatch(
+        indexHtml,
+        new RegExp(`modules/${mod}/${mod}\\.js`),
+        `${mod} should not be wired in V1 preview index.html`
+      );
     }
   });
 
@@ -96,7 +107,8 @@ describe("FreedomDesk dashboard shell", () => {
   });
 
   test("placeholder modules declare Practice Brain integration features", () => {
-    for (const mod of PLACEHOLDER_MODULES) {
+    const allPlaceholders = DEFERRED_PLACEHOLDER_MODULES.concat(["settings"]);
+    for (const mod of allPlaceholders) {
       const source = fs.readFileSync(path.join(appRoot, "modules", mod, mod + ".js"), "utf8");
       assert.match(source, /features:\s*\[/, `${mod} should declare feature list`);
       assert.match(source, /FreedomDeskPlaceholder/, `${mod} should use placeholder factory`);

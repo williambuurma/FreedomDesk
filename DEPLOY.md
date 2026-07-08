@@ -30,7 +30,7 @@ You need:
 On Mac: **Terminal** → navigate to the project:
 
 ```bash
-cd ~/Documents/AI/Apps/DentalReceptionistAI
+cd ~/Documents/AI/Apps/FreedomDesk
 ```
 
 ### 1.2 Initialize git (first time only)
@@ -183,7 +183,7 @@ If you prefer the CLI:
 
 ```bash
 npm i -g vercel
-cd ~/Documents/AI/Apps/DentalReceptionistAI
+cd ~/Documents/AI/Apps/FreedomDesk
 vercel login
 vercel
 ```
@@ -206,11 +206,14 @@ vercel env add SUPABASE_URL production
 
 | Path | Purpose |
 |------|---------|
-| `index.html`, `styles.css`, `script.js` | Static site |
+| `index.html`, `styles.css`, `script.js` | Marketing site |
 | `demo-player.js`, `audio/` | Interactive demo |
+| `app/` | Internal dashboard preview (optional; `noindex`) |
 | `api/leads.js` | Serverless lead capture API |
 | `server/leads-handler.js` | Shared API logic |
 | `vercel.json` | Routes `/api/leads` to the serverless function |
+
+`.vercelignore` excludes `src/`, `prototypes/`, `scripts/`, and other internal paths from deploy bundles — marketing site and lead API only.
 
 Local development still uses `server/index.js`:
 

@@ -46,6 +46,8 @@ Each concept has **one owning document**. Other specs may reference it but must 
 | Phone conversation design | [`CALL_FLOWS.md`](CALL_FLOWS.md) | Per-intent structure, triage, slot collection, summary JSON schemas |
 | Product backlog | [`FEATURE_BACKLOG.md`](FEATURE_BACKLOG.md) | Long-term ideas by capability area; sprints pull from here |
 | Phased delivery | [`ROADMAP.md`](ROADMAP.md) | Phase scope, dependencies, delivery schedule |
+| V1 scope and decision filter | [`V1_FOUNDATION.md`](V1_FOUNDATION.md) | What belongs in foundation release; what is explicitly deferred |
+| Call intent vocabulary | [`INTENT_REGISTRY.md`](INTENT_REGISTRY.md) | Phase 1 wired intents vs CALL_FLOWS full enum |
 | Technical architecture | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Telephony, deployment, security, data model, coding standards — **not** conversation reasoning |
 | PMS integration | [`PRACTICE_MANAGEMENT_SOFTWARE.md`](PRACTICE_MANAGEMENT_SOFTWARE.md) | Open Dental, Eaglesoft, Dentrix, CareStack — APIs and data models |
 | Third-party services catalog | [`INTEGRATIONS.md`](INTEGRATIONS.md) | Telephony, voice, email, CRM, PMS connectors — **placeholder; not yet populated** |
@@ -133,17 +135,21 @@ The permanent product backlog — long-term ideas organized by capability area. 
 
 Phased delivery plan from the current marketing site and dashboard prototypes to the full production AI phone platform. Use for phase scope and dependencies before starting implementation work.
 
+#### 17. [V1_FOUNDATION.md](V1_FOUNDATION.md)
+
+The document every engineer reads before writing code. V1 success criteria, decision filter, and explicit deferrals — not a feature backlog.
+
 ### Engineering & integrations
 
-#### 17. [ARCHITECTURE.md](ARCHITECTURE.md)
+#### 18. [ARCHITECTURE.md](ARCHITECTURE.md)
 
 Technical architecture reference for senior engineers — current Phase 0 implementation, target production architecture, security model, data flows, telephony pipeline, multi-tenancy, and coding standards. **Not** a substitute for brain or intelligence specs.
 
-#### 18. [PRACTICE_MANAGEMENT_SOFTWARE.md](PRACTICE_MANAGEMENT_SOFTWARE.md)
+#### 19. [PRACTICE_MANAGEMENT_SOFTWARE.md](PRACTICE_MANAGEMENT_SOFTWARE.md)
 
 Open Dental (priority), Eaglesoft, Dentrix, CareStack — APIs, data models, and integration patterns for West Michigan independent general dentistry.
 
-#### 19. [INTEGRATIONS.md](INTEGRATIONS.md)
+#### 20. [INTEGRATIONS.md](INTEGRATIONS.md)
 
 Third-party services catalog (telephony, voice, email, CRM, PMS connectors). **Currently empty** — integration detail is partially covered in [`ARCHITECTURE.md`](ARCHITECTURE.md) until this document is populated.
 
@@ -160,14 +166,37 @@ Use the full reading order for greenfield work. For focused tasks, start at the 
 | Voice / phone agent | [`CALL_FLOWS.md`](CALL_FLOWS.md) | Brain Architecture, Emotional Intelligence, Dental Workflows, Architecture |
 | Knowledge / prompts | [`KNOWLEDGE_ENGINE.md`](KNOWLEDGE_ENGINE.md) | Office DNA, `knowledge/` tree |
 | PMS integration | [`PRACTICE_MANAGEMENT_SOFTWARE.md`](PRACTICE_MANAGEMENT_SOFTWARE.md) | Architecture, Integrations (when populated), Call Flows summaries |
-| Phase scoping | [`ROADMAP.md`](ROADMAP.md) | Feature Backlog, Architecture |
+| Phase scoping | [`ROADMAP.md`](ROADMAP.md) | V1 Foundation, Feature Backlog, Architecture |
+| V1 scope check | [`V1_FOUNDATION.md`](V1_FOUNDATION.md) | Decision filter; [`IDEA_VAULT.md`](IDEA_VAULT.md) for deferred ideas |
+| Intent naming | [`INTENT_REGISTRY.md`](INTENT_REGISTRY.md) | CALL_FLOWS, `src/engine/intents.js` |
 | Deployment | [`DEPLOY.md`](../DEPLOY.md) | Architecture § Deployment |
 
 ---
 
 ## Runtime knowledge
 
-Structured domain facts consumed by the prompt-context builder live in [`knowledge/`](../knowledge/) (see [`knowledge/manifest.json`](../knowledge/manifest.json)). That tree implements [`KNOWLEDGE_ENGINE.md`](KNOWLEDGE_ENGINE.md) — it does not replace the canonical docs above.
+Structured domain facts consumed by the prompt-context builder live in [`knowledge/`](../knowledge/) (see [`knowledge/manifest.json`](../knowledge/manifest.json)). That tree is the **current Phase M1 implementation** of [`KNOWLEDGE_ENGINE.md`](KNOWLEDGE_ENGINE.md) — markdown documents loaded by `src/engine/knowledge-store.js`. The full atom/resolver architecture described in KNOWLEDGE_ENGINE is planned; it does not replace the canonical docs above.
+
+---
+
+## Glossary (quick reference)
+
+Full definitions live in [`FREEDOMDESK_OPERATING_MODEL.md`](FREEDOMDESK_OPERATING_MODEL.md). Use these when reading code or sibling specs.
+
+| Term | Meaning |
+|------|---------|
+| **Person** | One human using FreedomDesk — not a job title or login role |
+| **Responsibility** | A bundle of work a person owns today (front desk, clinical, manager) |
+| **My Day** | Personal home surface — "What should I do next?" |
+| **Morning Brief** | Practice-wide digest for managers; superset of filtered signals |
+| **End of Day** | Personal close — reassurance or honest carry-forward |
+| **Office DNA** | Layer 3 practice-specific config (hours, triage, insurance, scheduling) |
+| **Practice Brain** | Daily intelligence loop (`src/practice-brain/`) — awareness, recommendations |
+| **Business Brain** | Per-call scheduling/hours brain in the five-brains model — not the same as Practice Brain |
+| **Five Brains** | Understanding, Psychology, Triage, Front Desk, Business — merged by orchestrator |
+| **Operating intelligence** | FreedomDesk's product identity — intelligence layer alongside the PMS |
+
+Implementation maps: [`src/README.md`](../src/README.md), [`app/README.md`](../app/README.md).
 
 ---
 
@@ -176,6 +205,8 @@ Structured domain facts consumed by the prompt-context builder live in [`knowled
 | File | Role |
 |------|------|
 | [`README.md`](../README.md) | Repo overview, quick start, lead capture, deploy pointer |
+| [`app/README.md`](../app/README.md) | Internal dashboard preview scope |
+| [`src/README.md`](../src/README.md) | Intelligence layer source map |
 | [`DEPLOY.md`](../DEPLOY.md) | Vercel deployment |
 | [`.cursor/rules/freedomdesk.mdc`](../.cursor/rules/freedomdesk.mdc) | Cursor agent guardrails — defers to this index |
 | [`voice/persona.json`](../voice/persona.json) | Aly voice persona (phone) |

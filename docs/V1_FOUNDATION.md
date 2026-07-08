@@ -8,6 +8,23 @@
 
 ---
 
+## Implementation status (July 2026)
+
+This document defines **what V1 means**. The repository today is **Phase 0 + prototypes**:
+
+| Area | Status | Location |
+|------|--------|----------|
+| Marketing site + lead capture | ✅ Shipped | Root, `server/`, `api/` |
+| Dashboard preview (My Day, Morning Brief) | 🟡 Mock data | `app/`, `data/*-preview.json` |
+| Conversation orchestrator + brains | 🟡 Stubs (psychology partial) | `src/conversation/` |
+| Practice Brain (daily loop) | 🟡 Preview scripts only | `src/practice-brain/` |
+| Prompt context builder | ✅ Reads `knowledge/` | `src/engine/` |
+| Telephony + live voice | ❌ Not started | `docs/ARCHITECTURE.md`, `docs/ROADMAP.md` Phase 1 |
+
+See [`src/README.md`](../src/README.md), [`app/README.md`](../app/README.md), and [`INTENT_REGISTRY.md`](INTENT_REGISTRY.md) for code-level maps. Deferred ideas: [`IDEA_VAULT.md`](IDEA_VAULT.md).
+
+---
+
 ## Mission
 
 FreedomDesk helps independent dental practices answer every caller with safety, honesty, and dignity — and leaves every team member better informed after each interaction. It supports the front desk at the phone and across the workday without running the practice, practicing dentistry, or replacing the people who do.

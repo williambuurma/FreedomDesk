@@ -3,3 +3,10 @@
 server/node_modules
 scripts/generate_demo_audio.py
 *.aiff
+
+# Internal code and archives — not needed for marketing site + lead API deploy
+prototypes/
+src/
+data/
+config/
+scripts/

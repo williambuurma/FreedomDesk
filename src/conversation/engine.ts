@@ -12,7 +12,7 @@ import {
 } from "./understanding";
 
 // ---------------------------------------------------------------------------
-// Goal selection (existing — unchanged)
+// Goal selection — stub precedence; full spec in FREEDOMDESK_BRAIN_ARCHITECTURE.md §20
 // ---------------------------------------------------------------------------
 
 export type ConversationGoal =

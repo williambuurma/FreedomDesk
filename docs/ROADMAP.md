@@ -72,6 +72,10 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░  Advanced 
 | Voice persona definition | ✅ | `voice/persona.json` |
 | Demo call scripts | ✅ | `scripts/generate_demo_audio.py` |
 | Knowledge base docs | ✅ | `docs/` |
+| Dashboard preview (My Day, Morning Brief) | ✅ | `app/`, `data/*-preview.json` |
+| Intelligence layer (stubs + tests) | 🟡 In progress | `src/conversation/`, `src/practice-brain/`, `src/engine/` |
+| Prompt context builder | ✅ | `src/engine/prompt-context-builder.js`, `knowledge/` |
+| Example Office DNA config | ✅ | `config/practices/example-grand-rapids.json` |
 
 ### Demo call scenarios
 

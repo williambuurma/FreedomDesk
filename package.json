@@ -2,7 +2,7 @@
   "name": "freedomdesk",
   "private": true,
   "version": "1.0.0",
-  "description": "FreedomDesk marketing site and lead capture",
+  "description": "FreedomDesk marketing site, lead capture, and intelligence prototypes",
   "scripts": {
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",

@@ -34,6 +34,7 @@ Product vision is defined in the Constitution, Principles, Context, Intelligence
 | Quick link | Purpose |
 |------------|---------|
 | [docs/README.md](docs/README.md) | **Start here** — index, reading order, authority map |
+| [docs/V1_FOUNDATION.md](docs/V1_FOUNDATION.md) | V1 scope, decision filter, what is explicitly deferred |
 | [DEPLOY.md](DEPLOY.md) | Vercel deployment for the marketing site and lead API |
 
 ---
@@ -43,12 +44,18 @@ Product vision is defined in the Constitution, Principles, Context, Intelligence
 ```
 FreedomDesk/
 ├── index.html              # Marketing landing page
-├── styles.css              # Design system
+├── styles.css              # Marketing design system
 ├── script.js               # UI, form validation, lead submission
 ├── demo-player.js          # Interactive demo call player
+├── morning-brief.html      # Redirect to app/ Morning Brief module
 ├── voice/
-│   └── persona.json        # Voice agent persona ("Aly") — tone, phrases, constraints
+│   └── persona.json        # Voice agent persona ("Aly")
 ├── audio/                  # Demo call recordings + manifest.json
+├── app/                    # Internal dashboard preview (My Day, Morning Brief) — see app/README.md
+├── src/                    # Intelligence layer (conversation, practice brain, engine) — see src/README.md
+├── knowledge/              # Runtime knowledge markdown + manifest.json
+├── config/practices/       # Example Office DNA (Layer 3) configs
+├── data/                   # Generated preview JSON for dashboard mock data
 ├── server/                 # Express API (local dev)
 │   ├── index.js
 │   └── leads-handler.js
@@ -56,7 +63,8 @@ FreedomDesk/
 │   └── leads.js            # Vercel serverless entry for POST /api/leads
 ├── supabase/
 │   └── leads.sql           # Lead capture table schema
-├── scripts/                # Audio generation, alignment utilities
+├── scripts/                # Preview generators, audio utilities, tests
+├── prototypes/archive/     # Historical artifacts (non-shipping)
 └── docs/                   # Knowledge base — start at docs/README.md
 ```
 
@@ -69,7 +77,9 @@ The repository today ships:
 1. **Marketing site** — product positioning, pricing, founder story, demo audio player
 2. **Lead capture API** — `POST /api/leads` stores demo requests in Supabase/Airtable and sends confirmation email via Resend
 3. **Demo audio** — three sample scenarios (new patient, weekend toothache, broken tooth) with voice persona defined in `voice/persona.json`
-4. **Knowledge base** — comprehensive docs for building the full platform
+4. **Dashboard preview** — My Day and Morning Brief prototypes with mock data (`app/`, `data/*-preview.json`)
+5. **Intelligence layer (stubs + tests)** — conversation orchestrator, practice brain, prompt context builder (`src/`)
+6. **Knowledge base** — comprehensive docs and runtime knowledge markdown (`docs/`, `knowledge/`)
 
 The **production AI phone system** (telephony, real-time voice, PMS write-back, per-practice configuration) is defined in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ROADMAP.md](docs/ROADMAP.md) and is not yet implemented in this repo.
 

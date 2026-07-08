@@ -56,16 +56,25 @@ const MONTHS: Record<string, string> = {
   december: "12",
 };
 
+function formatNamedDate(monthName: string, day: string, year: string): string | null {
+  const month = MONTHS[monthName.toLowerCase()];
+  if (!month) return null;
+  return `${year}-${month}-${day.padStart(2, "0")}`;
+}
+
 function parseDateOfBirth(text: string): string | null {
   const named = text.match(
     /(?:birthday is|born on|date of birth is|my birthday is)\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i
   );
   if (named) {
-    const month = MONTHS[named[1].toLowerCase()];
-    if (month) {
-      const day = named[2].padStart(2, "0");
-      return `${named[3]}-${month}-${day}`;
-    }
+    const formatted = formatNamedDate(named[1], named[2], named[3]);
+    if (formatted) return formatted;
+  }
+  // Standalone "March 3, 1988" — common when staff asks "date of birth?"
+  const standalone = text.match(/\b([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})\b/);
+  if (standalone) {
+    const formatted = formatNamedDate(standalone[1], standalone[2], standalone[3]);
+    if (formatted) return formatted;
   }
   const numeric = text.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (numeric) {
@@ -108,7 +117,17 @@ const INTENT_RULES: IntentRule[] = [
     intent: "EMERGENCY",
     weight: 10,
     patterns: [
-      /toothache|tooth ache|awful pain|kept me up|can't sleep.*pain|swelling|bleeding|broken tooth|emergency|severe pain|knocked out/,
+      /toothache|tooth ache|awful pain|kept me up|keeps? me up|can't sleep.*pain|swelling|bleeding|broken tooth|emergency|severe pain|knocked out/,
+      /had an extraction.*pain|post.?op.*pain|after (?:my )?extraction.*pain|pain.*(?:gotten )?worse/,
+    ],
+  },
+  {
+    id: "INTENT_GENERAL_INFO",
+    intent: "GENERAL_INFO",
+    weight: 9,
+    patterns: [
+      /can i take|should i take|is it ok to take|(?:ibuprofen|aspirin|tylenol|advil).*(?:before|after)/,
+      /medication.*(?:before|after|question)/,
     ],
   },
   {
@@ -135,7 +154,10 @@ const INTENT_RULES: IntentRule[] = [
     id: "INTENT_CONFIRM",
     intent: "CONFIRM",
     weight: 6,
-    patterns: [/confirm my appointment|calling about my appointment/],
+    patterns: [
+      /confirm my appointment|calling about my appointment/,
+      /appointment letter|(?:think i have|not sure).*(?:cleaning|appointment)/,
+    ],
   },
   {
     id: "INTENT_TREATMENT",
@@ -153,7 +175,10 @@ const INTENT_RULES: IntentRule[] = [
     id: "INTENT_INSURANCE",
     intent: "INSURANCE",
     weight: 6,
-    patterns: [/do you take|in network|accept.*insurance|insurance question/],
+    patterns: [
+      /do you take|in network|accept.*(?:insurance|delta|dental)|whether you accept|insurance question/,
+      /confused about.*(?:insurance|delta|accept|network)/,
+    ],
   },
   {
     id: "INTENT_BILLING",
@@ -196,7 +221,7 @@ function extractSymptoms(text: string): string[] {
   const symptoms: string[] = [];
   const lower = text.toLowerCase();
   if (/toothache|tooth ache/.test(lower)) symptoms.push("toothache");
-  if (/pain/.test(lower)) symptoms.push("pain");
+  if (/pain|hurts?|aching|sore/.test(lower)) symptoms.push("pain");
   if (/swelling/.test(lower)) symptoms.push("swelling");
   if (/fever/.test(lower)) symptoms.push("fever");
   if (/bleeding/.test(lower)) symptoms.push("bleeding");
@@ -218,7 +243,9 @@ function extractSymptomDetails(text: string): PatientUnderstanding["symptomDetai
     details.trauma = true;
   }
 
-  const painScale = text.match(/(?:about |a |it's |at )(\d{1,2})(?:\s*out of|\s*\/)/i);
+  const painScale = text.match(
+    /(?:about\s+(?:an?\s+)?|a |it's |at )(\d{1,2})(?:\s*out of|\s*\/)/i
+  );
   if (painScale) {
     details.painLevel = painScale[1];
   } else if (/severe|awful|really bad|kept me up/.test(lower)) {
@@ -266,12 +293,19 @@ function inferChiefConcern(
   return null;
 }
 
-function inferNewPatient(text: string): boolean | null {
+function inferNewPatient(text: string, intent: CallIntent): boolean | null {
   const lower = text.toLowerCase();
   if (/new dentist|first visit|never been|new to the area|just moved/.test(lower)) {
     return true;
   }
-  if (/current patient|been there before|existing patient/.test(lower)) {
+  if (
+    /current patient|been there before|existing patient|due for my|six-month cleaning|my last visit/.test(
+      lower
+    )
+  ) {
+    return false;
+  }
+  if (intent === "RESCHEDULE" || intent === "CANCEL") {
     return false;
   }
   return null;
@@ -290,7 +324,7 @@ export function understandTranscript(turns: TranscriptTurn[]): PatientUnderstand
   const dateOfBirth = parseDateOfBirth(text);
   const insuranceCarrier = parseInsuranceCarrier(text);
   const insuranceProgram = classifyInsuranceProgram(text);
-  const isNewPatient = inferNewPatient(text);
+  const isNewPatient = inferNewPatient(text, intent);
   const chiefConcern = inferChiefConcern(intent, text, symptoms, symptomDetails);
 
   const perFieldConfidence: Record<string, number> = {

@@ -1,0 +1,213 @@
+{
+  "$schema": "intelligence-inbox/v1",
+  "practiceId": "practice_cascade_family_gr",
+  "generatedAt": "2026-07-09T00:20:43.947Z",
+  "source": "mock_operational_events",
+  "eventCount": 6,
+  "actions": [
+    {
+      "id": "act_call_toothache_overnight_001",
+      "decision": "Call Finn Leo before 9:00 AM",
+      "ifIgnored": "Pain may worsen and the on-call SLA is missed",
+      "whatHappened": "After-hours same-day emergency (emergency eval) call",
+      "subjectDisplayName": "Finn Leo",
+      "because": "Overnight toothache with jaw spread — on-call SLA applies; insurance program still unknown",
+      "recommendedNextStep": "Flag for on-call callback within practice SLA; keep caller phone nearby",
+      "primaryResponsibility": "dentist",
+      "urgencyTier": "critical",
+      "status": "needs_action",
+      "confidence": 0.67,
+      "sourceEventIds": [
+        "evt_call_toothache_overnight_001"
+      ],
+      "createdAt": "2026-07-08T02:15:00.000Z",
+      "category": "emergency",
+      "evidence": [
+        {
+          "source": "call_summary",
+          "description": "Call intent: emergency",
+          "provenance": "callSummary.intent",
+          "observedAt": "2026-07-08T02:15:00.000Z"
+        },
+        {
+          "source": "caller_stated",
+          "description": "Severe toothache spreading into jaw",
+          "provenance": "callSummary.emergency.symptoms",
+          "observedAt": "2026-07-08T02:15:00.000Z"
+        },
+        {
+          "source": "call_summary",
+          "description": "After-hours same-day emergency flag",
+          "provenance": "callSummary.sameDayEmergency",
+          "observedAt": "2026-07-08T02:15:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "act_call_new_patient_exam_001",
+      "decision": "Schedule Maya Chen for a morning new-patient exam",
+      "ifIgnored": "A ready new patient waits longer than they should",
+      "whatHappened": "New patient (new patient exam) call",
+      "subjectDisplayName": "Maya Chen",
+      "because": "Complete new-patient intake ready for scheduling — mornings next week preferred",
+      "recommendedNextStep": "Create new-patient exam request for mornings next week; verify Delta PPO at visit",
+      "primaryResponsibility": "front_desk",
+      "urgencyTier": "important",
+      "status": "needs_action",
+      "confidence": 0.88,
+      "sourceEventIds": [
+        "evt_call_new_patient_exam_001"
+      ],
+      "createdAt": "2026-07-08T13:42:00.000Z",
+      "category": "schedule",
+      "evidence": [
+        {
+          "source": "call_summary",
+          "description": "Call intent: new patient exam",
+          "provenance": "callSummary.intent",
+          "observedAt": "2026-07-08T13:42:00.000Z"
+        },
+        {
+          "source": "caller_stated",
+          "description": "Delta Dental PPO stated by caller",
+          "provenance": "callSummary.insurance.program",
+          "observedAt": "2026-07-08T13:42:00.000Z"
+        },
+        {
+          "source": "call_summary",
+          "description": "Appointment preference: mornings next week",
+          "provenance": "callSummary.appointment.preference",
+          "observedAt": "2026-07-08T13:42:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "act_insurance_verify_hkd_001",
+      "decision": "Verify Jordan Ellis's HKD before tomorrow's visit",
+      "ifIgnored": "Tomorrow's visit stalls at check-in",
+      "whatHappened": "Insurance verification needed",
+      "subjectDisplayName": "Jordan Ellis",
+      "because": "HKD must be verified before pediatric hygiene tomorrow or the visit stalls at check-in",
+      "recommendedNextStep": "Verify Healthy Kids Dental eligibility before tomorrow's pediatric hygiene",
+      "primaryResponsibility": "front_desk",
+      "urgencyTier": "important",
+      "status": "needs_action",
+      "confidence": 0.9,
+      "sourceEventIds": [
+        "evt_insurance_verify_hkd_001"
+      ],
+      "createdAt": "2026-07-08T14:05:00.000Z",
+      "category": "verification",
+      "evidence": [
+        {
+          "source": "pms_authoritative",
+          "description": "Pediatric visit tomorrow — HKD ID on file unverified",
+          "provenance": "pms.appointment.insuranceStatus",
+          "observedAt": "2026-07-08T14:05:00.000Z"
+        },
+        {
+          "source": "office_dna",
+          "description": "Office DNA requires HKD verification before pediatric hygiene",
+          "provenance": "officeDna.insurance.hkd.verifyBeforeVisit",
+          "observedAt": "2026-07-08T14:05:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "act_lab_crown_seat_001",
+      "decision": "Confirm Robert Hayes's crown case before 11 AM tomorrow",
+      "ifIgnored": "The crown seat may need to be postponed",
+      "whatHappened": "Lab status changed",
+      "subjectDisplayName": "Robert Hayes",
+      "because": "Crown seat is on the schedule; lab case not marked received — confirm before the patient arrives",
+      "recommendedNextStep": "Confirm lab case received before crown seat at 11 AM tomorrow",
+      "primaryResponsibility": "assistant",
+      "urgencyTier": "important",
+      "status": "committed",
+      "confidence": 0.85,
+      "sourceEventIds": [
+        "evt_lab_crown_seat_001"
+      ],
+      "createdAt": "2026-07-08T11:20:00.000Z",
+      "category": "clinical_prep",
+      "evidence": [
+        {
+          "source": "lab",
+          "description": "Crown case not marked received — seat scheduled 11 AM tomorrow",
+          "provenance": "lab.case.status",
+          "observedAt": "2026-07-08T11:20:00.000Z"
+        },
+        {
+          "source": "pms_authoritative",
+          "description": "Crown seat appointment on schedule",
+          "provenance": "pms.appointment.type",
+          "observedAt": "2026-07-08T11:20:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "act_cancel_hygiene_001",
+      "decision": "Fill Lisa Nguyen's 2:00 PM hygiene chair from the waitlist",
+      "ifIgnored": "An open chair stays empty this afternoon",
+      "whatHappened": "Appointment cancelled",
+      "subjectDisplayName": "Lisa Nguyen",
+      "because": "Open hygiene chair this afternoon — waitlist fill recovers production and helps a flexible patient",
+      "recommendedNextStep": "Offer 2:00 PM hygiene slot to waitlist patients with flexibility today",
+      "primaryResponsibility": "front_desk",
+      "urgencyTier": "important",
+      "status": "needs_action",
+      "confidence": 0.94,
+      "sourceEventIds": [
+        "evt_cancel_hygiene_001"
+      ],
+      "createdAt": "2026-07-08T15:10:00.000Z",
+      "category": "schedule",
+      "evidence": [
+        {
+          "source": "call_summary",
+          "description": "Hygiene cancel — work conflict, open to waitlist fill",
+          "provenance": "callSummary.intent",
+          "observedAt": "2026-07-08T15:10:00.000Z"
+        },
+        {
+          "source": "pms_authoritative",
+          "description": "2:00 PM hygiene slot now open today",
+          "provenance": "pms.schedule.openSlot",
+          "observedAt": "2026-07-08T15:10:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "act_call_billing_callback_001",
+      "decision": "Call Derek Moss back about his statement",
+      "ifIgnored": "Frustration compounds and trust erodes",
+      "whatHappened": "Billing call",
+      "subjectDisplayName": "Derek Moss",
+      "because": "Caller left frustrated about a statement — manager callback closes the loop without quoting balances",
+      "recommendedNextStep": "Office manager callback on statement question — do not quote balances",
+      "primaryResponsibility": "office_manager",
+      "urgencyTier": "important",
+      "status": "completed",
+      "confidence": 0.8,
+      "sourceEventIds": [
+        "evt_call_billing_callback_001"
+      ],
+      "createdAt": "2026-07-07T16:45:00.000Z",
+      "category": "follow_up",
+      "evidence": [
+        {
+          "source": "call_summary",
+          "description": "Billing frustration — requested office manager callback",
+          "provenance": "callSummary.intent",
+          "observedAt": "2026-07-07T16:45:00.000Z"
+        },
+        {
+          "source": "inferred",
+          "description": "Emotional flags: frustration",
+          "provenance": "signal.emotionalFlags",
+          "observedAt": "2026-07-07T16:45:00.000Z"
+        }
+      ]
+    }
+  ]
+}

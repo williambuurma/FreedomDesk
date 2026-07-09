@@ -1,0 +1,24 @@
+<div class="ii-loading" id="iiLoading">Loading…</div>
+<div class="ii-error" id="iiError" hidden></div>
+<div class="ii-dashboard" id="iiDashboard" hidden>
+  <header class="ii-intro">
+    <p class="ii-intro-meta" id="iiIntroMeta"></p>
+  </header>
+
+  <nav class="ii-tabs" id="iiTabs" role="tablist" aria-label="Whose decisions">
+    <button type="button" class="ii-tab ii-tab-active" role="tab" data-tab="needs_action" aria-selected="true">
+      Open <span class="ii-tab-count" data-count="needs_action">0</span>
+    </button>
+    <button type="button" class="ii-tab" role="tab" data-tab="doctor" aria-selected="false">
+      Doctor <span class="ii-tab-count" data-count="doctor">0</span>
+    </button>
+    <button type="button" class="ii-tab" role="tab" data-tab="front_desk" aria-selected="false">
+      Front desk <span class="ii-tab-count" data-count="front_desk">0</span>
+    </button>
+    <button type="button" class="ii-tab" role="tab" data-tab="completed" aria-selected="false">
+      Done <span class="ii-tab-count" data-count="completed">0</span>
+    </button>
+  </nav>
+
+  <div class="ii-list" id="iiList" role="tabpanel" aria-live="polite"></div>
+</div>

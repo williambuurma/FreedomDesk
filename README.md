@@ -94,7 +94,17 @@ The **production AI phone system** (telephony, real-time voice, PMS write-back, 
 - Supabase project (optional — lead storage)
 - Resend account (optional — confirmation emails)
 
-### Full stack (recommended)
+### Product UI (recommended for building surfaces)
+
+```bash
+npm run dev
+```
+
+Opens the FreedomDesk product UI at **http://127.0.0.1:5500/app/#intelligence-inbox** (Next — decision surface). Also refreshes mock preview JSON under `data/`.
+
+See [`app/README.md`](app/README.md) for My Day / Morning Brief URLs and options.
+
+### Full stack (marketing site + lead API)
 
 ```bash
 cd server
@@ -111,10 +121,10 @@ The Express server serves static assets and handles `POST /api/leads`.
 ### Static only (no lead storage)
 
 ```bash
-python3 -m http.server 5500
+npm run dev
 ```
 
-Form submissions will fail without the API server.
+Or: `python3 -m http.server 5500` — form submissions will fail without the API server.
 
 ---
 

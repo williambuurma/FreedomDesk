@@ -8,8 +8,9 @@
     FreedomDeskPlaceholder({
       id: "settings",
       label: "Settings",
-      order: 6,
+      order: 90,
       navIcon: "gear",
+      navVisible: false,
       description:
         "Practice configuration that shapes every call — office hours, triage protocols, and PMS integration.",
       features: [

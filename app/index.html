@@ -22,13 +22,14 @@
   <link rel="stylesheet" href="styles/dashboard.css" />
   <link rel="stylesheet" href="styles/morning-brief.css" />
   <link rel="stylesheet" href="styles/my-day.css" />
+  <link rel="stylesheet" href="styles/intelligence-inbox.css" />
   <link rel="stylesheet" href="styles/coordination-panel.css" />
 </head>
 <body class="fd-dashboard">
   <div class="fd-dashboard-layout">
     <div class="fd-sidebar-backdrop" id="fdSidebarBackdrop" aria-hidden="true"></div>
 
-    <aside class="fd-sidebar" id="fdSidebar" aria-label="Dashboard navigation">
+    <aside class="fd-sidebar" id="fdSidebar" aria-label="Practice workflows">
       <div class="fd-sidebar-brand">
         <a href="index.html" class="fd-sidebar-brand-link" aria-label="FreedomDesk home">
           <img
@@ -47,7 +48,38 @@
       </nav>
 
       <div class="fd-sidebar-footer">
-        <a href="../index.html" class="fd-sidebar-footer-link">← Back to marketing site</a>
+        <div class="fd-profile" id="fdProfileWrap">
+          <button
+            type="button"
+            class="fd-profile-trigger"
+            id="fdProfileTrigger"
+            aria-label="Practice menu"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="fdProfileMenu"
+          >
+            <svg class="fd-profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span class="fd-profile-label">Settings</span>
+          </button>
+          <div
+            class="fd-profile-menu"
+            id="fdProfileMenu"
+            role="menu"
+            aria-label="Practice menu"
+            hidden
+            aria-hidden="true"
+          >
+            <button type="button" class="fd-profile-item" role="menuitem" data-module="settings">
+              Settings
+            </button>
+            <a href="../index.html" class="fd-profile-item fd-profile-item-link" role="menuitem">
+              Marketing site
+            </a>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -87,7 +119,6 @@
             </button>
           </div>
           <span class="fd-preview-badge">Internal · Mock data</span>
-          <a href="../index.html" class="fd-header-site-link"><span>Marketing site</span> →</a>
         </div>
       </header>
 
@@ -159,12 +190,16 @@
   <script src="shared/components/dashboard-ui.js"></script>
   <script src="shared/coordination-panel.js"></script>
   <script src="shared/placeholder-module.js"></script>
-  <script src="modules/my-day/my-day.js"></script>
-  <script src="modules/my-day/module.js"></script>
   <script src="modules/morning-brief/morning-brief.js"></script>
   <script src="modules/morning-brief/module.js"></script>
-  <!-- V1 preview scope: My Day + Morning Brief only. Placeholder modules (calls, patients, opportunities, analytics) deferred. -->
+  <script src="modules/my-day/my-day.js"></script>
+  <script src="modules/my-day/module.js"></script>
+  <script src="modules/intelligence-inbox/intelligence-inbox.js"></script>
+  <script src="modules/intelligence-inbox/module.js"></script>
+  <script src="modules/patients/patients.js"></script>
+  <script src="modules/ask/ask.js"></script>
   <script src="modules/settings/settings.js"></script>
+  <!-- Workflows: Morning Brief → My Day → Next → Patients → Ask. Settings via profile menu. -->
   <script src="dashboard.js"></script>
 </body>
 </html>

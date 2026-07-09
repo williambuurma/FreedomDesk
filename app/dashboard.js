@@ -1,5 +1,6 @@
 /**
- * FreedomDesk internal dashboard shell — sidebar, header, module routing.
+ * FreedomDesk product shell — workflow navigation and module routing.
+ * Sidebar = practice workflows. Settings lives in the profile menu.
  */
 (function () {
   "use strict";
@@ -11,16 +12,29 @@
   var NAV_ICONS = {
     brief:
       '<svg class="fd-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M6 4h12a2 2 0 0 1 2 2v14l-4-3-4 3-4-3-4 3V6a2 2 0 0 1 2-2z"/><path d="M9 8h6M9 12h4"/></svg>',
+    day:
+      '<svg class="fd-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>',
     phone:
       '<svg class="fd-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
     users:
       '<svg class="fd-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
     spark:
-      '<svg class="fd-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/><path d="M5 19l1 3 1-3 3-1-3-1-1-3-1 3-3 1 3 1z"/></svg>',
+      '<svg class="fd-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/></svg>',
+    ask:
+      '<svg class="fd-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></svg>',
     chart:
       '<svg class="fd-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>',
     gear:
       '<svg class="fd-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  };
+
+  var HEADER_TITLES = {
+    "my-day": "",
+    "intelligence-inbox": "What should you do next?",
+    "morning-brief": "Start of day",
+    patients: "Find a patient",
+    ask: "Ask a question",
+    settings: "Settings",
   };
 
   function $(id) {
@@ -45,19 +59,22 @@
     var titleEl = $("fdModuleTitle");
     var contentEl = $("fdDashboardContent");
     var isHome = module && (module.id === DEFAULT_MODULE || module.id === "my-day");
+    var isDecision = module && module.id === "intelligence-inbox";
 
     if (titleEl && module) {
-      if (isHome) {
-        titleEl.textContent = "What should I do next?";
-        titleEl.classList.add("fd-header-home");
+      var title = HEADER_TITLES[module.id];
+      if (title === "") {
+        titleEl.textContent = "";
+        titleEl.hidden = true;
       } else {
-        titleEl.textContent = module.label;
-        titleEl.classList.remove("fd-header-home");
+        titleEl.hidden = false;
+        titleEl.textContent = title || module.label;
       }
+      titleEl.classList.toggle("fd-header-home", !!isHome || !!isDecision);
     }
 
     if (contentEl) {
-      contentEl.classList.toggle("fd-content-home", isHome);
+      contentEl.classList.toggle("fd-content-home", isHome || isDecision);
     }
 
     document.title = module ? module.label + " — FreedomDesk" : "FreedomDesk";
@@ -96,6 +113,7 @@
 
     setActiveNav(moduleId);
     updateHeader(module);
+    closeProfileMenu();
 
     if (opts.replaceHash !== false) {
       var newHash = "#" + moduleId;
@@ -109,10 +127,16 @@
     var navList = $("fdModuleNav");
     if (!navList) return;
 
-    var modules = FreedomDesk.getModuleList();
+    var modules = FreedomDesk.getNavModules
+      ? FreedomDesk.getNavModules()
+      : FreedomDesk.getModuleList();
+
     navList.innerHTML = modules
       .map(function (mod) {
         var icon = NAV_ICONS[mod.navIcon] || "";
+        var hint = mod.navHint
+          ? '<span class="fd-nav-hint">' + FreedomDeskUtils.escapeHtml(mod.navHint) + "</span>"
+          : "";
         return (
           '<li class="fd-nav-item">' +
           '<a href="#' +
@@ -121,8 +145,11 @@
           mod.id +
           '">' +
           icon +
+          '<span class="fd-nav-text">' +
           "<span>" +
           FreedomDeskUtils.escapeHtml(mod.label) +
+          "</span>" +
+          hint +
           "</span>" +
           "</a>" +
           "</li>"
@@ -143,11 +170,36 @@
   function closeSidebar() {
     var layout = document.querySelector(".fd-dashboard-layout");
     if (layout) layout.classList.remove("fd-sidebar-open");
+    var toggle = $("fdSidebarToggle");
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
   }
 
   function toggleSidebar() {
     var layout = document.querySelector(".fd-dashboard-layout");
-    if (layout) layout.classList.toggle("fd-sidebar-open");
+    if (!layout) return;
+    var open = layout.classList.toggle("fd-sidebar-open");
+    var toggle = $("fdSidebarToggle");
+    if (toggle) toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function closeProfileMenu() {
+    var menu = $("fdProfileMenu");
+    var trigger = $("fdProfileTrigger");
+    if (menu) {
+      menu.hidden = true;
+      menu.setAttribute("aria-hidden", "true");
+    }
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleProfileMenu() {
+    var menu = $("fdProfileMenu");
+    var trigger = $("fdProfileTrigger");
+    if (!menu || !trigger) return;
+    var open = menu.hidden;
+    menu.hidden = !open;
+    menu.setAttribute("aria-hidden", open ? "false" : "true");
+    trigger.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
   function bindShellEvents() {
@@ -160,6 +212,36 @@
     if (backdrop) {
       backdrop.addEventListener("click", closeSidebar);
     }
+
+    var profileTrigger = $("fdProfileTrigger");
+    if (profileTrigger) {
+      profileTrigger.addEventListener("click", function (event) {
+        event.stopPropagation();
+        toggleProfileMenu();
+      });
+    }
+
+    var profileMenu = $("fdProfileMenu");
+    if (profileMenu) {
+      profileMenu.addEventListener("click", function (event) {
+        var item = event.target.closest("[data-module]");
+        if (!item) return;
+        event.preventDefault();
+        navigateTo(item.getAttribute("data-module"));
+        closeSidebar();
+      });
+    }
+
+    document.addEventListener("click", function (event) {
+      var wrap = $("fdProfileWrap");
+      if (wrap && !wrap.contains(event.target)) {
+        closeProfileMenu();
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeProfileMenu();
+    });
 
     window.addEventListener("hashchange", function () {
       navigateTo(getModuleIdFromHash(), { replaceHash: false });

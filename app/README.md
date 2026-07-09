@@ -1,36 +1,44 @@
-# Internal Dashboard Preview
+# Internal Product UI
 
-**Not the production phone agent.** This folder is a static HTML/CSS/JS prototype of the FreedomDesk daily rhythm surfaces — My Day and Morning Brief — using mock data.
+**Not the production phone agent.** Static HTML/CSS/JS surfaces for FreedomDesk practice workflows — using mock data.
 
-## What ships here
+## Launch
 
-| Module | Status | Data source |
-|--------|--------|-------------|
-| **My Day** | Preview | `data/my-day-preview.json` (generated) |
-| **Morning Brief** | Preview | `data/morning-brief-preview.json` (generated) |
-| **Settings** | Placeholder | Static "coming soon" card |
+```bash
+npm run dev
+```
 
-V1 scope intentionally excludes Calls, Patients, Opportunities, and Analytics nav items — those modules exist as files but are not registered in `index.html`.
+Opens **http://127.0.0.1:5500/app/#intelligence-inbox** (Next).
 
-## How to open
+## Practice workflows (sidebar)
 
-1. Start the local server: `cd server && npm start`
-2. Open http://127.0.0.1:5500/app/
+| Workspace | Route | Role |
+|-----------|-------|------|
+| Morning Brief | `#morning-brief` | Start the day |
+| My Day | `#my-day` | Role-aware daily work |
+| Next | `#intelligence-inbox` | Decision queue |
+| Patients | `#patients` | Patient context |
+| Ask FreedomDesk | `#ask` | Practice Q&A |
 
-The page has `noindex` — it is for internal preview only.
+Settings is not in the sidebar — open **Practice** (gear) at the bottom of the nav.
 
 ## Regenerate mock data
 
 ```bash
+npm run preview:intelligence-inbox
 npm run preview:my-day
 npm run preview:morning-brief
 ```
 
+`npm run dev` runs these automatically before serving.
+
 ## Architecture
 
-- `dashboard.js` — shell routing, sidebar, header
-- `shared/registry.js` — module registration
-- `shared/coordination-panel.js` — notes side panel
-- `modules/my-day/` and `modules/morning-brief/` — V1 preview surfaces
+- `dashboard.js` — workflow nav, profile menu, module routing
+- `shared/registry.js` — module registration (`navVisible` for sidebar)
+- `modules/intelligence-inbox/` — Next (decision-first Actions)
+- `modules/my-day/`, `modules/morning-brief/` — daily rhythm
+- `modules/patients/`, `modules/ask/` — workflow placeholders
+- `modules/settings/` — utility (profile menu only)
 
-See [`src/README.md`](../src/README.md) for the intelligence layer that will eventually feed these surfaces with live call data.
+See [`src/README.md`](../src/README.md) for the intelligence layer that will feed these surfaces.

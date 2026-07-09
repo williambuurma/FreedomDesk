@@ -9,8 +9,9 @@
   FreedomDesk.registerModule({
     id: "my-day",
     label: "My Day",
-    order: 0,
-    navIcon: "brief",
+    order: 1,
+    navIcon: "day",
+    navHint: "Your work",
     init: function (container) {
       container.innerHTML =
         '<div class="md-page">' +

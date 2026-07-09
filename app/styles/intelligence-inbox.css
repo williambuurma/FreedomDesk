@@ -1,0 +1,328 @@
+/* Next — decision-first operating surface (calm, sparse, actionable) */
+
+.fd-dashboard-content .ii-page {
+  background: transparent;
+}
+
+.fd-dashboard-content .ii-main {
+  padding: var(--fd-space-2) 0 var(--fd-space-8);
+}
+
+.fd-dashboard-content .ii-loading,
+.fd-dashboard-content .ii-error {
+  padding: 56px 0;
+  color: var(--fd-ink-body);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.fd-dashboard-content .ii-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-5);
+  max-width: 36rem;
+}
+
+.fd-dashboard-content .ii-dashboard[hidden],
+.fd-dashboard-content .ii-loading[hidden],
+.fd-dashboard-content .ii-error[hidden] {
+  display: none !important;
+}
+
+/* ── Intro — quiet count only; header already asks the question ── */
+
+.fd-dashboard-content .ii-intro {
+  padding: 0;
+}
+
+.fd-dashboard-content .ii-intro-meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--fd-ink-tertiary);
+  letter-spacing: -0.01em;
+}
+
+.fd-dashboard-content .ii-intro:has(.ii-intro-meta:empty) {
+  display: none;
+}
+
+/* ── Tabs — soft filters ── */
+
+.fd-dashboard-content .ii-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0 0 4px;
+}
+
+.fd-dashboard-content .ii-tab {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 7px 11px;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--fd-ink-tertiary);
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+}
+
+.fd-dashboard-content .ii-tab:hover {
+  color: var(--fd-navy);
+}
+
+.fd-dashboard-content .ii-tab-active {
+  color: var(--fd-navy);
+  background: rgba(24, 53, 98, 0.055);
+}
+
+.fd-dashboard-content .ii-tab-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fd-ink-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.fd-dashboard-content .ii-tab-active .ii-tab-count {
+  color: var(--fd-navy-muted);
+}
+
+/* ── List ── */
+
+.fd-dashboard-content .ii-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.fd-dashboard-content .ii-empty {
+  padding: 48px 0 24px;
+  color: var(--fd-ink-tertiary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.fd-dashboard-content .ii-empty p {
+  margin: 0;
+  max-width: 28ch;
+}
+
+/* ── Decision card — headline dominates ── */
+
+.fd-dashboard-content .ii-card {
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--fd-divider-subtle);
+  border-radius: 0;
+  padding: 28px 0 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fd-dashboard-content .ii-list .ii-card:first-child {
+  border-top: none;
+  padding-top: 8px;
+}
+
+.fd-dashboard-content .ii-card-urgent .ii-card-title {
+  color: var(--fd-navy);
+}
+
+.fd-dashboard-content .ii-card-urgent {
+  border-left: 2px solid var(--fd-urgent);
+  padding-left: 14px;
+  margin-left: -16px;
+}
+
+.fd-dashboard-content .ii-card-status-completed,
+.fd-dashboard-content .ii-card-status-dismissed {
+  opacity: 0.55;
+}
+
+.fd-dashboard-content .ii-card-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: var(--fd-navy);
+  line-height: 1.28;
+  max-width: 22em;
+}
+
+.fd-dashboard-content .ii-card-why {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--fd-ink-body);
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  max-width: 40em;
+}
+
+.fd-dashboard-content .ii-card-cost {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--fd-ink-tertiary);
+  line-height: 1.45;
+}
+
+.fd-dashboard-content .ii-card-meta {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--fd-ink-tertiary);
+  letter-spacing: -0.005em;
+}
+
+/* ── Why? — evidence stays tucked away ── */
+
+.fd-dashboard-content .ii-why {
+  appearance: none;
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  margin-top: 2px;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--fd-navy-muted);
+  cursor: pointer;
+  letter-spacing: -0.01em;
+}
+
+.fd-dashboard-content .ii-why:hover,
+.fd-dashboard-content .ii-why[aria-expanded="true"] {
+  color: var(--fd-navy);
+}
+
+.fd-dashboard-content .ii-reason {
+  padding: 4px 0 2px;
+}
+
+.fd-dashboard-content .ii-reason-context {
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
+  color: var(--fd-ink-tertiary);
+  line-height: 1.45;
+}
+
+.fd-dashboard-content .ii-evidence {
+  margin: 0;
+  padding: 0 0 0 1.05em;
+  color: var(--fd-ink-body);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fd-dashboard-content .ii-evidence li {
+  padding-left: 0;
+}
+
+.fd-dashboard-content .ii-why-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--fd-ink-tertiary);
+}
+
+/* ── Actions — one clear primary ── */
+
+.fd-dashboard-content .ii-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding-top: 10px;
+  align-items: center;
+}
+
+.fd-dashboard-content .ii-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fd-navy);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 8px 14px;
+  border-radius: var(--fd-radius-sm);
+  cursor: pointer;
+}
+
+.fd-dashboard-content .ii-btn:hover:not(:disabled) {
+  background: rgba(24, 53, 98, 0.05);
+}
+
+.fd-dashboard-content .ii-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.fd-dashboard-content .ii-btn-primary {
+  background: var(--fd-navy);
+  border-color: var(--fd-navy);
+  color: var(--fd-ink-inverse);
+  padding: 8px 16px;
+}
+
+.fd-dashboard-content .ii-btn-primary:hover:not(:disabled) {
+  background: var(--fd-navy-mid);
+  border-color: var(--fd-navy-mid);
+}
+
+.fd-dashboard-content .ii-btn-quiet {
+  color: var(--fd-ink-tertiary);
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.fd-dashboard-content .ii-btn-quiet:hover:not(:disabled) {
+  color: var(--fd-navy-muted);
+  background: transparent;
+}
+
+.fd-dashboard-content .ii-card-resolved {
+  font-size: 0.8125rem;
+  color: var(--fd-ink-tertiary);
+}
+
+@media (max-width: 640px) {
+  .fd-dashboard-content .ii-card {
+    padding: 24px 0 22px;
+  }
+
+  .fd-dashboard-content .ii-card-urgent {
+    margin-left: -8px;
+    padding-left: 12px;
+  }
+
+  .fd-dashboard-content .ii-card-title {
+    font-size: 1.125rem;
+  }
+
+  .fd-dashboard-content .ii-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fd-dashboard-content .ii-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .fd-dashboard-content .ii-btn-primary {
+    order: -1;
+  }
+
+  .fd-dashboard-content .ii-btn-quiet {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}

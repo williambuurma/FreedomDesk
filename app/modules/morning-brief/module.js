@@ -10,8 +10,9 @@
   FreedomDesk.registerModule({
     id: "morning-brief",
     label: "Morning Brief",
-    order: 2,
+    order: 0,
     navIcon: "brief",
+    navHint: "Start here",
     init: function (container) {
       container.innerHTML =
         '<div class="mb-page">' +

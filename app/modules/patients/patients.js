@@ -10,12 +10,13 @@
       label: "Patients",
       order: 3,
       navIcon: "users",
+      navHint: "Lookup",
       description:
-        "Patient context before the phone rings — intake status, insurance taxonomy, and demographics in one calm view.",
+        "Find a patient when you need context — intake, insurance, and recent call handoffs.",
       features: [
-        "New-patient intake status and completeness",
-        "West Michigan insurance classification (PPO, HKD, Medicaid)",
-        "Demographics update requests from recent calls",
+        "New-patient intake status",
+        "Insurance classification (PPO, HKD, Medicaid)",
+        "Updates from recent calls",
         "Quick lookup without opening the PMS",
       ],
     })

@@ -27,8 +27,17 @@
           return modules[id];
         })
         .sort(function (a, b) {
-          return (a.order || 99) - (b.order || 99);
+          var ao = typeof a.order === "number" ? a.order : 99;
+          var bo = typeof b.order === "number" ? b.order : 99;
+          return ao - bo;
         });
+    },
+
+    /** Primary sidebar workspaces only — excludes settings and other utility modules. */
+    getNavModules: function () {
+      return this.getModuleList().filter(function (mod) {
+        return mod.navVisible !== false;
+      });
     },
   };
 })();

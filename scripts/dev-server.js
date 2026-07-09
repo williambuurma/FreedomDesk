@@ -6,7 +6,7 @@
  * Serves the repo root so app/ can fetch ../data/*-preview.json.
  *
  * Usage: npm run dev
- * Opens: http://127.0.0.1:5500/app/#my-day
+ * Opens: http://127.0.0.1:5500/app/#today
  */
 
 const http = require("node:http");
@@ -17,7 +17,7 @@ const { spawnSync } = require("node:child_process");
 const ROOT = path.resolve(__dirname, "..");
 const PORT = Number(process.env.PORT) || 5500;
 const HOST = process.env.HOST || "127.0.0.1";
-const OPEN_PATH = "/app/#my-day";
+const OPEN_PATH = "/app/#today";
 
 const MIME = {
   ".html": "text/html; charset=utf-8",

@@ -1,0 +1,320 @@
+/* FreedomDesk Decision Card
+ *
+ * Primary: the only thing that asks for attention.
+ * Secondary: quiet rows — act if needed, otherwise ignore.
+ */
+
+.fd-dashboard-content .fd-dc {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0.55rem 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  min-width: 0;
+}
+
+.fd-dashboard-content .fd-dc--primary {
+  padding: 1rem 1rem 0.9rem;
+  background: var(--fd-surface-raised);
+  border: 1px solid rgba(24, 53, 98, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(24, 53, 98, 0.03), 0 6px 18px rgba(24, 53, 98, 0.05);
+}
+
+.fd-dashboard-content .fd-dc--urgent.fd-dc--primary {
+  border-left: 3px solid var(--fd-urgent);
+  padding-left: calc(1rem - 2px);
+}
+
+.fd-dashboard-content .fd-dc--protect,
+.fd-dashboard-content .fd-dc--opportunity {
+  border-left: none;
+  padding-left: 0;
+}
+
+.fd-dashboard-content .fd-dc--secondary {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--fd-divider-subtle);
+}
+
+.fd-dashboard-content .fd-dc--secondary:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.fd-dashboard-content .fd-dc--resolved {
+  opacity: 0.4;
+}
+
+/* ── Situation ── */
+
+.fd-dashboard-content .fd-dc-situation {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--fd-navy);
+}
+
+.fd-dashboard-content .fd-dc--primary .fd-dc-situation {
+  font-size: 1.0625rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.fd-dashboard-content .fd-dc--secondary .fd-dc-situation {
+  font-size: 0.8125rem;
+  font-weight: 550;
+  color: var(--fd-navy);
+}
+
+/* ── Subject ── */
+
+.fd-dashboard-content .fd-dc-subject {
+  margin: 0.1rem 0 0;
+  font-size: 0.6875rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  color: var(--fd-ink-tertiary);
+}
+
+.fd-dashboard-content .fd-dc--primary .fd-dc-subject {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+}
+
+/* ── Guidance ── */
+
+.fd-dashboard-content .fd-dc-guidance {
+  margin: 0.2rem 0 0;
+  font-size: 0.6875rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--fd-ink-body);
+}
+
+.fd-dashboard-content .fd-dc--primary .fd-dc-guidance {
+  margin-top: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--fd-navy);
+}
+
+.fd-dashboard-content .fd-dc--secondary .fd-dc-guidance {
+  font-size: 0.6875rem;
+  color: var(--fd-ink-tertiary);
+}
+
+/* ── Act ── */
+
+.fd-dashboard-content .fd-dc-act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+  margin-top: 0.45rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+.fd-dashboard-content .fd-dc--primary .fd-dc-act {
+  margin-top: 0.75rem;
+}
+
+.fd-dashboard-content .fd-dc--secondary .fd-dc-act {
+  margin-top: 0.3rem;
+}
+
+.fd-dashboard-content .fd-dc-primary {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.45rem 0.8rem;
+  min-height: 2rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--fd-navy);
+  color: var(--fd-ink-inverse);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.14s ease, transform 0.12s ease;
+}
+
+.fd-dashboard-content .fd-dc-primary:hover:not(:disabled) {
+  background: var(--fd-navy-mid);
+  text-decoration: none;
+  color: var(--fd-ink-inverse);
+}
+
+.fd-dashboard-content .fd-dc-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.fd-dashboard-content .fd-dc-primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.fd-dashboard-content .fd-dc-primary:focus-visible {
+  outline: 2px solid var(--fd-navy-mid);
+  outline-offset: 2px;
+}
+
+.fd-dashboard-content .fd-dc--urgent .fd-dc-primary {
+  background: var(--fd-urgent);
+}
+
+.fd-dashboard-content .fd-dc--urgent .fd-dc-primary:hover:not(:disabled) {
+  background: #9a1e14;
+}
+
+/* Secondary actions are text links — never compete with the primary CTA */
+.fd-dashboard-content .fd-dc--secondary .fd-dc-primary {
+  padding: 0;
+  min-height: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--fd-navy-mid);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.fd-dashboard-content .fd-dc--secondary .fd-dc-primary:hover:not(:disabled) {
+  background: transparent;
+  color: var(--fd-navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.fd-dashboard-content .fd-dc--secondary.fd-dc--urgent .fd-dc-primary {
+  background: transparent;
+  color: var(--fd-urgent);
+}
+
+.fd-dashboard-content .fd-dc--secondary.fd-dc--urgent .fd-dc-primary:hover:not(:disabled) {
+  background: transparent;
+  color: var(--fd-urgent);
+}
+
+.fd-dashboard-content .fd-dc-secondary-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem 0.55rem;
+  margin-left: auto;
+}
+
+.fd-dashboard-content .fd-dc-secondary-btn {
+  appearance: none;
+  margin: 0;
+  padding: 0.15rem 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--fd-ink-tertiary);
+  cursor: pointer;
+}
+
+.fd-dashboard-content .fd-dc-secondary-btn:hover:not(:disabled) {
+  color: var(--fd-navy-muted);
+}
+
+.fd-dashboard-content .fd-dc-secondary-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.fd-dashboard-content .fd-dc-secondary-btn--strong {
+  color: var(--fd-navy-mid);
+  font-weight: 600;
+}
+
+.fd-dashboard-content .fd-dc-secondary-btn--strong:hover:not(:disabled) {
+  color: var(--fd-navy);
+}
+
+.fd-dashboard-content .fd-dc-resolved {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--fd-positive);
+}
+
+/* ── Why? ── */
+
+.fd-dashboard-content .fd-dc-why {
+  appearance: none;
+  margin: 0;
+  padding: 0.15rem 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--fd-ink-tertiary);
+  cursor: pointer;
+}
+
+.fd-dashboard-content .fd-dc-why:hover,
+.fd-dashboard-content .fd-dc-why[aria-expanded="true"] {
+  color: var(--fd-navy);
+}
+
+.fd-dashboard-content .fd-dc-reason {
+  margin: 0.55rem 0 0;
+  padding: 0.5rem 0 0;
+  border-top: 1px solid var(--fd-divider-subtle);
+}
+
+.fd-dashboard-content .fd-dc-reason-text,
+.fd-dashboard-content .fd-dc-stake {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--fd-ink-body);
+  letter-spacing: -0.01em;
+}
+
+.fd-dashboard-content .fd-dc-stake + .fd-dc-reason-text,
+.fd-dashboard-content .fd-dc-reason-text + .fd-dc-evidence,
+.fd-dashboard-content .fd-dc-stake + .fd-dc-evidence {
+  margin-top: 0.35rem;
+}
+
+.fd-dashboard-content .fd-dc-evidence {
+  margin: 0.35rem 0 0;
+  padding: 0 0 0 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--fd-ink-body);
+}
+
+.fd-dashboard-content .fd-dc-evidence:first-child {
+  margin-top: 0;
+}
+
+.fd-dashboard-content .fd-dc-why-empty {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--fd-ink-tertiary);
+}

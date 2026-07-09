@@ -100,7 +100,7 @@ The **production AI phone system** (telephony, real-time voice, PMS write-back, 
 npm run dev
 ```
 
-Opens the FreedomDesk companion at **http://127.0.0.1:5500/app/#my-day**. Also refreshes mock preview JSON under `data/`.
+Opens the FreedomDesk companion at **http://127.0.0.1:5500/app/#today**. Also refreshes mock preview JSON under `data/`.
 
 See [`app/README.md`](app/README.md) for workspace URLs and options.
 

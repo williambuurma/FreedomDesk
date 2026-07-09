@@ -32,7 +32,7 @@
   --fd-space-block-home: clamp(1rem, 1.25vw + 0.5rem, 1.5rem);
 
   /* Content width tiers */
-  --fd-width-reading: 38rem;   /* ~608px — narrative / My Day */
+  --fd-width-reading: 38rem;   /* ~608px — narrative / Today */
   --fd-width-narrow: 44rem;    /* ~704px — forms, placeholders */
   --fd-width-standard: 56rem;  /* ~896px — mixed content */
   --fd-width-wide: 68rem;      /* ~1088px — denser workspace layouts */

@@ -9,9 +9,10 @@
   FreedomDesk.registerModule({
     id: "intelligence-inbox",
     label: "Next",
-    order: 2,
+    order: 91,
     navIcon: "spark",
     navHint: "Decisions",
+    navVisible: false,
     init: function (container) {
       container.innerHTML =
         '<div class="ii-page">' +

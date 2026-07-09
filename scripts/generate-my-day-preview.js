@@ -2,7 +2,7 @@
 "use strict";
 
 /**
- * Generates static My Day preview JSON for the dashboard.
+ * Generates static Today preview JSON for the companion (legacy filename).
  * Composes Practice Brain daily cycle + Practice Memory morning summary.
  *
  * Usage: node scripts/generate-my-day-preview.js
@@ -445,12 +445,12 @@ function buildAttentionCards(urgentTasks, briefSections, priorities) {
     id: "overnight-emergency",
     type: "call-preview",
     icon: "📞",
-    patientName: "Mary Johnson",
-    preview: "Son developed swelling overnight.",
+    patientName: "Liam Johnson",
+    preview: "Possible dental infection",
     variant: "red",
     taskId: "urgent-overnight-emergency",
     panel: "view-summary",
-    actionLabel: "View call summary",
+    actionLabel: "Open",
   });
 
   cards.push({
@@ -458,11 +458,11 @@ function buildAttentionCards(urgentTasks, briefSections, priorities) {
     type: "call-preview",
     icon: "📞",
     patientName: "Robert Chen",
-    preview: "Temporary crown came off while eating.",
-    variant: "blue",
+    preview: "Temp crown off",
+    variant: "amber",
     taskId: "overnight-crown-off",
     panel: "view-summary",
-    actionLabel: "View call summary",
+    actionLabel: "Open",
   });
 
   const callbackTask = urgentTasks.find(
@@ -473,13 +473,13 @@ function buildAttentionCards(urgentTasks, briefSections, priorities) {
       id: "callback-waiting",
       type: "callback-preview",
       icon: "☎️",
-      title: "1 Callback Waiting",
+      title: "Callback waiting",
       patientName: "Mary Johnson",
-      preview: "Expecting a return call this morning.",
+      preview: "Overnight emergency — not reached",
       variant: "red",
       taskId: callbackTask.id,
       panel: "view-summary",
-      actionLabel: "View call summary",
+      actionLabel: "Start callback",
     });
   }
 
@@ -492,12 +492,9 @@ function buildAttentionCards(urgentTasks, briefSections, priorities) {
     id: "insurance",
     type: "count",
     icon: "🛡️",
-    title:
-      insuranceCount === 1
-        ? "1 Insurance Verification"
-        : `${insuranceCount} Insurance Verifications`,
-    description: "Need to be completed before today's appointments.",
-    variant: "blue",
+    title: insuranceCount === 1 ? "Benefits not verified" : `${insuranceCount} benefits checks`,
+    description: "Before today's appointments",
+    variant: "amber",
   });
 
   return cards.slice(0, 4);
@@ -511,10 +508,10 @@ function buildScheduleGaps(opportunities, staff) {
   if (cancelOpp) {
     gaps.push({
       id: "gap-doc-1100",
-      label: "Open",
+      label: "Open chair",
       time: "11:00 AM",
       provider: doctorName,
-      duration: "60 Minutes Available",
+      duration: "60 min available",
       status: "available",
     });
   }
@@ -523,7 +520,7 @@ function buildScheduleGaps(opportunities, staff) {
 }
 
 function overnightCallerInstruction() {
-  return "Mary Johnson (Mother of Liam Johnson) called at 10:47 PM — swelling and fever. Not reached yet.";
+  return "Swelling and fever. Not reached yet.";
 }
 
 function buildCallSummaryForEmergency() {
@@ -664,20 +661,20 @@ function buildWelcomePriority(workday, staff, roleId) {
   if (!hasWork) {
     return {
       greeting,
-      subline: "You're well prepared — today's schedule looks good.",
+      subline: "Clear day ahead.",
     };
   }
 
   if (urgent.length > 0) {
     return {
       greeting,
-      subline: "You're well prepared. Let's start with today's priorities.",
+      subline: "Start with what can't wait.",
     };
   }
 
   return {
     greeting,
-    subline: "Here's what deserves your attention first today.",
+    subline: "Here's what needs you first.",
   };
 }
 
@@ -704,13 +701,13 @@ function buildV3WorkTasks(priorities, patientsAttention, opportunities, briefSec
     push(
       toWorkTask({
         id: "urgent-overnight-emergency",
-        label: "Overnight emergency",
+        label: "Possible dental infection",
         instruction: overnightCallerInstruction(),
         priority: "critical",
         category: "emergency",
         status: "needs-action",
-        recommendedNextStep: "Call before morning appointments.",
-        actionLabel: "View call summary",
+        recommendedNextStep: "Call before first patient.",
+        actionLabel: "Start callback",
         actionId: "view-summary",
         panel: "view-summary",
         callSummary: buildCallSummaryForEmergency(),
@@ -722,13 +719,13 @@ function buildV3WorkTasks(priorities, patientsAttention, opportunities, briefSec
   push(
     toWorkTask({
       id: "overnight-crown-off",
-      label: "Robert Chen — crown came off",
-      instruction: "Temporary crown came off while eating.",
+      label: "Temp crown off",
+      instruction: "Robert Chen — #19 came off overnight.",
       priority: "high",
       category: "callback",
       status: "needs-action",
-      recommendedNextStep: "Review call summary before returning the call.",
-      actionLabel: "View call summary",
+      recommendedNextStep: "Confirm early seat or keep schedule.",
+      actionLabel: "Open",
       actionId: "view-summary",
       panel: "view-summary",
       callSummary: buildCallSummaryForCrownOff(),
@@ -745,12 +742,12 @@ function buildV3WorkTasks(priorities, patientsAttention, opportunities, briefSec
       push(
         toWorkTask({
           id: patient.id,
-          label: `${patient.name} — crown at ${crownTime}`,
-          instruction: "Delta PPO not verified.",
+          label: "Benefits not verified",
+          instruction: `${patient.name} — crown at ${crownTime}.`,
           priority: "high",
           status: "needs-action",
-          recommendedNextStep: `Verify benefits before the ${crownTime} crown seat.`,
-          actionLabel: "Verify insurance",
+          recommendedNextStep: `Verify before ${crownTime}.`,
+          actionLabel: "Verify benefits",
           actionId: "verify-insurance",
           panel: "verify-insurance",
           insurancePanel: buildInsurancePanelForPatient(patient.name),
@@ -785,11 +782,11 @@ function buildV3WorkTasks(priorities, patientsAttention, opportunities, briefSec
     push(
       toWorkTask({
         id: `today-npe-${item.id}`,
-        label: `New patient at ${time}`,
-        instruction: "Delta PPO — finish intake before arrival.",
+        label: "New patient exam",
+        instruction: `${time} — finish intake before arrival.`,
         priority: "medium",
         status: "waiting",
-        actionLabel: "View call summary",
+        actionLabel: "Open",
         actionHref: "#calls",
         actionId: "view-summary",
         panel: "view-summary",
@@ -811,11 +808,11 @@ function buildV3WorkTasks(priorities, patientsAttention, opportunities, briefSec
       push(
         toWorkTask({
           id: opp.id,
-          label: "11:00 hygiene slot open",
-          instruction: "Emma Nguyen cancelled — offer waitlist.",
+          label: "Open hygiene chair",
+          instruction: "11:00 — short-call waitlist.",
           priority: "medium",
           status: "ready",
-          actionLabel: "Schedule appt",
+          actionLabel: "Call candidates",
           actionHref: "#patients",
           actionId: "schedule-appt",
         }),
@@ -832,9 +829,9 @@ function buildV3WorkTasks(priorities, patientsAttention, opportunities, briefSec
         toWorkTask({
           id: opp.id,
           label: "New patient today",
-          instruction: "Finish verification before arrival.",
+          instruction: "Verify before arrival.",
           priority: "medium",
-          actionLabel: "View summary",
+          actionLabel: "Open",
           actionHref: "#calls",
           actionId: "view-summary",
         }),
@@ -1324,31 +1321,31 @@ function buildDoctorClinicalPriorities(memory) {
   }
 
   addPriority(
-    "Finn Leo — emergency exam",
-    "Overnight swelling reported. Review before limited exam at 8:00 AM."
+    "Possible dental infection",
+    "Finn Leo — review before 8:00 limited exam."
   );
 
   const sarah = memory.patients.find((p) => p.identity.lastName === "Mitchell");
   if (sarah) {
     addPriority(
-      `${patientDisplayName(sarah)} — crown #14`,
-      "Reports occasional cold sensitivity. Review before seating crown."
+      "Crown seat — cold sensitivity",
+      `${patientDisplayName(sarah)} #14 — review before seat.`
     );
   }
 
   const robert = memory.patients.find((p) => p.identity.lastName === "Chen");
   if (robert) {
     addPriority(
-      `${patientDisplayName(robert)} — post-op #19`,
-      "Mild soreness reported yesterday. Temporary crown came off overnight — check site at 3:00 PM."
+      "Temp crown off",
+      `${patientDisplayName(robert)} #19 — check site at 3:00.`
     );
   }
 
   const emma = memory.patients.find((p) => p.identity.lastName === "Nguyen");
   if (emma) {
     addPriority(
-      `${patientDisplayName(emma)} — hygiene check`,
-      "Overdue recall. Discuss treatment if appropriate during exam."
+      "Patient ready for treatment discussion",
+      `${patientDisplayName(emma)} — overdue recall at hygiene check.`
     );
   }
 
@@ -1359,26 +1356,26 @@ function buildDoctorTasks() {
   return [
     {
       id: "doc-task-abx",
-      label: "Call in antibiotic for Finn Leo",
-      detail: "Amoxicillin 500mg — pharmacy on file at Meijer.",
+      label: "Call in antibiotic",
+      detail: "Finn Leo — Amoxicillin 500mg on file.",
       priority: "high",
     },
     {
       id: "doc-task-path",
-      label: "Review pathology report",
-      detail: "Biopsy #4521 — results uploaded last night.",
+      label: "Pathology report ready",
+      detail: "Biopsy #4521 — uploaded overnight.",
       priority: "medium",
     },
     {
       id: "doc-task-ref",
-      label: "Sign referral letter",
-      detail: "Emily Davis — oral surgery consult for extraction follow-up.",
+      label: "Referral letter unsigned",
+      detail: "Emily Davis — oral surgery follow-up.",
       priority: "medium",
     },
     {
       id: "doc-task-cbct",
-      label: "Review CBCT before implant consult",
-      detail: "Michael Chen — implant consult scheduled later this week.",
+      label: "CBCT before implant consult",
+      detail: "Michael Chen — later this week.",
       priority: "low",
     },
   ];
@@ -1391,10 +1388,10 @@ function buildDoctorWelcome(staff, roleId, priorityCount) {
   if (priorityCount >= 2) {
     const phrase = patientCountPhrase(priorityCount);
     if (phrase) {
-      subline = `You have a full clinical day. ${phrase.charAt(0).toUpperCase() + phrase.slice(1)}.`;
+      subline = `Full clinical day. ${phrase.charAt(0).toUpperCase() + phrase.slice(1)}.`;
     }
   } else if (priorityCount === 1) {
-    subline = "You have a full clinical day. One patient deserves extra attention.";
+    subline = "Full clinical day. One patient needs extra attention.";
   }
 
   return { greeting, subline };
@@ -1517,7 +1514,7 @@ async function main() {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, JSON.stringify(preview, null, 2) + "\n", "utf8");
 
-  console.error(`My Day preview written to ${outputPath}`);
+  console.error(`Today preview written to ${outputPath}`);
   for (const roleId of Object.keys(roles)) {
     const view = roles[roleId];
     if (roleId === "front_desk") {

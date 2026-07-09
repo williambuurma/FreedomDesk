@@ -1,42 +1,18 @@
 /**
- * My Day — app workspace adapter.
+ * My Day — legacy id only. Redirects to Today via dashboard LEGACY_REDIRECTS.
  */
 (function () {
   "use strict";
 
-  var TEMPLATE_URL = "modules/my-day/template.html";
-
   FreedomDesk.registerModule({
     id: "my-day",
-    label: "My Day",
-    order: 1,
+    label: "Today",
+    order: 92,
     navIcon: "day",
-    navHint: "Your work",
-    init: function (container) {
-      container.innerHTML =
-        '<div class="md-page">' +
-        '<main class="md-main">' +
-        '<div class="md-container"></div>' +
-        "</main></div>";
-
-      fetch(TEMPLATE_URL)
-        .then(function (res) {
-          if (!res.ok) throw new Error("Failed to load template");
-          return res.text();
-        })
-        .then(function (html) {
-          var shell = container.querySelector(".md-container");
-          if (!shell) return;
-          shell.innerHTML = html;
-          MyDayRenderer.init(container);
-        })
-        .catch(function () {
-          var shell = container.querySelector(".md-container");
-          if (shell) {
-            shell.innerHTML =
-              '<div class="md-error"><p>Unable to load My Day. Please refresh or contact support.</p></div>';
-          }
-        });
+    navHint: "Focus",
+    navVisible: false,
+    init: function () {
+      /* Redirect handled by dashboard.js LEGACY_REDIRECTS */
     },
   });
 })();

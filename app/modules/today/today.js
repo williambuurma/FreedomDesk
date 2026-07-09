@@ -1,13 +1,14 @@
 /**
- * My Day — role-aware daily action surface.
- * Receptionist: v3 morning briefing (USER_EXPERIENCE_PHILOSOPHY.md).
- * Doctor: calm clinical workspace — same visual language, role-specific content.
+ * Today — single operating workspace.
+ * Morning Brief is the morning state of this surface, not a separate home.
+ * Role-aware content; same visual language as the prior My Day layout.
  */
 (function () {
   "use strict";
 
   var PREVIEW_URL = "../data/my-day-preview.json";
-  var STORAGE_KEY = "freedomdesk_my_day_role";
+  var STORAGE_KEY = "freedomdesk_today_role";
+  var LEGACY_STORAGE_KEY = "freedomdesk_my_day_role";
 
   var UI = window.FreedomDeskUI;
   var Labels = window.FreedomDeskLabels;
@@ -19,15 +20,21 @@
     roleId: "front_desk",
     taskIndex: {},
     eventsBound: false,
+    morningActive: false,
   };
 
   function $(id) {
     return document.getElementById(id);
   }
 
+  /** Morning Brief opening state — before midday operating rhythm. */
+  function isMorningPhase() {
+    return new Date().getHours() < 11;
+  }
+
   function getStoredRole() {
     try {
-      var stored = localStorage.getItem(STORAGE_KEY);
+      var stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
       if (stored && Labels.MY_DAY_ROLES[stored]) return stored;
     } catch (_e) {
       /* localStorage unavailable */
@@ -86,56 +93,126 @@
     var isReceptionist = state.roleId === "front_desk";
     var receptionistLayout = $("mdReceptionistLayout");
     var doctorLayout = $("mdDoctorLayout");
+    var morningEl = $("tdMorning");
 
+    if (morningEl) {
+      morningEl.hidden = !(state.morningActive && isReceptionist);
+    }
     if (receptionistLayout) receptionistLayout.hidden = !isReceptionist;
     if (doctorLayout) doctorLayout.hidden = isReceptionist;
   }
 
-  function renderReceptionist(view) {
+  function renderMorningState() {
+    var mount = $("tdMorningMount");
+    var morningEl = $("tdMorning");
+    if (!mount || !morningEl) return Promise.resolve(false);
+
+    if (!state.morningActive || state.roleId !== "front_desk") {
+      morningEl.hidden = true;
+      mount.innerHTML = "";
+      return Promise.resolve(false);
+    }
+
+    if (
+      !window.MorningBriefRenderer ||
+      typeof MorningBriefRenderer.renderInto !== "function"
+    ) {
+      morningEl.hidden = true;
+      return Promise.resolve(false);
+    }
+
+    return MorningBriefRenderer.renderInto(mount).then(function (ok) {
+      morningEl.hidden = !ok;
+      return !!ok;
+    });
+  }
+
+  function renderReceptionist(view, options) {
+    var opts = options || {};
+    var useMorning = !!opts.morningRendered;
     indexTasks(view);
 
     var greetingEl = $("mdGreeting");
     if (greetingEl) {
-      greetingEl.innerHTML = UI.renderReceptionistWelcome({
-        welcome: view.welcome,
-        practiceName: state.data.practiceName,
-        date: state.data.date,
-      });
+      if (useMorning) {
+        greetingEl.innerHTML = "";
+        greetingEl.hidden = true;
+      } else {
+        greetingEl.hidden = false;
+        greetingEl.innerHTML = UI.renderReceptionistWelcome({
+          welcome: view.welcome,
+          practiceName: state.data.practiceName,
+          date: state.data.date,
+        });
+      }
     }
 
     var sinceEl = $("mdSinceYesterday");
     if (sinceEl) {
-      sinceEl.innerHTML = UI.renderAttentionCards(view.attentionCards);
+      // Morning Brief already covers overnight changes — skip duplicate cards.
+      if (useMorning) {
+        sinceEl.innerHTML = "";
+        sinceEl.hidden = true;
+      } else {
+        sinceEl.hidden = false;
+        sinceEl.innerHTML = UI.renderAttentionCards(view.attentionCards);
+      }
     }
 
     var urgentEl = $("mdUrgent");
     if (urgentEl) {
-      urgentEl.innerHTML = UI.renderUrgentSection(
-        view.urgentTasks,
-        "You're clear — nothing urgent."
-      );
+      // Morning Brief primary decisions replace the duplicate "Do first" task list.
+      if (useMorning) {
+        urgentEl.innerHTML = "";
+        urgentEl.hidden = true;
+      } else {
+        urgentEl.hidden = false;
+        urgentEl.innerHTML = UI.renderUrgentSection(
+          view.urgentTasks,
+          "You're clear — nothing urgent."
+        );
+      }
     }
 
     var todayEl = $("mdToday");
     if (todayEl) {
-      todayEl.innerHTML = UI.renderSectionCard(
-        "Today",
-        UI.renderTodaySection(
-          view.todayTasks,
-          view.scheduleGaps,
-          "Nothing else on your list — keep the schedule moving."
-        ),
-        { id: "mdTodayCard" }
-      );
+      var todayTasks = view.todayTasks || [];
+      var scheduleGaps = view.scheduleGaps || [];
+      // Morning decisions already cover waitlist / open-chair — don't repeat them.
+      if (useMorning) {
+        todayTasks = todayTasks.filter(function (task) {
+          var blob = ((task.label || "") + " " + (task.instruction || "")).toLowerCase();
+          return !/open hygiene|waitlist|short-call|open chair/i.test(blob);
+        });
+        scheduleGaps = [];
+      }
+      if (!todayTasks.length && !scheduleGaps.length) {
+        todayEl.innerHTML = "";
+        todayEl.hidden = true;
+      } else {
+        todayEl.hidden = false;
+        todayEl.innerHTML = UI.renderSectionCard(
+          "",
+          UI.renderTodaySection(todayTasks, scheduleGaps, "Nothing else on your list."),
+          { id: "mdTodayCard", quiet: true }
+        );
+      }
     }
 
     var headsUpEl = $("mdHeadsUp");
     if (headsUpEl) {
-      headsUpEl.innerHTML = UI.renderSectionCard(
-        "Today's Reminders",
-        UI.renderHeadsUpList(view.headsUp, "Nothing else on the radar today."),
-        { id: "mdHeadsUpCard", compact: true, emphasis: true }
-      );
+      var headsUp = (view.headsUp || []).slice(0, 3);
+      if (!headsUp.length) {
+        headsUpEl.innerHTML = "";
+        headsUpEl.hidden = true;
+      } else {
+        headsUpEl.hidden = false;
+        headsUpEl.innerHTML = UI.renderSectionCard(
+          "",
+          UI.renderHeadsUpList(headsUp, "Nothing else on the radar."),
+          { id: "mdHeadsUpCard", compact: true, quiet: true }
+        );
+      }
     }
   }
 
@@ -149,34 +226,40 @@
       });
     }
 
-    var scheduleEl = $("mdDoctorSchedule");
-    if (scheduleEl) {
-      scheduleEl.innerHTML = UI.renderSectionCard(
-        "Today's Schedule",
-        UI.renderDoctorSchedule(view.schedule, "Schedule unavailable."),
-        { id: "mdDoctorScheduleCard" }
-      );
+    // Doctor attention is scarce — only high-priority interrupts surface.
+    var doctorTasks = (view.todaysTasks || []).filter(function (task) {
+      return task.priority === "high" || task.priority === "critical";
+    });
+    if (!doctorTasks.length) {
+      doctorTasks = (view.todaysTasks || []).slice(0, 1);
+    } else {
+      doctorTasks = doctorTasks.slice(0, 2);
     }
+
+    var clinical = (view.clinicalPriorities || []).slice(0, 2);
 
     var tasksEl = $("mdDoctorTasks");
     if (tasksEl) {
       tasksEl.innerHTML = UI.renderSectionCard(
-        "Today's Tasks",
-        UI.renderDoctorTasks(view.todaysTasks, "No clinical tasks flagged today."),
-        { id: "mdDoctorTasksCard" }
+        "",
+        UI.renderDoctorTasks(doctorTasks, "Nothing needs you right now."),
+        { id: "mdDoctorTasksCard", quiet: true }
       );
     }
 
     var prioritiesEl = $("mdClinicalPriorities");
     if (prioritiesEl) {
-      prioritiesEl.innerHTML = UI.renderSectionCard(
-        "Clinical Priorities",
-        UI.renderClinicalPriorities(
-          view.clinicalPriorities,
-          "No clinical priorities flagged today."
-        ),
-        { id: "mdClinicalPrioritiesCard", compact: true, emphasis: true }
-      );
+      if (!clinical.length) {
+        prioritiesEl.innerHTML = "";
+        prioritiesEl.hidden = true;
+      } else {
+        prioritiesEl.hidden = false;
+        prioritiesEl.innerHTML = UI.renderSectionCard(
+          "",
+          UI.renderClinicalPriorities(clinical, "No clinical priorities flagged."),
+          { id: "mdClinicalPrioritiesCard", compact: true, quiet: true }
+        );
+      }
     }
   }
 
@@ -186,13 +269,16 @@
 
     UI.closeWorkPanel();
     renderRoleBar();
-    setLayoutVisibility();
+    state.morningActive = isMorningPhase();
 
-    if (state.roleId === "front_desk") {
-      renderReceptionist(view);
-    } else {
-      renderDoctor(view);
-    }
+    renderMorningState().then(function (morningRendered) {
+      setLayoutVisibility();
+      if (state.roleId === "front_desk") {
+        renderReceptionist(view, { morningRendered: morningRendered });
+      } else {
+        renderDoctor(view);
+      }
+    });
   }
 
   function bindEvents(container) {
@@ -241,11 +327,14 @@
     $("mdLoading").hidden = true;
     $("mdReceptionistLayout").hidden = true;
     $("mdDoctorLayout").hidden = true;
+    var morningEl = $("tdMorning");
+    if (morningEl) morningEl.hidden = true;
     $("mdError").hidden = false;
   }
 
   function init(container) {
     state.roleId = getStoredRole();
+    state.morningActive = isMorningPhase();
 
     Promise.all([fetch(PREVIEW_URL), Staff.load()])
       .then(function (results) {
@@ -259,7 +348,7 @@
         state.staff = payload.staff;
         state.data = Staff.applyToMyDayData(payload.data, payload.staff);
         if (!state.data.previewMode) {
-          console.warn("My Day preview: expected previewMode flag");
+          console.warn("Today preview: expected previewMode flag");
         }
         renderRole();
         bindEvents(container);
@@ -270,7 +359,7 @@
       });
   }
 
-  window.MyDayRenderer = {
+  window.TodayRenderer = {
     init: init,
   };
 })();

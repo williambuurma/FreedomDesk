@@ -1,7 +1,7 @@
 {
   "$schema": "intelligence-inbox/v1",
   "practiceId": "practice_cascade_family_gr",
-  "generatedAt": "2026-07-09T01:07:28.410Z",
+  "generatedAt": "2026-07-09T05:38:13.350Z",
   "source": "mock_operational_events",
   "eventCount": 6,
   "actions": [

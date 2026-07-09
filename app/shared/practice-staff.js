@@ -45,19 +45,11 @@
 
     if (previewData.roles && previewData.roles.front_desk && rec) {
       previewData.roles.front_desk.recipientName = rec.firstName;
-      if (previewData.roles.front_desk.welcome && previewData.roles.front_desk.welcome.greeting) {
-        var greetingPrefix = previewData.roles.front_desk.welcome.greeting.split(",")[0];
-        previewData.roles.front_desk.welcome.greeting = greetingPrefix + ", " + rec.firstName + ".";
-      }
+      // Greeting stays impersonal — role switch carries identity.
     }
 
     if (previewData.roles && previewData.roles.dentist && doc) {
       previewData.roles.dentist.recipientName = doc.displayName;
-      if (previewData.roles.dentist.welcome && previewData.roles.dentist.welcome.greeting) {
-        var docGreetingPrefix = previewData.roles.dentist.welcome.greeting.split(",")[0];
-        previewData.roles.dentist.welcome.greeting =
-          docGreetingPrefix + ", " + doc.displayName + ".";
-      }
     }
 
     previewData.staffSettings = staff;

@@ -8,7 +8,7 @@
     FreedomDeskPlaceholder({
       id: "patients",
       label: "Patients",
-      order: 3,
+      order: 1,
       navIcon: "users",
       navHint: "Lookup",
       description:

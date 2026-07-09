@@ -5,6 +5,7 @@
   "description": "FreedomDesk marketing site, lead capture, and intelligence prototypes",
   "scripts": {
     "dev": "node scripts/dev-server.js",
+    "build": "npm run preview:intelligence-inbox && npm run preview:my-day && npm run preview:morning-brief && npm test",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
     "test": "node --test src/engine/prompt-context-builder.test.js && node --experimental-strip-types --test src/conversation/psychology.test.ts && node --experimental-strip-types --test src/conversation/reasoning.test.ts && node --experimental-strip-types --test src/events/operationalEvent.test.ts && node --experimental-strip-types --test src/actions/actionModel.test.ts && node --experimental-strip-types --test src/conversation/proofLoop.test.ts && node --experimental-strip-types --test src/practice-brain/practiceBrain.test.ts && node --experimental-strip-types --test src/practice-memory/practiceMemory.test.ts && node --experimental-strip-types --test src/reflection-engine/reflection.test.ts && node --test scripts/morning-brief-preview.test.js && node --test scripts/my-day-preview.test.js && node --test scripts/intelligence-inbox-preview.test.js",

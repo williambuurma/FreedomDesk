@@ -1,13 +1,21 @@
 /**
- * FreedomDesk companion shell — narrow panel beside the PMS.
- * Nav + workspace content live inside the companion. Settings in the footer menu.
+ * FreedomDesk companion shell — UI v2
+ * Permanent icon rail + workspace routing. Settings in the sidebar footer.
+ * Primary nav: Today · Patients · Ask FreedomDesk.
  */
 (function () {
   "use strict";
 
-  var DEFAULT_MODULE = "my-day";
+  var DEFAULT_MODULE = "today";
   var currentModuleId = null;
   var currentModuleInstance = null;
+
+  /** Old homes redirect into Today — no duplicate primary workspaces. */
+  var LEGACY_REDIRECTS = {
+    "my-day": "today",
+    "morning-brief": "today",
+    "intelligence-inbox": "today",
+  };
 
   var NAV_ICONS = {
     brief:
@@ -29,9 +37,7 @@
   };
 
   var HEADER_TITLES = {
-    "my-day": "My Day",
-    "intelligence-inbox": "Next",
-    "morning-brief": "Morning Brief",
+    today: "Today",
     patients: "Patients",
     ask: "Ask FreedomDesk",
     settings: "Settings",
@@ -41,9 +47,14 @@
     return document.getElementById(id);
   }
 
+  function resolveModuleId(moduleId) {
+    if (!moduleId) return DEFAULT_MODULE;
+    return LEGACY_REDIRECTS[moduleId] || moduleId;
+  }
+
   function getModuleIdFromHash() {
     var hash = window.location.hash.replace(/^#/, "");
-    return hash || DEFAULT_MODULE;
+    return resolveModuleId(hash || DEFAULT_MODULE);
   }
 
   function setActiveNav(moduleId) {
@@ -51,15 +62,27 @@
     links.forEach(function (link) {
       var isActive = link.getAttribute("data-module") === moduleId;
       link.classList.toggle("fd-nav-link-active", isActive);
-      link.setAttribute("aria-current", isActive ? "true" : "false");
+      if (isActive) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
     });
   }
 
   function updateHeader(module) {
     var titleEl = $("fdModuleTitle");
+    var headerEl = document.querySelector(".fd-companion-header");
     if (titleEl && module) {
-      titleEl.hidden = false;
-      titleEl.textContent = HEADER_TITLES[module.id] || module.label;
+      // Today owns its greeting in-content — collapse empty chrome
+      if (module.id === "today") {
+        titleEl.hidden = true;
+        if (headerEl) headerEl.hidden = true;
+      } else {
+        titleEl.hidden = false;
+        titleEl.textContent = HEADER_TITLES[module.id] || module.label;
+        if (headerEl) headerEl.hidden = false;
+      }
     }
     document.title = module ? module.label + " — FreedomDesk" : "FreedomDesk";
   }
@@ -74,14 +97,21 @@
 
   function navigateTo(moduleId, options) {
     var opts = options || {};
-    var module = FreedomDesk.getModule(moduleId);
+    var resolvedId = resolveModuleId(moduleId);
+    var module = FreedomDesk.getModule(resolvedId);
 
     if (!module) {
       navigateTo(DEFAULT_MODULE, { replaceHash: true });
       return;
     }
 
-    if (currentModuleId === moduleId && !opts.force) {
+    if (currentModuleId === resolvedId && !opts.force) {
+      if (resolvedId !== moduleId && opts.replaceHash !== false) {
+        var syncHash = "#" + resolvedId;
+        if (window.location.hash !== syncHash) {
+          history.replaceState(null, "", syncHash);
+        }
+      }
       return;
     }
 
@@ -92,16 +122,16 @@
 
     container.innerHTML = "";
     container.scrollTop = 0;
-    currentModuleId = moduleId;
+    currentModuleId = resolvedId;
     currentModuleInstance = module;
     module.init(container);
 
-    setActiveNav(moduleId);
+    setActiveNav(resolvedId);
     updateHeader(module);
     closeProfileMenu();
 
     if (opts.replaceHash !== false) {
-      var newHash = "#" + moduleId;
+      var newHash = "#" + resolvedId;
       if (window.location.hash !== newHash) {
         history.replaceState(null, "", newHash);
       }
@@ -197,7 +227,7 @@
     });
 
     window.addEventListener("hashchange", function () {
-      navigateTo(getModuleIdFromHash(), { replaceHash: false });
+      navigateTo(getModuleIdFromHash(), { replaceHash: true, force: false });
     });
   }
 
@@ -207,7 +237,7 @@
     }
     buildCompanionNav();
     bindShellEvents();
-    navigateTo(getModuleIdFromHash(), { replaceHash: false, force: true });
+    navigateTo(getModuleIdFromHash(), { replaceHash: true, force: true });
   }
 
   if (document.readyState === "loading") {

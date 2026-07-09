@@ -21,12 +21,11 @@ const RECEPTIONIST_SECTIONS = [
 
 const DOCTOR_SECTIONS = [
   "mdDoctorGreeting",
-  "mdDoctorSchedule",
   "mdDoctorTasks",
   "mdClinicalPriorities",
 ];
 
-describe("My Day preview data", () => {
+describe("Today preview data", () => {
   test("preview JSON exists and has role-scoped views", () => {
     assert.ok(fs.existsSync(previewPath), "data/my-day-preview.json missing — run npm run preview:my-day");
     assert.ok(fs.existsSync(staffPath), "data/practice-staff.json missing");
@@ -59,7 +58,6 @@ describe("My Day preview data", () => {
     assert.ok(receptionist);
     assert.equal(receptionist.recipientName, defaultRec.firstName);
     assert.ok(receptionist.welcome && receptionist.welcome.greeting);
-    assert.ok(receptionist.welcome.greeting.includes(defaultRec.firstName));
     assert.ok(
       receptionist.welcome.subline || receptionist.welcome.priority,
       "welcome subline should reassure before tasks"
@@ -89,13 +87,13 @@ describe("My Day preview data", () => {
       assert.ok(task.label);
       assert.ok(task.instruction);
       assert.ok(task.actionLabel);
-      assert.equal(task.actionLabel, "View call summary");
+      assert.equal(task.actionLabel, "Start callback");
       assert.ok(task.callSummary);
       assert.ok(task.callSummary.patientName);
       assert.ok(task.callSummary.aiSummary);
     }
 
-    const verifyTask = receptionist.urgentTasks.find((t) => t.actionLabel === "Verify insurance");
+    const verifyTask = receptionist.urgentTasks.find((t) => t.actionLabel === "Verify benefits");
     if (verifyTask) {
       assert.ok(verifyTask.insurancePanel);
       assert.ok(verifyTask.insurancePanel.company);
@@ -127,27 +125,28 @@ describe("My Day preview data", () => {
   });
 });
 
-describe("My Day dashboard module", () => {
+describe("Today dashboard module", () => {
   test("core files exist and index.html wires the module", () => {
     const indexHtml = fs.readFileSync(path.join(appRoot, "index.html"), "utf8");
 
-    assert.ok(fs.existsSync(path.join(appRoot, "modules/my-day/module.js")));
-    assert.ok(fs.existsSync(path.join(appRoot, "modules/my-day/my-day.js")));
-    assert.ok(fs.existsSync(path.join(appRoot, "modules/my-day/template.html")));
+    assert.ok(fs.existsSync(path.join(appRoot, "modules/today/module.js")));
+    assert.ok(fs.existsSync(path.join(appRoot, "modules/today/today.js")));
+    assert.ok(fs.existsSync(path.join(appRoot, "modules/today/template.html")));
     assert.ok(fs.existsSync(path.join(appRoot, "shared/labels.js")));
     assert.ok(fs.existsSync(path.join(appRoot, "shared/practice-staff.js")));
     assert.ok(fs.existsSync(path.join(appRoot, "shared/components/dashboard-ui.js")));
     assert.ok(fs.existsSync(path.join(appRoot, "styles/my-day.css")));
 
-    assert.match(indexHtml, /modules\/my-day\/module\.js/);
+    assert.match(indexHtml, /modules\/today\/module\.js/);
     assert.match(indexHtml, /shared\/practice-staff\.js/);
     assert.match(indexHtml, /my-day\.css/);
-    assert.match(indexHtml, /Freedomdesk-logo-full\.png/);
+    assert.match(indexHtml, /FreedomDesk%20Icon\.png|FreedomDesk Icon\.png/);
+    assert.doesNotMatch(indexHtml, /Freedomdesk-logo-full\.png/, "icon rail uses mark only");
   });
 
   test("template has receptionist and doctor section layouts", () => {
     const template = fs.readFileSync(
-      path.join(appRoot, "modules/my-day/template.html"),
+      path.join(appRoot, "modules/today/template.html"),
       "utf8"
     );
 
@@ -162,14 +161,37 @@ describe("My Day dashboard module", () => {
     assert.match(template, /mdReceptionistLayout/);
     assert.match(template, /mdDoctorLayout/);
     assert.match(template, /mdRoleBar/);
-    assert.match(template, /class="md-workspace"/);
-    assert.match(template, /md-workspace-primary/);
-    assert.match(template, /md-workspace-secondary/);
-    assert.match(template, /mdDoctorSchedule/);
+    assert.match(template, /tdMorning/);
+    assert.match(template, /md-workspace--split/);
+    assert.match(template, /md-workspace--clinical/);
+    assert.doesNotMatch(template, /mdDoctorSchedule/, "PMS owns the schedule — no doctor schedule mirror");
   });
 
-  test("dashboard defaults to my-day home", () => {
+  test("dashboard defaults to today home", () => {
     const dashboard = fs.readFileSync(path.join(appRoot, "dashboard.js"), "utf8");
-    assert.match(dashboard, /DEFAULT_MODULE = "my-day"/);
+    assert.match(dashboard, /DEFAULT_MODULE = "today"/);
+    assert.match(dashboard, /"my-day":\s*"today"/);
+    assert.match(dashboard, /"morning-brief":\s*"today"/);
+    assert.match(dashboard, /"intelligence-inbox":\s*"today"/);
+  });
+
+  test("primary nav is Today, Patients, Ask only", () => {
+    const todayMod = fs.readFileSync(path.join(appRoot, "modules/today/module.js"), "utf8");
+    const briefMod = fs.readFileSync(path.join(appRoot, "modules/morning-brief/module.js"), "utf8");
+    const inboxMod = fs.readFileSync(
+      path.join(appRoot, "modules/intelligence-inbox/module.js"),
+      "utf8"
+    );
+    const patients = fs.readFileSync(path.join(appRoot, "modules/patients/patients.js"), "utf8");
+    const ask = fs.readFileSync(path.join(appRoot, "modules/ask/ask.js"), "utf8");
+
+    assert.match(todayMod, /label:\s*"Today"/);
+    assert.match(todayMod, /id:\s*"today"/);
+    assert.doesNotMatch(todayMod, /navVisible:\s*false/);
+
+    assert.match(briefMod, /navVisible:\s*false/);
+    assert.match(inboxMod, /navVisible:\s*false/);
+    assert.match(patients, /label:\s*"Patients"/);
+    assert.match(ask, /label:\s*"Ask FreedomDesk"/);
   });
 });

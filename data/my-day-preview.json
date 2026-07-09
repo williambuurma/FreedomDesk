@@ -1,6 +1,6 @@
 {
   "previewMode": true,
-  "generatedAt": "2026-07-09T01:07:28.487Z",
+  "generatedAt": "2026-07-09T05:38:13.498Z",
   "practiceName": "Cascade Family Dentistry",
   "date": "2026-07-09",
   "staffSettings": {
@@ -42,8 +42,8 @@
       "recipientName": "Dr. Johnson",
       "label": "Dr. Johnson",
       "welcome": {
-        "greeting": "Good evening, Dr. Johnson.",
-        "subline": "You have a full clinical day. 4 patients deserve extra attention."
+        "greeting": "Good morning, Dr. Johnson.",
+        "subline": "Full clinical day. 4 patients deserve extra attention."
       },
       "schedule": [
         {
@@ -106,48 +106,48 @@
       "clinicalPriorities": [
         {
           "number": 1,
-          "label": "Finn Leo — emergency exam",
-          "detail": "Overnight swelling reported. Review before limited exam at 8:00 AM."
+          "label": "Possible dental infection",
+          "detail": "Finn Leo — review before 8:00 limited exam."
         },
         {
           "number": 2,
-          "label": "Sarah Mitchell — crown #14",
-          "detail": "Reports occasional cold sensitivity. Review before seating crown."
+          "label": "Crown seat — cold sensitivity",
+          "detail": "Sarah Mitchell #14 — review before seat."
         },
         {
           "number": 3,
-          "label": "Robert Chen — post-op #19",
-          "detail": "Mild soreness reported yesterday. Temporary crown came off overnight — check site at 3:00 PM."
+          "label": "Temp crown off",
+          "detail": "Robert Chen #19 — check site at 3:00."
         },
         {
           "number": 4,
-          "label": "Emma Nguyen — hygiene check",
-          "detail": "Overdue recall. Discuss treatment if appropriate during exam."
+          "label": "Patient ready for treatment discussion",
+          "detail": "Emma Nguyen — overdue recall at hygiene check."
         }
       ],
       "todaysTasks": [
         {
           "id": "doc-task-abx",
-          "label": "Call in antibiotic for Finn Leo",
-          "detail": "Amoxicillin 500mg — pharmacy on file at Meijer.",
+          "label": "Call in antibiotic",
+          "detail": "Finn Leo — Amoxicillin 500mg on file.",
           "priority": "high"
         },
         {
           "id": "doc-task-path",
-          "label": "Review pathology report",
-          "detail": "Biopsy #4521 — results uploaded last night.",
+          "label": "Pathology report ready",
+          "detail": "Biopsy #4521 — uploaded overnight.",
           "priority": "medium"
         },
         {
           "id": "doc-task-ref",
-          "label": "Sign referral letter",
-          "detail": "Emily Davis — oral surgery consult for extraction follow-up.",
+          "label": "Referral letter unsigned",
+          "detail": "Emily Davis — oral surgery follow-up.",
           "priority": "medium"
         },
         {
           "id": "doc-task-cbct",
-          "label": "Review CBCT before implant consult",
-          "detail": "Michael Chen — implant consult scheduled later this week.",
+          "label": "CBCT before implant consult",
+          "detail": "Michael Chen — later this week.",
           "priority": "low"
         }
       ]
@@ -156,63 +156,63 @@
       "recipientName": "Sarah",
       "label": "Sarah",
       "welcome": {
-        "greeting": "Good evening, Sarah.",
-        "subline": "You're well prepared. Let's start with today's priorities."
+        "greeting": "Good morning, Sarah.",
+        "subline": "Start with what can't wait."
       },
       "attentionCards": [
         {
           "id": "overnight-emergency",
           "type": "call-preview",
           "icon": "📞",
-          "patientName": "Mary Johnson",
-          "preview": "Son developed swelling overnight.",
+          "patientName": "Liam Johnson",
+          "preview": "Possible dental infection",
           "variant": "red",
           "taskId": "urgent-overnight-emergency",
           "panel": "view-summary",
-          "actionLabel": "View call summary"
+          "actionLabel": "Open"
         },
         {
           "id": "overnight-crown",
           "type": "call-preview",
           "icon": "📞",
           "patientName": "Robert Chen",
-          "preview": "Temporary crown came off while eating.",
-          "variant": "blue",
+          "preview": "Temp crown off",
+          "variant": "amber",
           "taskId": "overnight-crown-off",
           "panel": "view-summary",
-          "actionLabel": "View call summary"
+          "actionLabel": "Open"
         },
         {
           "id": "callback-waiting",
           "type": "callback-preview",
           "icon": "☎️",
-          "title": "1 Callback Waiting",
+          "title": "Callback waiting",
           "patientName": "Mary Johnson",
-          "preview": "Expecting a return call this morning.",
+          "preview": "Overnight emergency — not reached",
           "variant": "red",
           "taskId": "urgent-overnight-emergency",
           "panel": "view-summary",
-          "actionLabel": "View call summary"
+          "actionLabel": "Start callback"
         },
         {
           "id": "insurance",
           "type": "count",
           "icon": "🛡️",
-          "title": "1 Insurance Verification",
-          "description": "Need to be completed before today's appointments.",
-          "variant": "blue"
+          "title": "Benefits not verified",
+          "description": "Before today's appointments",
+          "variant": "amber"
         }
       ],
       "urgentTasks": [
         {
           "id": "urgent-overnight-emergency",
-          "label": "Overnight emergency",
-          "instruction": "Mary Johnson (Mother of Liam Johnson) called at 10:47 PM — swelling and fever. Not reached yet.",
+          "label": "Possible dental infection",
+          "instruction": "Swelling and fever. Not reached yet.",
           "priority": "critical",
           "category": "emergency",
           "status": "needs-action",
-          "recommendedNextStep": "Call before morning appointments.",
-          "actionLabel": "View call summary",
+          "recommendedNextStep": "Call before first patient.",
+          "actionLabel": "Start callback",
           "actionHref": "#calls",
           "actionId": "view-summary",
           "panel": "view-summary",
@@ -232,13 +232,13 @@
         },
         {
           "id": "overnight-crown-off",
-          "label": "Robert Chen — crown came off",
-          "instruction": "Temporary crown came off while eating.",
+          "label": "Temp crown off",
+          "instruction": "Robert Chen — #19 came off overnight.",
           "priority": "high",
           "category": "callback",
           "status": "needs-action",
-          "recommendedNextStep": "Review call summary before returning the call.",
-          "actionLabel": "View call summary",
+          "recommendedNextStep": "Confirm early seat or keep schedule.",
+          "actionLabel": "Open",
           "actionHref": "#calls",
           "actionId": "view-summary",
           "panel": "view-summary",
@@ -256,12 +256,12 @@
         },
         {
           "id": "pat-attn-task_sm_001",
-          "label": "Sarah Mitchell — crown at 10:00",
-          "instruction": "Delta PPO not verified.",
+          "label": "Benefits not verified",
+          "instruction": "Sarah Mitchell — crown at 10:00.",
           "priority": "high",
           "status": "needs-action",
-          "recommendedNextStep": "Verify benefits before the 10:00 crown seat.",
-          "actionLabel": "Verify insurance",
+          "recommendedNextStep": "Verify before 10:00.",
+          "actionLabel": "Verify benefits",
           "actionHref": "#patients",
           "actionId": "verify-insurance",
           "panel": "verify-insurance",
@@ -282,11 +282,11 @@
       "todayTasks": [
         {
           "id": "today-npe-brief_npe_slot_doc_0830",
-          "label": "New patient at 08:30",
-          "instruction": "Delta PPO — finish intake before arrival.",
+          "label": "New patient exam",
+          "instruction": "08:30 — finish intake before arrival.",
           "priority": "medium",
           "status": "waiting",
-          "actionLabel": "View call summary",
+          "actionLabel": "Open",
           "actionHref": "#calls",
           "actionId": "view-summary",
           "panel": "view-summary",
@@ -306,11 +306,11 @@
         },
         {
           "id": "opp_cancel_slot_hyg_1100",
-          "label": "11:00 hygiene slot open",
-          "instruction": "Emma Nguyen cancelled — offer waitlist.",
+          "label": "Open hygiene chair",
+          "instruction": "11:00 — short-call waitlist.",
           "priority": "medium",
           "status": "ready",
-          "actionLabel": "Schedule appt",
+          "actionLabel": "Call candidates",
           "actionHref": "#patients",
           "actionId": "schedule-appt"
         }
@@ -318,10 +318,10 @@
       "scheduleGaps": [
         {
           "id": "gap-doc-1100",
-          "label": "Open",
+          "label": "Open chair",
           "time": "11:00 AM",
           "provider": "Dr. Johnson",
-          "duration": "60 Minutes Available",
+          "duration": "60 min available",
           "status": "available"
         }
       ],
@@ -341,7 +341,7 @@
       ],
       "priorities": [
         {
-          "id": "rec_1783559248485_11",
+          "id": "rec_1783575493496_11",
           "action": "Overnight urgent call requires on-call callback within 30 min SLA",
           "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
           "priority": "critical",
@@ -349,7 +349,7 @@
           "category": "emergency"
         },
         {
-          "id": "rec_1783559248485_1",
+          "id": "rec_1783575493496_1",
           "action": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
           "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
           "priority": "critical",
@@ -357,7 +357,7 @@
           "category": "emergency"
         },
         {
-          "id": "rec_1783559248485_3",
+          "id": "rec_1783575493496_3",
           "action": "Verify insurance benefits before NPE arrival; note emotional flags for clinical prep.",
           "reason": "New patient first impression depends on honest insurance handling and anxiety-aware prep — Constitution truth before efficiency.",
           "priority": "medium",
@@ -367,7 +367,7 @@
       ],
       "patientsAttention": [
         {
-          "id": "brief_item_rec_1783559248485_11",
+          "id": "brief_item_rec_1783575493496_11",
           "name": "Overnight caller",
           "issue": "Overnight urgent call requires on-call callback within 30 min SLA",
           "action": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
@@ -375,7 +375,7 @@
           "priority": "critical"
         },
         {
-          "id": "brief_item_rec_1783559248485_1",
+          "id": "brief_item_rec_1783575493496_1",
           "name": "Overnight caller",
           "issue": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
           "action": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",

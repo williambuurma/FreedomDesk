@@ -25,7 +25,7 @@
   };
 
   /**
-   * My Day V1 roles — same intelligence, different perspective.
+   * Today roles — same intelligence, different perspective.
    * owners: recommendation/task owners visible to this role
    * opportunityOwners: suggestedOwner values for opportunity filtering
    */

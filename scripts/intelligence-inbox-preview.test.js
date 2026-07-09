@@ -43,7 +43,7 @@ describe("Intelligence Inbox preview data", () => {
     assert.match(data.actions[0].decision, /Call Finn Leo/i);
   });
 
-  test("inbox module files are wired in the dashboard", () => {
+  test("inbox module files remain available but are not primary nav", () => {
     const indexHtml = fs.readFileSync(path.join(appRoot, "index.html"), "utf8");
     assert.match(indexHtml, /modules\/intelligence-inbox\/module\.js/);
     assert.match(indexHtml, /styles\/intelligence-inbox\.css/);
@@ -57,5 +57,7 @@ describe("Intelligence Inbox preview data", () => {
       "utf8"
     );
     assert.match(moduleJs, /label:\s*"Next"/);
+    assert.match(moduleJs, /navVisible:\s*false/);
   });
 });
+

@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="styles/theme.css" />
   <link rel="stylesheet" href="styles/layout.css" />
   <link rel="stylesheet" href="styles/dashboard.css" />
+  <link rel="stylesheet" href="styles/decision-card.css" />
   <link rel="stylesheet" href="styles/morning-brief.css" />
   <link rel="stylesheet" href="styles/my-day.css" />
   <link rel="stylesheet" href="styles/intelligence-inbox.css" />
@@ -47,91 +48,99 @@
     <p class="fd-pms-caption">FreedomDesk stays here — beside the schedule, all day.</p>
   </div>
 
-  <div class="fd-companion-panel" id="fdCompanion" role="application" aria-label="FreedomDesk companion">
-    <header class="fd-companion-header">
-      <a href="index.html" class="fd-companion-brand" aria-label="FreedomDesk">
-        <img
-          src="../assets/logos/Freedomdesk-logo-full.png?v=20260706"
-          alt="FreedomDesk"
-          class="fd-companion-logo"
-          width="890"
-          height="202"
-          decoding="async"
-        />
-      </a>
-      <div class="fd-companion-header-actions">
-        <button
-          type="button"
-          class="fd-coord-trigger"
-          id="fdCoordOpenNotes"
-          aria-label="Notes"
-          title="Notes"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
-            <path d="M12 20h9"/>
-            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-          </svg>
-        </button>
-        <button
-          type="button"
-          class="fd-coord-trigger fd-coord-trigger--team"
-          id="fdCoordOpenTeam"
-          aria-label="Team messages"
-          title="Team"
-          hidden
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-        </button>
-        <span class="fd-preview-badge" title="Using mock practice data">Preview</span>
-      </div>
-    </header>
-
-    <nav class="fd-companion-nav" aria-label="Companion workspaces">
-      <ul id="fdModuleNav"></ul>
-    </nav>
-
-    <div class="fd-companion-workspace">
-      <header class="fd-companion-workspace-bar">
-        <h1 class="fd-module-title" id="fdModuleTitle">My Day</h1>
-      </header>
-      <main class="fd-companion-content fd-dashboard-content" id="fdDashboardContent" aria-live="polite">
-        <!-- Compact workspace modules render here -->
-      </main>
-    </div>
-
-    <footer class="fd-companion-footer">
-      <div class="fd-profile" id="fdProfileWrap">
-        <button
-          type="button"
-          class="fd-profile-trigger"
-          id="fdProfileTrigger"
-          aria-label="Practice menu"
-          aria-haspopup="menu"
-          aria-expanded="false"
-          aria-controls="fdProfileMenu"
-        >
-          <svg class="fd-profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-          </svg>
-          <span class="fd-profile-label">Settings</span>
-        </button>
-        <div
-          class="fd-profile-menu"
-          id="fdProfileMenu"
-          role="menu"
-          aria-label="Practice menu"
-          hidden
-          aria-hidden="true"
-        >
-          <button type="button" class="fd-profile-item" role="menuitem" data-module="settings">
-            Settings
-          </button>
+  <div class="fd-app-shell" id="fdAppShell">
+    <div class="fd-companion-panel" id="fdCompanion" role="application" aria-label="FreedomDesk companion">
+      <aside class="fd-sidebar" id="fdSidebar" aria-label="Workspaces">
+        <div class="fd-sidebar-brand">
+          <a href="index.html" class="fd-sidebar-logo" aria-label="FreedomDesk">
+            <img
+              src="../assets/logos/FreedomDesk%20Icon.png?v=20260706"
+              alt=""
+              class="fd-sidebar-logo-icon"
+              width="128"
+              height="128"
+              decoding="async"
+              aria-hidden="true"
+            />
+          </a>
         </div>
+
+        <nav class="fd-sidebar-nav" aria-label="Companion workspaces">
+          <ul id="fdModuleNav"></ul>
+        </nav>
+
+        <div class="fd-sidebar-footer">
+          <div class="fd-profile" id="fdProfileWrap">
+            <button
+              type="button"
+              class="fd-profile-trigger"
+              id="fdProfileTrigger"
+              aria-label="Practice menu"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="fdProfileMenu"
+              title="Settings"
+            >
+              <svg class="fd-profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              <span class="fd-profile-label">Settings</span>
+            </button>
+            <div
+              class="fd-profile-menu"
+              id="fdProfileMenu"
+              role="menu"
+              aria-label="Practice menu"
+              hidden
+              aria-hidden="true"
+            >
+              <button type="button" class="fd-profile-item" role="menuitem" data-module="settings">
+                Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="fd-companion-main">
+        <header class="fd-companion-header">
+          <h1 class="fd-module-title" id="fdModuleTitle">Today</h1>
+          <div class="fd-companion-header-actions" hidden aria-hidden="true">
+            <!-- Notes / Team open from context panels when needed — not always-on chrome -->
+            <button
+              type="button"
+              class="fd-coord-trigger"
+              id="fdCoordOpenNotes"
+              aria-label="Notes"
+              title="Notes"
+              hidden
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="fd-coord-trigger fd-coord-trigger--team"
+              id="fdCoordOpenTeam"
+              aria-label="Team messages"
+              title="Team"
+              hidden
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <main class="fd-companion-content fd-dashboard-content" id="fdDashboardContent" aria-live="polite">
+          <!-- Compact workspace modules render here -->
+        </main>
       </div>
-    </footer>
+    </div>
   </div>
 
   <div class="fd-coord-overlay" id="fdCoordOverlay" hidden aria-hidden="true">
@@ -198,14 +207,15 @@
   <script src="shared/placeholder-module.js"></script>
   <script src="modules/morning-brief/morning-brief.js"></script>
   <script src="modules/morning-brief/module.js"></script>
-  <script src="modules/my-day/my-day.js"></script>
+  <script src="modules/today/today.js"></script>
+  <script src="modules/today/module.js"></script>
   <script src="modules/my-day/module.js"></script>
   <script src="modules/intelligence-inbox/intelligence-inbox.js"></script>
   <script src="modules/intelligence-inbox/module.js"></script>
   <script src="modules/patients/patients.js"></script>
   <script src="modules/ask/ask.js"></script>
   <script src="modules/settings/settings.js"></script>
-  <!-- Companion workspaces: Morning Brief → My Day → Next → Patients → Ask. Settings via footer. -->
+  <!-- Companion workspaces: Today · Patients · Ask. Settings via footer. -->
   <script src="dashboard.js"></script>
 </body>
 </html>

@@ -8,7 +8,7 @@
     FreedomDeskPlaceholder({
       id: "ask",
       label: "Ask FreedomDesk",
-      order: 4,
+      order: 2,
       navIcon: "ask",
       navHint: "Questions",
       description:

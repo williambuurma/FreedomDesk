@@ -1,53 +1,29 @@
 <header class="mb-intro" id="mbGreeting" aria-live="polite">
-  <h1 class="mb-intro-title">Good morning, <span id="mbRecipient">Dr. Buurma</span></h1>
-  <p class="mb-intro-subline" id="mbSubline">What you need before the day starts.</p>
-  <p class="mb-intro-meta">
-    <span id="mbPracticeName">Cascade Family Dentistry</span>
-    · <span id="mbDate">—</span>
-  </p>
+  <h1 class="mb-intro-title">Good morning.</h1>
+  <p class="mb-intro-subline" id="mbSubline">One decision first.</p>
 </header>
 
 <div class="mb-loading" id="mbLoading" aria-busy="true">
-  <p>Preparing your morning brief…</p>
+  <p>Loading…</p>
 </div>
 
 <div class="mb-error" id="mbError" hidden>
-  <p>Unable to load the morning brief. Please refresh or contact support.</p>
+  <p>Unable to load. Refresh.</p>
 </div>
 
 <div class="mb-brief" id="mbDashboard" hidden>
-  <!-- 1. Before doors open — overnight + emergencies that must be handled first -->
-  <section class="mb-section mb-section-anchor" id="mbBeforeOpen" aria-labelledby="mbBeforeOpenHeading">
-    <h2 class="mb-section-label" id="mbBeforeOpenHeading">Before doors open</h2>
-    <div class="mb-section-body" id="mbBeforeOpenBody"></div>
-  </section>
+  <div class="mb-layout" id="mbDecisions" aria-label="Decisions"></div>
 
-  <!-- 2. Schedule risks — only what can break today's flow -->
-  <section class="mb-section" id="mbScheduleRisks" aria-labelledby="mbScheduleRisksHeading">
-    <h2 class="mb-section-label" id="mbScheduleRisksHeading">Watch on today's schedule</h2>
-    <div class="mb-section-body" id="mbScheduleRisksBody"></div>
-  </section>
-
-  <!-- 3. Patients who need prep — new patients / important context -->
-  <section class="mb-section" id="mbPatientPrep" aria-labelledby="mbPatientPrepHeading">
-    <h2 class="mb-section-label" id="mbPatientPrepHeading">Patients who need prep</h2>
-    <div class="mb-section-body" id="mbPatientPrepBody"></div>
-  </section>
-
-  <!-- 4. Opportunities that change today's decisions -->
-  <section class="mb-section" id="mbTodayMoves" aria-labelledby="mbTodayMovesHeading">
-    <h2 class="mb-section-label" id="mbTodayMovesHeading">Worth acting on today</h2>
-    <div class="mb-section-body" id="mbTodayMovesBody"></div>
-  </section>
-
-  <!-- 5. One quiet note — stewardship, not analytics -->
-  <aside class="mb-quiet-note" id="mbQuietNote" aria-labelledby="mbQuietNoteHeading">
-    <p class="mb-quiet-label" id="mbQuietNoteHeading">One quiet note</p>
-    <p class="mb-quiet-text" id="mbQuietNoteText"></p>
-  </aside>
+  <details class="mb-remaining" id="mbRemaining" hidden>
+    <summary class="mb-remaining-summary">Later</summary>
+    <ul class="mb-remaining-body" id="mbRemainingBody"></ul>
+  </details>
 
   <footer class="mb-footer-note">
-    <p>Using practice preview data. Not connected to your PMS yet.</p>
-    <p class="mb-footer-timestamp">Prepared <time id="mbGeneratedAt">—</time></p>
+    <p class="mb-footer-meta">
+      <span id="mbPracticeName">Cascade Family Dentistry</span>
+      · <span id="mbDate">—</span>
+    </p>
+    <p class="mb-footer-timestamp"><time id="mbGeneratedAt">—</time></p>
   </footer>
 </div>

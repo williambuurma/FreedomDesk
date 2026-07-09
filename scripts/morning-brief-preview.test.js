@@ -11,15 +11,14 @@ const appRoot = path.join(root, "app");
 const previewPath = path.join(root, "data/morning-brief-preview.json");
 
 const MORNING_BRIEF_SECTIONS = [
-  "mbBeforeOpen",
-  "mbScheduleRisks",
-  "mbPatientPrep",
-  "mbTodayMoves",
-  "mbQuietNote",
+  "mbGreeting",
+  "mbDecisions",
+  "mbRemaining",
 ];
 
 const V1_WIRED_MODULES = [
   "morning-brief",
+  "today",
   "my-day",
   "intelligence-inbox",
   "patients",
@@ -68,7 +67,7 @@ describe("FreedomDesk companion shell", () => {
 
     assert.match(indexHtml, /dashboard\.js/);
     assert.match(indexHtml, /modules\/morning-brief\/module\.js/);
-    assert.match(indexHtml, /modules\/my-day\/module\.js/);
+    assert.match(indexHtml, /modules\/today\/module\.js/);
     assert.match(indexHtml, /modules\/intelligence-inbox\/module\.js/);
     assert.match(indexHtml, /modules\/patients\/patients\.js/);
     assert.match(indexHtml, /modules\/ask\/ask\.js/);
@@ -76,13 +75,21 @@ describe("FreedomDesk companion shell", () => {
     assert.match(indexHtml, /fdProfileTrigger/);
     assert.match(indexHtml, /fd-companion-panel/);
     assert.match(indexHtml, /fd-pms-stage/);
+    assert.match(indexHtml, /fdSidebar/);
+    assert.match(indexHtml, /fd-app-shell/);
     assert.doesNotMatch(indexHtml, /\.\.\/styles\.css/, "app must not load marketing styles.css");
     assert.doesNotMatch(indexHtml, /Marketing site/, "app must not link to the marketing site from the shell");
+    assert.doesNotMatch(indexHtml, /fdSidebarToggle/, "expand toggle removed from permanent icon rail");
     assert.match(dashboardJs, /getNavModules/);
     assert.match(dashboardJs, /companion/, "shell should describe companion product");
+    assert.match(dashboardJs, /buildCompanionNav/);
+    assert.doesNotMatch(dashboardJs, /setSidebarCollapsed/, "icon rail is permanent — no expand/collapse");
     assert.match(shellCss, /--fd-companion-w/);
     assert.match(shellCss, /\.fd-companion-panel/);
+    assert.match(shellCss, /\.fd-sidebar/);
+    assert.match(shellCss, /--fd-sidebar-w/);
     assert.doesNotMatch(shellCss, /fd-dashboard-layout/, "full-page app layout should not be the product shell");
+    assert.doesNotMatch(shellCss, /--fd-companion-w-expanded/, "companion width is fixed");
 
     for (const mod of V1_WIRED_MODULES) {
       assert.match(indexHtml, new RegExp(`modules/${mod}/`));
@@ -101,9 +108,13 @@ describe("FreedomDesk companion shell", () => {
     }
   });
 
-  test("morning brief template has all required sections", () => {
+  test("morning brief shows completed judgment, not raw information", () => {
     const template = fs.readFileSync(
       path.join(appRoot, "modules/morning-brief/template.html"),
+      "utf8"
+    );
+    const renderer = fs.readFileSync(
+      path.join(appRoot, "modules/morning-brief/morning-brief.js"),
       "utf8"
     );
 
@@ -114,13 +125,33 @@ describe("FreedomDesk companion shell", () => {
       assert.match(template, new RegExp(`id="${sectionId}"`), `missing section: ${sectionId}`);
     }
 
-    assert.match(template, /Before doors open/);
-    assert.match(template, /Watch on today's schedule/);
-    assert.match(template, /Patients who need prep/);
-    assert.match(template, /Worth acting on today/);
-    assert.match(template, /One quiet note/);
+    assert.match(template, /Good morning/);
+    assert.match(template, /mb-layout/);
+    assert.match(template, /Later/);
     assert.doesNotMatch(template, /Practice Snapshot/);
     assert.doesNotMatch(template, /Today's Focus/);
+    assert.doesNotMatch(template, /Before doors open/);
+    assert.doesNotMatch(template, /More context/);
+
+    assert.match(renderer, /Possible dental infection/);
+    assert.match(renderer, /Liam Johnson/);
+    assert.match(renderer, /Same-day limited exam/);
+    assert.match(renderer, /Call before first patient/);
+    assert.match(renderer, /FreedomDeskUI/);
+    assert.match(renderer, /renderDecisionCard/);
+    assert.match(renderer, /Why\?/);
+    assert.match(renderer, /Verify benefits/);
+    assert.match(renderer, /Call candidates/);
+    assert.match(renderer, /renderInto/);
+    assert.match(renderer, /#today/);
+    assert.match(renderer, /mb-secondary-row/);
+    assert.doesNotMatch(renderer, /#my-day/);
+    assert.doesNotMatch(renderer, /#intelligence-inbox/);
+    assert.doesNotMatch(renderer, /Recommendation<\/span>/);
+    assert.doesNotMatch(renderer, /Mary Johnson/);
+    assert.doesNotMatch(renderer, /humanizeSummary/);
+    assert.doesNotMatch(renderer, /% sure|confidenceLabel/);
+    assert.doesNotMatch(renderer, /Do this first/);
   });
 
   test("placeholder modules declare Practice Brain integration features", () => {

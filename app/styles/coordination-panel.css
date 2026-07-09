@@ -896,21 +896,25 @@ body.fd-coord-open {
 }
 
 .fd-coord-panel .fd-ui-panel-primary {
-  width: 100%;
-  padding: 12px 16px;
-  font-size: var(--fd-text-base);
+  width: auto;
+  align-self: flex-start;
+  padding: 0;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #fff;
-  background: var(--fd-navy);
+  color: var(--fd-navy-mid);
+  background: transparent;
   border: none;
-  border-radius: var(--fd-radius-sm);
+  border-radius: 0;
   cursor: pointer;
   font-family: inherit;
-  transition: opacity 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .fd-coord-panel .fd-ui-panel-primary:hover {
-  opacity: 0.92;
+  opacity: 1;
+  color: var(--fd-navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ── Responsive ── */

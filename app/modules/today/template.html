@@ -1,0 +1,38 @@
+<div class="md-loading" id="mdLoading" aria-busy="true" aria-live="polite">
+  <p>Pulling together your day…</p>
+</div>
+
+<div class="md-error" id="mdError" hidden>
+  <p>Unable to load Today. Please refresh or contact support.</p>
+</div>
+
+<div class="md-role-bar" id="mdRoleBar" aria-label="View as"></div>
+
+<!-- Morning state — opening composition of Today (internal Morning Brief) -->
+<div class="td-morning" id="tdMorning" hidden>
+  <div class="mb-container" id="tdMorningMount"></div>
+</div>
+
+<!-- Receptionist — desktop-first operating layout -->
+<div class="md-dashboard md-dashboard--receptionist" id="mdReceptionistLayout" hidden>
+  <header class="md-hero" id="mdGreeting"></header>
+
+  <div class="md-since-yesterday" id="mdSinceYesterday" aria-label="Since yesterday"></div>
+
+  <section class="md-do-first" id="mdUrgent" aria-label="Do first"></section>
+
+  <div class="md-workspace md-workspace--split">
+    <div class="md-panel md-panel-today" id="mdToday"></div>
+    <aside class="md-panel md-panel-heads-up" id="mdHeadsUp" aria-label="Other items"></aside>
+  </div>
+</div>
+
+<!-- Doctor — clinical attention only (PMS owns the schedule) -->
+<div class="md-dashboard md-dashboard--doctor" id="mdDoctorLayout" hidden>
+  <header class="md-hero" id="mdDoctorGreeting"></header>
+
+  <div class="md-workspace md-workspace--clinical" aria-label="Clinical focus">
+    <div class="md-panel" id="mdDoctorTasks"></div>
+    <div class="md-panel md-panel-heads-up" id="mdClinicalPriorities"></div>
+  </div>
+</div>

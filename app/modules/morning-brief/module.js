@@ -1,43 +1,19 @@
 /**
- * Morning Brief — app workspace adapter.
- * Loads the template and delegates to MorningBriefRenderer.
+ * Morning Brief — kept for legacy hash redirects only.
+ * Not a primary navigation destination; Today owns the morning state.
  */
 (function () {
   "use strict";
 
-  var TEMPLATE_URL = "modules/morning-brief/template.html";
-
   FreedomDesk.registerModule({
     id: "morning-brief",
     label: "Morning Brief",
-    order: 0,
+    order: 90,
     navIcon: "brief",
     navHint: "Start here",
-    init: function (container) {
-      container.innerHTML =
-        '<div class="mb-page">' +
-        '<main class="mb-main">' +
-        '<div class="mb-container"></div>' +
-        "</main></div>";
-
-      fetch(TEMPLATE_URL)
-        .then(function (res) {
-          if (!res.ok) throw new Error("Failed to load template");
-          return res.text();
-        })
-        .then(function (html) {
-          var shell = container.querySelector(".mb-container");
-          if (!shell) return;
-          shell.innerHTML = html;
-          MorningBriefRenderer.init();
-        })
-        .catch(function () {
-          var shell = container.querySelector(".mb-container");
-          if (shell) {
-            shell.innerHTML =
-              '<div class="mb-error"><p>Unable to load the morning brief. Please refresh or contact support.</p></div>';
-          }
-        });
+    navVisible: false,
+    init: function () {
+      /* Redirect handled by dashboard.js LEGACY_REDIRECTS */
     },
   });
 })();

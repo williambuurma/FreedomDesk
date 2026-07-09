@@ -1,5 +1,5 @@
 /**
- * Reusable workspace UI renderers — My Day, Morning Brief, and future role views.
+ * Reusable workspace UI renderers — Today, Morning Brief state, and role views.
  */
 (function () {
   "use strict";
@@ -13,6 +13,162 @@
 
   function renderEmptyState(message) {
     return '<p class="fd-ui-empty">' + escapeHtml(message) + "</p>";
+  }
+
+  /**
+   * FreedomDesk Decision Card — the product's atomic unit.
+   *
+   * Face (≤2s): Situation → Subject → Guidance → Act
+   * Supporting detail (stake, because, evidence) lives behind Why?
+   *
+   * options:
+   *   situation, subject, guidance, stake, actionLabel
+   *   accent: "urgent" | "protect" | "opportunity" | ""
+   *   prominence: "primary" | "secondary" (default primary)
+   *   whyText, evidence[] ({ description })
+   *   id — for Why? panel ids
+   *   href — primary action as link (Morning Brief)
+   *   primaryAttrs — extra attrs on primary button (Next)
+   *   secondaryActions — [{ label, attrs, strong? }]
+   *   resolvedLabel — replaces act row when done
+   */
+  function renderDecisionCard(options) {
+    var opts = options || {};
+    var situation = opts.situation || "";
+    if (!situation) return "";
+
+    var prominence = opts.prominence === "secondary" ? "secondary" : "primary";
+    var accent = opts.accent || "";
+    var classes = "fd-dc fd-dc--" + prominence;
+    if (accent === "urgent") classes += " fd-dc--urgent";
+    else if (accent === "protect") classes += " fd-dc--protect";
+    else if (accent === "opportunity") classes += " fd-dc--opportunity";
+    if (opts.resolvedLabel) classes += " fd-dc--resolved";
+
+    var subject = opts.subject
+      ? '<p class="fd-dc-subject">' + escapeHtml(opts.subject) + "</p>"
+      : "";
+    var guidance = opts.guidance
+      ? '<p class="fd-dc-guidance">' + escapeHtml(opts.guidance) + "</p>"
+      : "";
+
+    var reasonId = opts.id ? "fd-dc-reason-" + opts.id : "";
+    var hasWhy = !!(opts.stake || opts.whyText || (opts.evidence && opts.evidence.length));
+    var whyButton = "";
+    var whyPanel = "";
+
+    // Why? only on the primary decision — secondary stays quiet until acted on.
+    if (hasWhy && prominence === "primary") {
+      var evidenceHtml = "";
+      if (opts.evidence && opts.evidence.length) {
+        evidenceHtml =
+          '<ul class="fd-dc-evidence">' +
+          opts.evidence
+            .map(function (item) {
+              return (
+                "<li>" +
+                escapeHtml(item.description || item.source || "") +
+                "</li>"
+              );
+            })
+            .join("") +
+          "</ul>";
+      }
+
+      whyButton =
+        '<button type="button" class="fd-dc-why" data-reason-toggle="' +
+        escapeHtml(opts.id || "") +
+        '" aria-expanded="false"' +
+        (reasonId ? ' aria-controls="' + escapeHtml(reasonId) + '"' : "") +
+        ">Why?</button>";
+
+      whyPanel =
+        '<div class="fd-dc-reason" id="' +
+        escapeHtml(reasonId) +
+        '" hidden>' +
+        (opts.stake
+          ? '<p class="fd-dc-stake">' + escapeHtml(opts.stake) + "</p>"
+          : "") +
+        (opts.whyText
+          ? '<p class="fd-dc-reason-text">' + escapeHtml(opts.whyText) + "</p>"
+          : "") +
+        evidenceHtml +
+        "</div>";
+    }
+
+    var actRow = "";
+    if (opts.resolvedLabel) {
+      actRow =
+        '<div class="fd-dc-act">' +
+        '<span class="fd-dc-resolved">' +
+        escapeHtml(opts.resolvedLabel) +
+        "</span>" +
+        (whyButton || "") +
+        "</div>";
+    } else if (opts.actionLabel) {
+      var primary;
+      if (opts.href) {
+        primary =
+          '<a class="fd-dc-primary" href="' +
+          escapeHtml(opts.href) +
+          '">' +
+          escapeHtml(opts.actionLabel) +
+          "</a>";
+      } else {
+        primary =
+          '<button type="button" class="fd-dc-primary"' +
+          (opts.primaryAttrs || "") +
+          ">" +
+          escapeHtml(opts.actionLabel) +
+          "</button>";
+      }
+
+      var secondary = "";
+      if (opts.secondaryActions && opts.secondaryActions.length) {
+        secondary =
+          '<div class="fd-dc-secondary-actions">' +
+          opts.secondaryActions
+            .map(function (a) {
+              return (
+                '<button type="button" class="fd-dc-secondary-btn' +
+                (a.strong ? " fd-dc-secondary-btn--strong" : "") +
+                '"' +
+                (a.attrs || "") +
+                ">" +
+                escapeHtml(a.label) +
+                "</button>"
+              );
+            })
+            .join("") +
+          "</div>";
+      }
+
+      actRow =
+        '<div class="fd-dc-act">' +
+        primary +
+        (whyButton || "") +
+        secondary +
+        "</div>";
+    } else if (whyButton) {
+      actRow = '<div class="fd-dc-act">' + whyButton + "</div>";
+    }
+
+    return (
+      '<article class="' +
+      classes +
+      '"' +
+      (opts.id ? ' data-id="' + escapeHtml(opts.id) + '"' : "") +
+      (opts.group ? ' data-group="' + escapeHtml(opts.group) + '"' : "") +
+      ">" +
+      '<h2 class="fd-dc-situation">' +
+      escapeHtml(situation) +
+      "</h2>" +
+      subject +
+      guidance +
+      actRow +
+      whyPanel +
+      "</article>"
+    );
   }
 
   function renderPriorityBadge(priority, options) {
@@ -62,13 +218,13 @@
   function renderStatusBadge(status) {
     if (!status) return "";
     var labels = {
-      "needs-action": "Needs Action",
+      "needs-action": "Needs action",
       waiting: "Waiting",
       ready: "Ready",
-      available: "Available",
+      available: "Open",
       open: "Open",
       verified: "Verified",
-      completed: "Completed",
+      completed: "Done",
     };
     var label = labels[status];
     if (!label) return "";
@@ -84,12 +240,15 @@
   /**
    * Receptionist welcome — greeting, calm subline, practice meta.
    */
+  function quietGreeting(welcome) {
+    var timeGreeting = timeGreetingForHour(new Date().getHours());
+    // Role switch already identifies the person — keep the greeting impersonal.
+    return timeGreeting + ".";
+  }
+
   function renderReceptionistWelcome(options) {
     var opts = options || {};
     var welcome = opts.welcome || {};
-    var timeGreeting = timeGreetingForHour(new Date().getHours());
-    var greetingLine =
-      welcome.greeting || timeGreeting + ", " + (opts.recipientName || "there") + ".";
     var subline =
       welcome.subline ||
       welcome.priority ||
@@ -99,15 +258,10 @@
       '<header class="fd-ui-receptionist-welcome" aria-live="polite">' +
       '<div class="fd-ui-receptionist-welcome-main">' +
       '<p class="fd-ui-welcome-greeting">' +
-      escapeHtml(greetingLine) +
+      escapeHtml(quietGreeting(welcome)) +
       "</p>" +
       '<p class="fd-ui-welcome-subline">' +
       escapeHtml(subline) +
-      "</p>" +
-      '<p class="fd-ui-welcome-meta">' +
-      escapeHtml(opts.practiceName || "") +
-      " · " +
-      escapeHtml(Utils.formatDate(opts.date || new Date().toISOString().slice(0, 10))) +
       "</p>" +
       "</div>" +
       "</header>"
@@ -128,15 +282,17 @@
 
     var html = '<div class="fd-ui-attention-grid">';
     cards.forEach(function (card) {
-      var variant = card.variant === "red" ? " fd-ui-attention-card-red" : " fd-ui-attention-card-blue";
+      var variant =
+        card.variant === "red"
+          ? " fd-ui-attention-card-red"
+          : card.variant === "amber"
+            ? " fd-ui-attention-card-amber"
+            : " fd-ui-attention-card-blue";
 
       html += '<article class="fd-ui-attention-card' + variant + '">';
 
       if (card.type === "callback-preview") {
         html +=
-          '<span class="fd-ui-attention-icon" aria-hidden="true">' +
-          escapeHtml(card.icon || "☎️") +
-          "</span>" +
           '<p class="fd-ui-attention-title">' +
           escapeHtml(card.title || "Callback waiting") +
           "</p>" +
@@ -152,13 +308,10 @@
           '" data-task-id="' +
           escapeHtml(card.taskId || "") +
           '">' +
-          escapeHtml(card.actionLabel || "View call summary") +
+          escapeHtml(card.actionLabel || "Open") +
           "</button>";
       } else if (card.type === "call-preview") {
         html +=
-          '<span class="fd-ui-attention-icon" aria-hidden="true">' +
-          escapeHtml(card.icon || "📞") +
-          "</span>" +
           '<p class="fd-ui-attention-patient">' +
           escapeHtml(card.patientName || "") +
           "</p>" +
@@ -171,13 +324,10 @@
           '" data-task-id="' +
           escapeHtml(card.taskId || "") +
           '">' +
-          escapeHtml(card.actionLabel || "View call summary") +
+          escapeHtml(card.actionLabel || "Open") +
           "</button>";
       } else {
         html +=
-          '<span class="fd-ui-attention-icon" aria-hidden="true">' +
-          escapeHtml(card.icon || "") +
-          "</span>" +
           '<p class="fd-ui-attention-title">' +
           escapeHtml(card.title) +
           "</p>" +
@@ -193,7 +343,7 @@
   }
 
   function renderWorkTaskButton(task) {
-    var actionLabel = task.actionLabel || "View summary";
+    var actionLabel = task.actionLabel || "Open";
     var panel = task.panel || task.actionId;
 
     if (task.panel || task.actionId === "verify-insurance" || task.actionId === "view-summary") {
@@ -238,8 +388,7 @@
 
     return (
       '<section class="fd-ui-urgent-block" aria-labelledby="mdUrgentHeading">' +
-      '<h2 class="fd-ui-urgent-heading" id="mdUrgentHeading">' +
-      '<span class="fd-ui-urgent-icon" aria-hidden="true">⚠</span> URGENT</h2>' +
+      '<h2 class="fd-ui-urgent-heading" id="mdUrgentHeading">Do first</h2>' +
       '<div class="fd-ui-urgent-inner">' +
       body +
       "</div></section>"
@@ -557,15 +706,11 @@
 
     var html = '<ul class="fd-ui-heads-up-list">';
     items.forEach(function (item) {
-      var icon = headsUpIcon(item.text);
       html +=
         '<li class="fd-ui-heads-up-item">' +
         (item.time
           ? '<span class="fd-ui-heads-up-time">' + escapeHtml(item.time) + "</span>"
           : '<span class="fd-ui-heads-up-time fd-ui-heads-up-time-empty" aria-hidden="true"></span>') +
-        '<span class="fd-ui-heads-up-icon" aria-hidden="true">' +
-        escapeHtml(icon) +
-        "</span>" +
         '<span class="fd-ui-heads-up-text">' +
         escapeHtml(item.text) +
         "</span>" +
@@ -898,7 +1043,7 @@
     return (
       '<header class="fd-ui-greeting">' +
       '<div class="fd-ui-greeting-main">' +
-      '<p class="fd-ui-greeting-kicker">My Day</p>' +
+      '<p class="fd-ui-greeting-kicker">Today</p>' +
       '<h2 class="fd-ui-greeting-title">' +
       escapeHtml(timeGreeting) +
       ", <span>" +
@@ -924,15 +1069,10 @@
     return (
       '<header class="fd-ui-doctor-welcome" aria-live="polite">' +
       '<p class="fd-ui-welcome-greeting">' +
-      escapeHtml(welcome.greeting || "Good morning.") +
+      escapeHtml(quietGreeting(welcome)) +
       "</p>" +
       '<p class="fd-ui-welcome-subline">' +
       escapeHtml(welcome.subline || "You have a full clinical day.") +
-      "</p>" +
-      '<p class="fd-ui-welcome-meta">' +
-      escapeHtml(opts.practiceName || "") +
-      " · " +
-      escapeHtml(Utils.formatDate(opts.date || new Date().toISOString().slice(0, 10))) +
       "</p>" +
       "</header>"
     );
@@ -1000,7 +1140,7 @@
       html +=
         '<li class="fd-ui-clinical-item">' +
         '<p class="fd-ui-clinical-label">' +
-        escapeHtml(item.number + ". " + item.label) +
+        escapeHtml(item.label) +
         "</p>" +
         '<p class="fd-ui-clinical-detail">' +
         escapeHtml(item.detail) +
@@ -1105,8 +1245,17 @@
     var opts = options || {};
     var extraClass = opts.compact ? " fd-ui-card-compact" : "";
     extraClass += opts.emphasis ? " fd-ui-card-emphasis" : "";
+    extraClass += opts.quiet ? " fd-ui-card-quiet" : "";
     var idAttr = opts.id ? ' id="' + escapeHtml(opts.id) + '"' : "";
-    var labelledBy = opts.id ? ' aria-labelledby="' + escapeHtml(opts.id) + '-heading"' : "";
+    var headingId = opts.id ? opts.id + "-heading" : "";
+    var labelledBy = title && headingId ? ' aria-labelledby="' + escapeHtml(headingId) + '"' : "";
+    var titleHtml = title
+      ? '<h3 class="fd-ui-section-title" id="' +
+        escapeHtml(headingId || "section-heading") +
+        '">' +
+        escapeHtml(title) +
+        "</h3>"
+      : "";
 
     return (
       '<section class="fd-ui-card' +
@@ -1115,11 +1264,7 @@
       idAttr +
       labelledBy +
       ">" +
-      '<h3 class="fd-ui-section-title" id="' +
-      escapeHtml(opts.id || "section") +
-      '-heading">' +
-      escapeHtml(title) +
-      "</h3>" +
+      titleHtml +
       '<div class="fd-ui-card-body">' +
       bodyHtml +
       "</div>" +
@@ -1135,7 +1280,9 @@
       if (!btn || !container.contains(btn)) return;
 
       var targetId = btn.getAttribute("data-reason-toggle");
-      var panel = container.querySelector("#reason-" + CSS.escape(targetId));
+      var panel =
+        container.querySelector("#fd-dc-reason-" + CSS.escape(targetId)) ||
+        container.querySelector("#reason-" + CSS.escape(targetId));
       if (!panel) return;
 
       var isExpanded = btn.getAttribute("aria-expanded") === "true";
@@ -1176,6 +1323,7 @@
     renderInsight: renderInsight,
     renderQuickActions: renderQuickActions,
     renderEmptyState: renderEmptyState,
+    renderDecisionCard: renderDecisionCard,
     bindReasoningToggles: bindReasoningToggles,
   };
 })();

@@ -21,37 +21,48 @@
   --fd-navy-muted: #4a5872;
 
   /* ── Surfaces ── */
-  --fd-surface-base: #f5f5f3;
+  --fd-surface-base: #f4f5f7;
   --fd-surface-raised: #ffffff;
-  --fd-surface-sidebar: var(--fd-navy);
-  --fd-surface-sidebar-hover: rgba(255, 255, 255, 0.06);
-  --fd-surface-sidebar-active: rgba(255, 255, 255, 0.1);
-  --fd-surface-overlay: rgba(24, 53, 98, 0.28);
+  --fd-surface-sidebar: #f7f8fa;
+  --fd-surface-sidebar-hover: rgba(24, 53, 98, 0.045);
+  --fd-surface-sidebar-active: rgba(24, 53, 98, 0.08);
+  --fd-surface-overlay: rgba(24, 53, 98, 0.18);
+  --fd-surface-page: #e9ebef;
 
   /* ── Ink (neutral — for reading, not branding) ── */
-  --fd-ink-body: #5a6270;
-  --fd-ink-secondary: #5a6270;
-  --fd-ink-tertiary: #8b919c;
+  --fd-ink-body: #5c6470;
+  --fd-ink-secondary: #5c6470;
+  --fd-ink-tertiary: #9299a4;
   --fd-ink-inverse: #ffffff;
 
   /* ── Structure ── */
   --fd-radius-sm: 8px;
-  --fd-radius-md: 12px;
-  --fd-radius-lg: 16px;
-  --fd-divider: rgba(24, 53, 98, 0.08);
-  --fd-divider-subtle: rgba(24, 53, 98, 0.05);
-  --fd-shadow-panel: 0 16px 48px rgba(24, 53, 98, 0.1);
+  --fd-radius-md: 10px;
+  --fd-radius-lg: 14px;
+  --fd-radius-xl: 18px;
+  --fd-divider: rgba(24, 53, 98, 0.07);
+  --fd-divider-subtle: rgba(24, 53, 98, 0.045);
+  --fd-shadow-soft: 0 1px 2px rgba(24, 53, 98, 0.025), 0 4px 12px rgba(24, 53, 98, 0.04);
+  --fd-shadow-panel: 0 2px 10px rgba(24, 53, 98, 0.045), 0 1px 2px rgba(24, 53, 98, 0.03);
+  --fd-shadow-card: none;
+  --fd-shadow-card-raised: 0 1px 2px rgba(24, 53, 98, 0.03), 0 2px 8px rgba(24, 53, 98, 0.04);
 
-  /* ── Intent (use sparingly) ── */
-  --fd-urgent: #a61e2e;
-  --fd-urgent-soft: rgba(166, 30, 46, 0.06);
-  --fd-attention-blue: rgba(24, 53, 98, 0.06);
-  --fd-attention-red: rgba(166, 30, 46, 0.055);
-  --fd-positive: #2a6b4a;
-  --fd-positive-soft: rgba(42, 107, 74, 0.07);
-  --fd-waiting: #8a6a1a;
-  --fd-waiting-soft: rgba(138, 106, 26, 0.08);
+  /* ── Intent (use sparingly — directs attention) ── */
+  --fd-urgent: #b42318;
+  --fd-urgent-soft: rgba(180, 35, 24, 0.05);
+  --fd-attention-blue: rgba(24, 53, 98, 0.045);
+  --fd-attention-red: rgba(180, 35, 24, 0.045);
+  --fd-positive: #1f7a4d;
+  --fd-positive-soft: rgba(31, 122, 77, 0.07);
+  --fd-waiting: #9a6b14;
+  --fd-waiting-soft: rgba(154, 107, 20, 0.08);
+  --fd-workflow: #24508f;
+  --fd-workflow-soft: rgba(36, 80, 143, 0.06);
   --fd-interactive: var(--fd-navy-mid);
+
+  /* ── Section rhythm ── */
+  --fd-section-gap: 1.25rem;
+  --fd-card-gap: 0.4rem;
 }
 
 /* App / companion base — self-contained; does not load marketing styles.css */
@@ -74,6 +85,7 @@ body.fd-companion {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
+  overflow-x: hidden;
 
   /* Compatibility aliases for older module CSS */
   --bg-warm: var(--fd-surface-base);

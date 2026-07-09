@@ -6,6 +6,7 @@ import { assessFrontDeskWithReasoning } from "./frontDesk.ts";
 import { assessEmotionWithReasoning } from "./psychology.ts";
 import { createStateFromTranscript } from "./state.ts";
 import { buildCallSummaryWithReasoning, applyAnalysisToState } from "./summary.ts";
+import { callSummaryToOperationalEvent } from "../events/fromCallSummary.ts";
 import { toCallSummarySignalWithReasoning } from "./signal.ts";
 import { assessUrgencyWithReasoning } from "./triage.ts";
 import type { ConversationAnalysis } from "./engine.ts";
@@ -67,6 +68,7 @@ export function processCallTranscript(
 
   const signalResult = toCallSummarySignalWithReasoning(summary);
   const signal = signalResult.output;
+  const operationalEvent = callSummaryToOperationalEvent(summary);
 
   const reasoning = assembleReasoningTrace({
     understanding: understandingResult,
@@ -86,5 +88,5 @@ export function processCallTranscript(
     reasoning,
   };
 
-  return { summary, signal, analysis, state, reasoning };
+  return { summary, signal, operationalEvent, analysis, state, reasoning };
 }

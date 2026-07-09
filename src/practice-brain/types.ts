@@ -354,6 +354,9 @@ export interface IDailyAwareness {
   getState(practiceId: PracticeId, date?: string): DailyAwarenessState;
   refresh(practiceId: PracticeId, date?: string): DailyAwarenessState;
   ingestCallSummary(summary: CallSummarySignal): void;
+  ingestOperationalEvent(
+    event: import("../events/types.ts").OperationalEvent
+  ): void;
   /** FUTURE: ingestScheduleEvent, ingestCancellation from PMS webhooks */
 }
 

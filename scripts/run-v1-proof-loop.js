@@ -38,7 +38,7 @@ async function runProofLoop(fixturePath) {
   const raw = fs.readFileSync(fixturePath, "utf8");
   const transcript = JSON.parse(raw);
 
-  const { summary, signal, analysis } = processCallTranscript(transcript);
+  const { summary, signal, operationalEvent, analysis } = processCallTranscript(transcript);
 
   resetPracticeBrainRegistry();
   resetDailyAwarenessForTests();
@@ -46,7 +46,7 @@ async function runProofLoop(fixturePath) {
 
   const brain = new PracticeBrain(MOCK_PRACTICE_ID);
   brain.refreshAwareness();
-  brain.ingestCallSummary(signal);
+  brain.ingestOperationalEvent(operationalEvent);
   const brainResult = brain.runDailyCycle(undefined, { refresh: false });
 
   const ingestedCall = brainResult.awareness.callStream.find(
@@ -70,6 +70,7 @@ async function runProofLoop(fixturePath) {
     },
     callSummary: summary,
     practiceBrainSignal: signal,
+    operationalEvent,
     ingested: Boolean(ingestedCall),
     morningBriefSections: brainResult.morningBrief.sections.length,
     recommendationCount: brainResult.recommendations.length,

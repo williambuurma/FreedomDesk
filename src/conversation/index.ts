@@ -18,6 +18,11 @@ export {
 } from "./engine.ts";
 export { buildCallSummary, buildCallSummaryWithReasoning } from "./summary.ts";
 export { toCallSummarySignal, toCallSummarySignalWithReasoning } from "./signal.ts";
+export {
+  callSummaryToOperationalEvent,
+  operationalEventToCallSummarySignal,
+  type OperationalEvent,
+} from "../events/index.ts";
 export { understandTranscript, understandTranscriptWithReasoning, understandPatientMessage } from "./understanding.ts";
 export { assessUrgency, assessUrgencyWithReasoning } from "./triage.ts";
 export { assessEmotion, assessEmotionWithReasoning } from "./psychology.ts";

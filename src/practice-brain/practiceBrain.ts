@@ -25,6 +25,8 @@
  * - API layer: REST + webhook delivery for briefs and recommendations
  */
 
+import type { OperationalEvent } from "../events/types.ts";
+import { operationalEventToCallSummarySignal } from "../events/normalize.ts";
 import { DailyAwareness, defaultDailyAwareness } from "./dailyAwareness.ts";
 import { defaultMorningBriefGenerator, MorningBriefGenerator } from "./morningBrief.ts";
 import { MOCK_PRACTICE_ID } from "./mockData.ts";
@@ -124,8 +126,38 @@ export class PracticeBrain {
   }
 
   /**
+   * Ingest normalized operational event — primary practice-time boundary.
+   * V1: call_completed events normalize to call stream signals.
+   */
+  ingestOperationalEvent(event: OperationalEvent): void {
+    if (event.practiceId !== this.practiceId) {
+      throw new Error(
+        `Tenant isolation violation: event practiceId ${event.practiceId} !== ${this.practiceId}`
+      );
+    }
+
+    const signal = operationalEventToCallSummarySignal(event);
+    this.deps.awareness.ingestOperationalEvent(event);
+
+    if (!signal) {
+      return;
+    }
+
+    // FUTURE: PostInteractionReflection → CLE candidate pipeline
+    if (signal.completenessScore < 0.9 && signal.missingFields?.length) {
+      this.deps.memory.recordPattern(this.practiceId, {
+        category: "friction",
+        description: `Incomplete ${signal.intent} summary — missing: ${signal.missingFields.join(", ")}`,
+        confidence: 0.7,
+        sampleSize: 1,
+        lastObservedAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
    * Ingest boundary event from call summary service (Phase 1 POS).
-   * Updates awareness and records learning patterns asynchronously in production.
+   * @deprecated Prefer ingestOperationalEvent — retained for backward compatibility.
    */
   ingestCallSummary(summary: CallSummarySignal): void {
     if (summary.practiceId !== this.practiceId) {

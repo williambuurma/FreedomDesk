@@ -12,6 +12,8 @@
  * - Live Operational Awareness surge detection with DNA thresholds
  */
 
+import { operationalEventToCallSummarySignal } from "../events/normalize.ts";
+import type { OperationalEvent } from "../events/types.ts";
 import {
   createMockCallStream,
   createMockOfficeDna,
@@ -142,11 +144,11 @@ export class DailyAwareness implements IDailyAwareness {
     return state;
   }
 
-  ingestCallSummary(summary: CallSummarySignal): void {
+  private ingestCallSignal(summary: CallSummarySignal): void {
     const cached = awarenessByPractice.get(summary.practiceId);
     if (!cached) {
       this.refresh(summary.practiceId);
-      return this.ingestCallSummary(summary);
+      return this.ingestCallSignal(summary);
     }
     cached.state.callStream.push(summary);
     cached.state.lastRefreshedAt = new Date().toISOString();
@@ -156,6 +158,18 @@ export class DailyAwareness implements IDailyAwareness {
       cached.state.callStream,
       cached.state.officeDna
     );
+  }
+
+  ingestCallSummary(summary: CallSummarySignal): void {
+    this.ingestCallSignal(summary);
+  }
+
+  ingestOperationalEvent(event: OperationalEvent): void {
+    const signal = operationalEventToCallSummarySignal(event);
+    if (!signal) {
+      return;
+    }
+    this.ingestCallSignal(signal);
   }
 }
 

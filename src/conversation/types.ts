@@ -144,4 +144,5 @@ export interface CallSummary {
 export interface ProcessCallResult {
   summary: CallSummary;
   signal: import("../practice-brain/types.ts").CallSummarySignal;
+  operationalEvent: import("../events/types.ts").OperationalEvent;
 }

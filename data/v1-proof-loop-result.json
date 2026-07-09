@@ -1,6 +1,6 @@
 {
   "proofLoopVersion": "v1",
-  "generatedAt": "2026-07-08T22:40:06.184Z",
+  "generatedAt": "2026-07-08T23:55:46.650Z",
   "fixture": "fixtures/calls/toothache-overnight.json",
   "transcript": {
     "id": "call_toothache_overnight_001",
@@ -96,6 +96,109 @@
       "insurance.program"
     ],
     "patientReferenceId": "pat_ref_finn_leo"
+  },
+  "operationalEvent": {
+    "$schema": "operational-event/v1",
+    "id": "evt_call_toothache_overnight_001",
+    "practiceId": "practice_cascade_family_gr",
+    "source": "call",
+    "timestamp": "2026-07-08T02:15:00.000Z",
+    "eventType": "call_completed",
+    "subject": {
+      "callId": "call_toothache_overnight_001",
+      "patientReferenceId": "pat_ref_finn_leo"
+    },
+    "evidence": [
+      {
+        "source": "call_summary",
+        "description": "Call intent",
+        "referenceId": "summary_call_toothache_overnight_001",
+        "provenance": "callSummary.intent",
+        "observedAt": "2026-07-08T02:15:00.000Z"
+      },
+      {
+        "source": "call_summary",
+        "description": "Urgency ladder",
+        "referenceId": "summary_call_toothache_overnight_001",
+        "provenance": "callSummary.urgency",
+        "observedAt": "2026-07-08T02:15:00.000Z"
+      },
+      {
+        "source": "call_summary",
+        "description": "After-hours flag",
+        "referenceId": "summary_call_toothache_overnight_001",
+        "provenance": "callSummary.afterHours",
+        "observedAt": "2026-07-08T02:15:00.000Z"
+      },
+      {
+        "source": "caller_stated",
+        "description": "Caller name collected",
+        "referenceId": "summary_call_toothache_overnight_001",
+        "provenance": "callSummary.caller.name",
+        "observedAt": "2026-07-08T02:15:00.000Z"
+      },
+      {
+        "source": "caller_stated",
+        "description": "Insurance program classification",
+        "referenceId": "summary_call_toothache_overnight_001",
+        "provenance": "callSummary.insurance.program",
+        "observedAt": "2026-07-08T02:15:00.000Z"
+      },
+      {
+        "source": "caller_stated",
+        "description": "Emergency symptoms documented",
+        "referenceId": "summary_call_toothache_overnight_001",
+        "provenance": "callSummary.emergency.symptoms",
+        "observedAt": "2026-07-08T02:15:00.000Z"
+      },
+      {
+        "source": "inferred",
+        "description": "Emotional flags: painDistress",
+        "referenceId": "summary_call_toothache_overnight_001",
+        "provenance": "signal.emotionalFlags",
+        "observedAt": "2026-07-08T02:15:00.000Z"
+      },
+      {
+        "source": "call_summary",
+        "description": "1 missing field(s)",
+        "referenceId": "summary_call_toothache_overnight_001",
+        "provenance": "callSummary.missingInformation",
+        "observedAt": "2026-07-08T02:15:00.000Z"
+      }
+    ],
+    "uncertainty": {
+      "confidence": 0.67,
+      "humanReviewNeeded": true,
+      "gaps": [
+        "insurance.program"
+      ],
+      "class": "unverified"
+    },
+    "routing": {
+      "owner": "dentist",
+      "responsibilityTags": [
+        "reception"
+      ],
+      "urgencyTier": "critical",
+      "recommendedNextStep": "Flag for on-call callback within practice SLA; keep caller phone nearby"
+    },
+    "payload": {
+      "schema": "call_summary/v1",
+      "summaryId": "summary_call_toothache_overnight_001",
+      "intent": "emergency",
+      "urgency": "urgent",
+      "afterHours": true,
+      "sameDayEmergency": true,
+      "appointmentType": "emergency_eval",
+      "insuranceProgram": "unknown",
+      "emotionalFlags": [
+        "painDistress"
+      ],
+      "completenessScore": 1,
+      "missingFields": [
+        "insurance.program"
+      ]
+    }
   },
   "ingested": true,
   "morningBriefSections": 10,

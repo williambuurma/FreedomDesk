@@ -62,11 +62,11 @@ describe("V1 proof loop — Practice Brain ingest", () => {
 
   test("ingested call appears in awareness and drives emergency opportunity", () => {
     const transcript = loadFixture("toothache-overnight.json");
-    const { signal } = processCallTranscript(transcript);
+    const { signal, operationalEvent } = processCallTranscript(transcript);
 
     const brain = new PracticeBrain(MOCK_PRACTICE_ID);
     brain.refreshAwareness();
-    brain.ingestCallSummary(signal);
+    brain.ingestOperationalEvent(operationalEvent);
 
     const awareness = brain.getAwareness();
     const ingested = awareness.callStream.find((c) => c.callId === signal.callId);
@@ -90,12 +90,12 @@ describe("V1 proof loop — Practice Brain ingest", () => {
 
   test("runDailyCycle with refresh:false preserves ingested calls", () => {
     const transcript = loadFixture("toothache-overnight.json");
-    const { signal } = processCallTranscript(transcript);
+    const { operationalEvent } = processCallTranscript(transcript);
 
     const brain = new PracticeBrain(MOCK_PRACTICE_ID);
     brain.refreshAwareness();
     const beforeCount = brain.getAwareness().callStream.length;
-    brain.ingestCallSummary(signal);
+    brain.ingestOperationalEvent(operationalEvent);
 
     brain.runDailyCycle(undefined, { refresh: false });
     const after = brain.getAwareness().callStream;

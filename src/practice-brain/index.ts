@@ -35,3 +35,10 @@ export type {
 } from "./types.ts";
 
 export { MOCK_PRACTICE_ID, createMockOfficeDna } from "./mockData.ts";
+
+export {
+  callSummaryToOperationalEvent,
+  operationalEventToCallSummarySignal,
+  type OperationalEvent,
+  type OperationalEventEvidence,
+} from "../events/index.ts";

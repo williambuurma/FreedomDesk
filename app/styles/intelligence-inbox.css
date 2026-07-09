@@ -5,22 +5,22 @@
 }
 
 .fd-dashboard-content .ii-main {
-  padding: var(--fd-space-2) 0 var(--fd-space-8);
+  padding: 0 0 var(--fd-space-4);
 }
 
 .fd-dashboard-content .ii-loading,
 .fd-dashboard-content .ii-error {
-  padding: 56px 0;
+  padding: 32px 0;
   color: var(--fd-ink-body);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.55;
 }
 
 .fd-dashboard-content .ii-dashboard {
   display: flex;
   flex-direction: column;
-  gap: var(--fd-space-5);
-  max-width: 36rem;
+  gap: var(--fd-space-4);
+  max-width: none;
 }
 
 .fd-dashboard-content .ii-dashboard[hidden],

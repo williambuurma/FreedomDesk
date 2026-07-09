@@ -1,6 +1,6 @@
 /**
- * FreedomDesk product shell — workflow navigation and module routing.
- * Sidebar = practice workflows. Settings lives in the profile menu.
+ * FreedomDesk companion shell — narrow panel beside the PMS.
+ * Nav + workspace content live inside the companion. Settings in the footer menu.
  */
 (function () {
   "use strict";
@@ -29,11 +29,11 @@
   };
 
   var HEADER_TITLES = {
-    "my-day": "",
-    "intelligence-inbox": "What should you do next?",
-    "morning-brief": "Start of day",
-    patients: "Find a patient",
-    ask: "Ask a question",
+    "my-day": "My Day",
+    "intelligence-inbox": "Next",
+    "morning-brief": "Morning Brief",
+    patients: "Patients",
+    ask: "Ask FreedomDesk",
     settings: "Settings",
   };
 
@@ -51,32 +51,16 @@
     links.forEach(function (link) {
       var isActive = link.getAttribute("data-module") === moduleId;
       link.classList.toggle("fd-nav-link-active", isActive);
-      link.setAttribute("aria-current", isActive ? "page" : "false");
+      link.setAttribute("aria-current", isActive ? "true" : "false");
     });
   }
 
   function updateHeader(module) {
     var titleEl = $("fdModuleTitle");
-    var contentEl = $("fdDashboardContent");
-    var isHome = module && (module.id === DEFAULT_MODULE || module.id === "my-day");
-    var isDecision = module && module.id === "intelligence-inbox";
-
     if (titleEl && module) {
-      var title = HEADER_TITLES[module.id];
-      if (title === "") {
-        titleEl.textContent = "";
-        titleEl.hidden = true;
-      } else {
-        titleEl.hidden = false;
-        titleEl.textContent = title || module.label;
-      }
-      titleEl.classList.toggle("fd-header-home", !!isHome || !!isDecision);
+      titleEl.hidden = false;
+      titleEl.textContent = HEADER_TITLES[module.id] || module.label;
     }
-
-    if (contentEl) {
-      contentEl.classList.toggle("fd-content-home", isHome || isDecision);
-    }
-
     document.title = module ? module.label + " — FreedomDesk" : "FreedomDesk";
   }
 
@@ -107,6 +91,7 @@
     if (!container) return;
 
     container.innerHTML = "";
+    container.scrollTop = 0;
     currentModuleId = moduleId;
     currentModuleInstance = module;
     module.init(container);
@@ -123,7 +108,7 @@
     }
   }
 
-  function buildSidebarNav() {
+  function buildCompanionNav() {
     var navList = $("fdModuleNav");
     if (!navList) return;
 
@@ -134,22 +119,18 @@
     navList.innerHTML = modules
       .map(function (mod) {
         var icon = NAV_ICONS[mod.navIcon] || "";
-        var hint = mod.navHint
-          ? '<span class="fd-nav-hint">' + FreedomDeskUtils.escapeHtml(mod.navHint) + "</span>"
-          : "";
         return (
           '<li class="fd-nav-item">' +
           '<a href="#' +
           mod.id +
           '" class="fd-nav-link" data-module="' +
           mod.id +
+          '" title="' +
+          FreedomDeskUtils.escapeHtml(mod.label) +
           '">' +
           icon +
-          '<span class="fd-nav-text">' +
-          "<span>" +
+          '<span class="fd-nav-label">' +
           FreedomDeskUtils.escapeHtml(mod.label) +
-          "</span>" +
-          hint +
           "</span>" +
           "</a>" +
           "</li>"
@@ -161,25 +142,8 @@
       var link = event.target.closest(".fd-nav-link");
       if (!link) return;
       event.preventDefault();
-      var moduleId = link.getAttribute("data-module");
-      navigateTo(moduleId);
-      closeSidebar();
+      navigateTo(link.getAttribute("data-module"));
     });
-  }
-
-  function closeSidebar() {
-    var layout = document.querySelector(".fd-dashboard-layout");
-    if (layout) layout.classList.remove("fd-sidebar-open");
-    var toggle = $("fdSidebarToggle");
-    if (toggle) toggle.setAttribute("aria-expanded", "false");
-  }
-
-  function toggleSidebar() {
-    var layout = document.querySelector(".fd-dashboard-layout");
-    if (!layout) return;
-    var open = layout.classList.toggle("fd-sidebar-open");
-    var toggle = $("fdSidebarToggle");
-    if (toggle) toggle.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
   function closeProfileMenu() {
@@ -203,16 +167,6 @@
   }
 
   function bindShellEvents() {
-    var toggle = $("fdSidebarToggle");
-    if (toggle) {
-      toggle.addEventListener("click", toggleSidebar);
-    }
-
-    var backdrop = $("fdSidebarBackdrop");
-    if (backdrop) {
-      backdrop.addEventListener("click", closeSidebar);
-    }
-
     var profileTrigger = $("fdProfileTrigger");
     if (profileTrigger) {
       profileTrigger.addEventListener("click", function (event) {
@@ -228,7 +182,6 @@
         if (!item) return;
         event.preventDefault();
         navigateTo(item.getAttribute("data-module"));
-        closeSidebar();
       });
     }
 
@@ -246,19 +199,13 @@
     window.addEventListener("hashchange", function () {
       navigateTo(getModuleIdFromHash(), { replaceHash: false });
     });
-
-    window.addEventListener("resize", function () {
-      if (window.innerWidth > 960) {
-        closeSidebar();
-      }
-    });
   }
 
   function init() {
     if (window.FreedomDeskCoordinationPanel) {
       window.FreedomDeskCoordinationPanel.init();
     }
-    buildSidebarNav();
+    buildCompanionNav();
     bindShellEvents();
     navigateTo(getModuleIdFromHash(), { replaceHash: false, force: true });
   }

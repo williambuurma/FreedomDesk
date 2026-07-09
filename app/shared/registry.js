@@ -1,5 +1,5 @@
 /**
- * FreedomDesk internal dashboard — module registry.
+ * FreedomDesk App — workspace module registry.
  * Modules self-register via FreedomDesk.registerModule().
  */
 (function () {
@@ -12,7 +12,7 @@
 
     registerModule: function (definition) {
       if (!definition || !definition.id || !definition.label || typeof definition.init !== "function") {
-        throw new Error("Invalid dashboard module definition");
+        throw new Error("Invalid workspace module definition");
       }
       modules[definition.id] = definition;
     },

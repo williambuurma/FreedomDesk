@@ -1,5 +1,5 @@
 /**
- * My Day — dashboard module adapter.
+ * My Day — app workspace adapter.
  */
 (function () {
   "use strict";
@@ -16,7 +16,7 @@
       container.innerHTML =
         '<div class="md-page">' +
         '<main class="md-main">' +
-        '<div class="fd-container fd-container--wide md-container"></div>' +
+        '<div class="md-container"></div>' +
         "</main></div>";
 
       fetch(TEMPLATE_URL)

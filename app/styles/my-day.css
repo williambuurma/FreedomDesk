@@ -5,16 +5,16 @@
 }
 
 .fd-dashboard-content .md-main {
-  padding: var(--fd-space-1) 0 var(--fd-space-8);
+  padding: 0 0 var(--fd-space-4);
 }
 
 /* ── Loading & error ── */
 
 .fd-dashboard-content .md-loading {
   text-align: left;
-  padding: 56px 0;
+  padding: 32px 0;
   color: var(--text-muted);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 400;
   letter-spacing: -0.01em;
   line-height: 1.55;
@@ -83,22 +83,22 @@
 }
 
 .fd-dashboard-content .fd-ui-welcome-greeting {
-  font-size: var(--fd-text-2xl);
+  font-size: 1.25rem;
   font-weight: 600;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
   color: var(--fd-navy);
-  line-height: 1.15;
-  margin: 0 0 var(--fd-space-2);
+  line-height: 1.2;
+  margin: 0 0 6px;
 }
 
 .fd-dashboard-content .fd-ui-welcome-subline {
-  font-size: var(--fd-text-base);
+  font-size: 0.875rem;
   font-weight: 400;
   color: var(--fd-ink-body);
-  line-height: 1.6;
+  line-height: 1.5;
   letter-spacing: -0.01em;
-  margin: 0 0 var(--fd-space-3);
-  max-width: 44ch;
+  margin: 0 0 8px;
+  max-width: none;
 }
 
 .fd-dashboard-content .fd-ui-welcome-meta {
@@ -680,6 +680,22 @@
   display: flex;
   flex-direction: column;
   gap: var(--fd-space-4);
+}
+
+/* Companion column — never use wide two-column layouts */
+.fd-companion-content .md-workspace,
+.fd-companion-content .md-dashboard--doctor .md-workspace,
+.fd-companion-content .md-workspace-footer,
+.fd-companion-content .fd-ui-attention-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fd-space-3);
+}
+
+.fd-companion-content .md-workspace-primary,
+.fd-companion-content .md-workspace-secondary {
+  min-width: 0;
+  width: 100%;
 }
 
 @media (min-width: 900px) {

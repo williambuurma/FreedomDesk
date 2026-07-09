@@ -1,5 +1,5 @@
 /**
- * Settings dashboard module — placeholder for practice configuration.
+ * Settings — practice configuration (placeholder). Opens from the profile menu.
  */
 (function () {
   "use strict";

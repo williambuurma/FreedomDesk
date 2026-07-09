@@ -6,7 +6,7 @@
  * Serves the repo root so app/ can fetch ../data/*-preview.json.
  *
  * Usage: npm run dev
- * Opens: http://127.0.0.1:5500/app/#intelligence-inbox
+ * Opens: http://127.0.0.1:5500/app/#my-day
  */
 
 const http = require("node:http");
@@ -17,7 +17,7 @@ const { spawnSync } = require("node:child_process");
 const ROOT = path.resolve(__dirname, "..");
 const PORT = Number(process.env.PORT) || 5500;
 const HOST = process.env.HOST || "127.0.0.1";
-const OPEN_PATH = "/app/#intelligence-inbox";
+const OPEN_PATH = "/app/#my-day";
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -163,10 +163,11 @@ function main() {
     const base = `http://${HOST}:${PORT}`;
     const productUrl = `${base}${OPEN_PATH}`;
     console.log("");
-    console.log("FreedomDesk local UI");
-    console.log(`  Product UI:  ${productUrl}`);
+    console.log("FreedomDesk companion");
+    console.log(`  Companion:   ${productUrl}`);
     console.log(`  My Day:      ${base}/app/#my-day`);
     console.log(`  Morning Brief: ${base}/app/#morning-brief`);
+    console.log(`  Next:        ${base}/app/#intelligence-inbox`);
     console.log(`  Marketing:   ${base}/`);
     console.log("");
     console.log("Press Ctrl+C to stop.");

@@ -11,15 +11,11 @@ const appRoot = path.join(root, "app");
 const previewPath = path.join(root, "data/morning-brief-preview.json");
 
 const MORNING_BRIEF_SECTIONS = [
-  "mbFocus",
-  "mbMetrics",
-  "mbSchedule",
-  "mbOvernight",
-  "mbEmergency",
-  "mbNewPatients",
-  "mbOpportunities",
-  "mbRecommendations",
-  "mbStewardship",
+  "mbBeforeOpen",
+  "mbScheduleRisks",
+  "mbPatientPrep",
+  "mbTodayMoves",
+  "mbQuietNote",
 ];
 
 const V1_WIRED_MODULES = [
@@ -34,7 +30,7 @@ const V1_WIRED_MODULES = [
 const DEFERRED_PLACEHOLDER_MODULES = ["calls", "opportunities", "analytics"];
 
 describe("Morning Brief preview data", () => {
-  test("preview JSON exists and has required dashboard fields", () => {
+  test("preview JSON exists and has required brief fields", () => {
     assert.ok(fs.existsSync(previewPath), "data/morning-brief-preview.json missing — run npm run preview:morning-brief");
 
     const data = JSON.parse(fs.readFileSync(previewPath, "utf8"));
@@ -57,10 +53,11 @@ describe("Morning Brief preview data", () => {
   });
 });
 
-describe("FreedomDesk dashboard shell", () => {
-  test("core shell files exist and wire practice workflow modules", () => {
+describe("FreedomDesk companion shell", () => {
+  test("core shell files exist and wire companion workspace modules", () => {
     const indexHtml = fs.readFileSync(path.join(appRoot, "index.html"), "utf8");
     const dashboardJs = fs.readFileSync(path.join(appRoot, "dashboard.js"), "utf8");
+    const shellCss = fs.readFileSync(path.join(appRoot, "styles/dashboard.css"), "utf8");
 
     assert.ok(fs.existsSync(path.join(appRoot, "index.html")));
     assert.ok(fs.existsSync(path.join(appRoot, "dashboard.js")));
@@ -75,9 +72,17 @@ describe("FreedomDesk dashboard shell", () => {
     assert.match(indexHtml, /modules\/intelligence-inbox\/module\.js/);
     assert.match(indexHtml, /modules\/patients\/patients\.js/);
     assert.match(indexHtml, /modules\/ask\/ask\.js/);
-    assert.match(indexHtml, /Workflows:/);
+    assert.match(indexHtml, /Companion workspaces:/);
     assert.match(indexHtml, /fdProfileTrigger/);
+    assert.match(indexHtml, /fd-companion-panel/);
+    assert.match(indexHtml, /fd-pms-stage/);
+    assert.doesNotMatch(indexHtml, /\.\.\/styles\.css/, "app must not load marketing styles.css");
+    assert.doesNotMatch(indexHtml, /Marketing site/, "app must not link to the marketing site from the shell");
     assert.match(dashboardJs, /getNavModules/);
+    assert.match(dashboardJs, /companion/, "shell should describe companion product");
+    assert.match(shellCss, /--fd-companion-w/);
+    assert.match(shellCss, /\.fd-companion-panel/);
+    assert.doesNotMatch(shellCss, /fd-dashboard-layout/, "full-page app layout should not be the product shell");
 
     for (const mod of V1_WIRED_MODULES) {
       assert.match(indexHtml, new RegExp(`modules/${mod}/`));
@@ -109,9 +114,13 @@ describe("FreedomDesk dashboard shell", () => {
       assert.match(template, new RegExp(`id="${sectionId}"`), `missing section: ${sectionId}`);
     }
 
-    assert.match(template, /Today's Focus/);
-    assert.match(template, /Practice Snapshot/);
-    assert.match(template, /Stewardship/);
+    assert.match(template, /Before doors open/);
+    assert.match(template, /Watch on today's schedule/);
+    assert.match(template, /Patients who need prep/);
+    assert.match(template, /Worth acting on today/);
+    assert.match(template, /One quiet note/);
+    assert.doesNotMatch(template, /Practice Snapshot/);
+    assert.doesNotMatch(template, /Today's Focus/);
   });
 
   test("placeholder modules declare Practice Brain integration features", () => {

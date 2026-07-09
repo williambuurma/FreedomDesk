@@ -1,5 +1,5 @@
 /**
- * Shared utilities for FreedomDesk dashboard modules.
+ * Shared utilities for FreedomDesk App workspaces.
  */
 (function () {
   "use strict";

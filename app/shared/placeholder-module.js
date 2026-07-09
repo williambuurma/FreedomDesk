@@ -1,5 +1,5 @@
 /**
- * Factory for dashboard modules that are not yet implemented.
+ * Factory for app workspaces that are not yet implemented.
  */
 (function () {
   "use strict";
@@ -48,7 +48,7 @@
         }
 
         container.innerHTML =
-          '<div class="fd-module-page fd-container fd-container--reading">' +
+          '<div class="fd-module-page">' +
           '<header class="fd-module-header">' +
           kickerHtml +
           '<h2 class="fd-module-page-title">' +
@@ -60,8 +60,8 @@
           "</header>" +
           '<div class="fd-placeholder-card">' +
           icon +
-          '<p class="fd-placeholder-state">Coming soon</p>' +
-          '<p class="fd-placeholder-hint">This part of the workday is not live yet.</p>' +
+          '<p class="fd-placeholder-state">Not live yet</p>' +
+          '<p class="fd-placeholder-hint">This workspace will open here when it is ready.</p>' +
           featuresHtml +
           "</div>" +
           "</div>";

@@ -1,5 +1,5 @@
 /**
- * Patients dashboard module — placeholder for patient lookup and intake.
+ * Patients — lookup workspace (placeholder).
  */
 (function () {
   "use strict";

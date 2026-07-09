@@ -25,7 +25,7 @@ FreedomDesk answers phone calls, gathers the information your office needs, and 
 
 ## Documentation
 
-This repository is the **FreedomDesk knowledge base and marketing site**.
+This repository contains the **FreedomDesk knowledge base**, the **marketing site** (freedomdeskai.com), and the **FreedomDesk companion** (`app/`) — the narrow operating panel that docks beside the PMS.
 
 **→ [docs/README.md](docs/README.md) is the canonical documentation index and reading order** for engineers, product, dental consultants, and AI agents. It includes an authority map (which document owns which concept), the full required reading sequence, and task-specific entry points.
 
@@ -51,11 +51,11 @@ FreedomDesk/
 ├── voice/
 │   └── persona.json        # Voice agent persona ("Aly")
 ├── audio/                  # Demo call recordings + manifest.json
-├── app/                    # Internal dashboard preview (My Day, Morning Brief) — see app/README.md
+├── app/                    # FreedomDesk companion — side panel beside PMS (see app/README.md)
 ├── src/                    # Intelligence layer (conversation, practice brain, engine) — see src/README.md
 ├── knowledge/              # Runtime knowledge markdown + manifest.json
 ├── config/practices/       # Example Office DNA (Layer 3) configs
-├── data/                   # Generated preview JSON for dashboard mock data
+├── data/                   # Generated preview JSON for app mock data
 ├── server/                 # Express API (local dev)
 │   ├── index.js
 │   └── leads-handler.js
@@ -77,7 +77,7 @@ The repository today ships:
 1. **Marketing site** — product positioning, pricing, founder story, demo audio player
 2. **Lead capture API** — `POST /api/leads` stores demo requests in Supabase/Airtable and sends confirmation email via Resend
 3. **Demo audio** — three sample scenarios (new patient, weekend toothache, broken tooth) with voice persona defined in `voice/persona.json`
-4. **Dashboard preview** — My Day and Morning Brief prototypes with mock data (`app/`, `data/*-preview.json`)
+4. **Companion preview** — narrow panel prototypes with mock data (`app/`, `data/*-preview.json`)
 5. **Intelligence layer (stubs + tests)** — conversation orchestrator, practice brain, prompt context builder (`src/`)
 6. **Knowledge base** — comprehensive docs and runtime knowledge markdown (`docs/`, `knowledge/`)
 
@@ -100,9 +100,9 @@ The **production AI phone system** (telephony, real-time voice, PMS write-back, 
 npm run dev
 ```
 
-Opens the FreedomDesk product UI at **http://127.0.0.1:5500/app/#intelligence-inbox** (Next — decision surface). Also refreshes mock preview JSON under `data/`.
+Opens the FreedomDesk companion at **http://127.0.0.1:5500/app/#my-day**. Also refreshes mock preview JSON under `data/`.
 
-See [`app/README.md`](app/README.md) for My Day / Morning Brief URLs and options.
+See [`app/README.md`](app/README.md) for workspace URLs and options.
 
 ### Full stack (marketing site + lead API)
 

@@ -1,6 +1,6 @@
 /**
- * Morning Brief — dashboard module adapter.
- * Loads the original template and delegates to MorningBriefRenderer.
+ * Morning Brief — app workspace adapter.
+ * Loads the template and delegates to MorningBriefRenderer.
  */
 (function () {
   "use strict";
@@ -17,7 +17,7 @@
       container.innerHTML =
         '<div class="mb-page">' +
         '<main class="mb-main">' +
-        '<div class="fd-container fd-container--wide mb-container"></div>' +
+        '<div class="mb-container"></div>' +
         "</main></div>";
 
       fetch(TEMPLATE_URL)
@@ -35,7 +35,7 @@
           var shell = container.querySelector(".mb-container");
           if (shell) {
             shell.innerHTML =
-              '<div class="mb-error"><p>Unable to load the morning brief preview. Please refresh or contact support.</p></div>';
+              '<div class="mb-error"><p>Unable to load the morning brief. Please refresh or contact support.</p></div>';
           }
         });
     },

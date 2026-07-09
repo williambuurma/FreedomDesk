@@ -1,5 +1,5 @@
 /**
- * Reusable dashboard UI renderers — My Day, Morning Brief, and future role views.
+ * Reusable workspace UI renderers — My Day, Morning Brief, and future role views.
  */
 (function () {
   "use strict";

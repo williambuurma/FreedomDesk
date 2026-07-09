@@ -54,13 +54,28 @@
   --fd-interactive: var(--fd-navy-mid);
 }
 
-/* Map legacy marketing tokens → dashboard language */
-body.fd-dashboard {
+/* App / companion base — self-contained; does not load marketing styles.css */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body.fd-dashboard,
+body.fd-companion {
+  margin: 0;
+  padding: 0;
   font-family: var(--fd-font-family);
   color: var(--fd-ink-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 
+  /* Compatibility aliases for older module CSS */
   --bg-warm: var(--fd-surface-base);
   --bg: var(--fd-surface-raised);
   --bg-soft: var(--fd-surface-base);
@@ -81,11 +96,56 @@ body.fd-dashboard {
   --red-soft: var(--fd-urgent-soft);
   --red-deep: var(--fd-urgent);
   --red: var(--fd-urgent);
+  --green: var(--fd-positive);
+  --green-soft: var(--fd-positive-soft);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.fd-dashboard {
+  background: var(--fd-surface-base);
 }
 
 body.fd-dashboard button,
 body.fd-dashboard input,
 body.fd-dashboard select,
-body.fd-dashboard textarea {
+body.fd-dashboard textarea,
+body.fd-companion button,
+body.fd-companion input,
+body.fd-companion select,
+body.fd-companion textarea {
   font-family: inherit;
+}
+
+body.fd-dashboard a,
+body.fd-companion a {
+  color: inherit;
+  text-decoration: none;
+}
+
+body.fd-dashboard img,
+body.fd-companion img {
+  max-width: 100%;
+  height: auto;
+}
+
+body.fd-dashboard ul,
+body.fd-dashboard ol,
+body.fd-companion ul,
+body.fd-companion ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body.fd-dashboard h1,
+body.fd-dashboard h2,
+body.fd-dashboard h3,
+body.fd-dashboard h4,
+body.fd-dashboard p,
+body.fd-companion h1,
+body.fd-companion h2,
+body.fd-companion h3,
+body.fd-companion h4,
+body.fd-companion p {
+  margin: 0;
 }

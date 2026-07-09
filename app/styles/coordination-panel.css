@@ -9,13 +9,13 @@ body.fd-coord-open {
   overflow: hidden;
 }
 
-/* ── Header triggers ── */
+/* ── Header / companion triggers ── */
 
-.fd-header-coordination {
+.fd-header-coordination,
+.fd-companion-header-actions {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-right: 4px;
 }
 
 .fd-coord-trigger {

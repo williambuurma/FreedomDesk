@@ -1,49 +1,29 @@
 /**
- * Morning Brief dashboard — renders Practice Brain preview JSON.
- * Mock data only; no PMS or live API.
+ * Morning Brief — practice-wide opening handshake.
+ * Answers one question: "What do I need to know before my day starts?"
+ * Curates Practice Brain preview JSON; mock data only.
  */
 (function () {
   "use strict";
 
   var PREVIEW_URL = "../data/morning-brief-preview.json";
 
-  var SECTION_IDS = {
-    schedule: "schedule_snapshot",
-    overnight: "overnight_calls",
-    emergency: "emergent_followups",
-    newPatients: "new_patients_today",
-  };
-
-  var SECTION_TITLES = {
-    schedule: "Today's Schedule",
-    overnight: "Overnight Calls",
-    emergency: "Emergencies",
-    newPatients: "New Patients",
-  };
-
   var OWNER_LABELS = {
     front_desk: "Front desk",
     dentist: "Doctor",
     office_manager: "Office manager",
-    hygiene_coordinator: "Hygiene coordinator",
+    hygiene_coordinator: "Hygiene",
     assistant: "Assistant",
     freedomdesk_ops: "FreedomDesk",
   };
 
-  var PRIORITY_LABELS = {
-    critical: "Critical",
-    high: "High",
-    medium: "Medium",
-    low: "Low",
+  /** Max items per curated section — protect attention. */
+  var LIMITS = {
+    beforeOpen: 4,
+    scheduleRisks: 4,
+    patientPrep: 3,
+    todayMoves: 3,
   };
-
-  var IMPACT_LABELS = {
-    high: "High impact",
-    medium: "Medium impact",
-    low: "Low impact",
-  };
-
-  var SNAPSHOT_LIMIT = 4;
 
   function $(id) {
     return document.getElementById(id);
@@ -66,7 +46,6 @@
         weekday: "long",
         month: "long",
         day: "numeric",
-        year: "numeric",
       });
     } catch (_e) {
       return isoDate;
@@ -78,7 +57,6 @@
       return new Date(iso).toLocaleString("en-US", {
         month: "short",
         day: "numeric",
-        year: "numeric",
         hour: "numeric",
         minute: "2-digit",
       });
@@ -88,340 +66,426 @@
   }
 
   function ownerLabel(role) {
+    if (!role) return "";
     return OWNER_LABELS[role] || role.replace(/_/g, " ");
   }
 
   function findSection(sections, id) {
+    if (!sections) return null;
     for (var i = 0; i < sections.length; i++) {
       if (sections[i].id === id) return sections[i];
     }
     return null;
   }
 
-  function formatKpiValue(kpi) {
-    if (kpi.unit === "%") return kpi.value + "%";
-    if (kpi.unit === "calls") return kpi.value + " calls";
-    if (kpi.unit === "min") return kpi.value + " min";
-    if (kpi.unit === "score") return Math.round(kpi.value * 100) + "%";
-    if (kpi.unit === "flag") return kpi.value ? "Active" : "None";
-    if (kpi.unit === "events") return kpi.value + (kpi.value === 1 ? " event" : " events");
-    if (kpi.unit === "blocks" || kpi.unit === "slots") return kpi.value + " open";
-    return kpi.value + (kpi.unit ? " " + kpi.unit : "");
+  function sectionItems(sections, id) {
+    var section = findSection(sections, id);
+    return section && section.items ? section.items.slice() : [];
   }
 
-  function selectSnapshotKpis(metrics) {
-    if (!metrics || !metrics.departments) return [];
+  /** Prefer action-required, then higher confidence. */
+  function rankItems(items) {
+    return items.slice().sort(function (a, b) {
+      var aAction = a.actionRequired ? 0 : 1;
+      var bAction = b.actionRequired ? 0 : 1;
+      if (aAction !== bAction) return aAction - bAction;
+      return (b.confidence || 0) - (a.confidence || 0);
+    });
+  }
 
-    var kpis = [];
-    metrics.departments.forEach(function (dept) {
-      dept.kpis.forEach(function (kpi) {
-        if (kpi.health !== "insufficient_data") {
-          kpis.push(kpi);
-        }
+  function dedupeBySummary(items) {
+    var seen = {};
+    var out = [];
+    items.forEach(function (item) {
+      var key = (item.summary || "").toLowerCase().replace(/\s+/g, " ").trim();
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      out.push(item);
+    });
+    return out;
+  }
+
+  function humanizeSummary(summary) {
+    if (!summary) return "";
+    var s = String(summary).trim();
+
+    // Soften overnight / engine phrasing into office language
+    s = s.replace(/^emergency\s*[—–-]\s*urgent\s*\(same-day flag\)/i, "Overnight emergency — same-day care needed");
+    s = s.replace(/^new patient\s*[—–-]\s*routine/i, "Overnight new patient — exam requested");
+    s = s.replace(
+      /Overnight urgent call requires on-call callback within 30 min SLA/i,
+      "Call back overnight emergency patient — within 30 minutes"
+    );
+    s = s.replace(
+      /Callback and schedule same-day emergency eval for overnight urgent call[^.]*/i,
+      "Schedule same-day emergency eval for overnight caller"
+    );
+    s = s.replace(
+      /Confirm lab case status before crown seat[^.]*/i,
+      "Confirm lab case before the 10:00 crown seat"
+    );
+    s = s.replace(/1 cancellation\(s\)\s*[—–-]\s*recovery pipeline active/i, "One cancellation still open — fill if you can");
+    s = s.replace(/(\d+) cancellation\(s\)/i, "$1 cancellations");
+    s = s.replace(/Verify insurance benefits before NPE arrival[^.]*/i, "Verify insurance before new patient arrives");
+    s = s.replace(
+      /Contact waitlist candidates for cancellation recovery[^.]*/i,
+      "Fill today's cancelled hygiene opening from the waitlist"
+    );
+    s = s.replace(
+      /Contact waitlist candidates for waitlist match[^.]*/i,
+      "Offer the open hygiene slot to waitlist patients"
+    );
+    s = s.replace(/\bdelta_dental_ppo\b/gi, "Delta Dental PPO");
+    s = s.replace(/\bhighAnxiety\b/gi, "high anxiety");
+    s = s.replace(/\bprophy recall\b/gi, "Prophy recall");
+    s = s.replace(/\bperio_maintenance\b/gi, "Perio maintenance");
+    s = s.replace(/\bemergency_eval\b/gi, "emergency eval");
+    s = s.replace(/\bnew_patient_exam\b/gi, "new patient exam");
+    s = s.replace(/\bNPE\b/g, "new patient");
+    s = s.replace(/\bOffice DNA\b/g, "office rules");
+    s = s.replace(/\bSLA\b/g, "window");
+    s = s.replace(/\bDNA\b/g, "office rules");
+    return s;
+  }
+
+  function humanizeDetail(detail) {
+    if (!detail) return "";
+    var d = String(detail).trim();
+
+    // Drop completeness / engine noise
+    if (/^Appointment type:/i.test(d) && /Completeness:/i.test(d)) return "";
+    if (/Risk flag detected in daily awareness/i.test(d)) {
+      return "Needs front desk attention before patients arrive.";
+    }
+    if (/on-call callback SLA is 30 minutes/i.test(d)) {
+      return "Intake is complete. Callback first, then schedule if appropriate.";
+    }
+    if (/Treatment-specific typing on call/i.test(d)) {
+      return "Confirm the case is in before the patient sits down.";
+    }
+    if (/Constitution truth before efficiency/i.test(d)) {
+      return "First impression depends on honest insurance handling and calm prep.";
+    }
+    if (/Emergency eval intake complete/i.test(d)) {
+      return "Intake is ready — offer a same-day slot if it fits.";
+    }
+    if (/Cancellation recovery is highest-ROI/i.test(d)) {
+      return "Fill the open hygiene slot while the opening is fresh.";
+    }
+
+    d = d.replace(/\bdelta_dental_ppo\b/gi, "Delta Dental PPO");
+    d = d.replace(/\bEmotional flags:\s*highAnxiety\b/gi, "Note: high anxiety");
+    d = d.replace(/\bfront_desk\b/gi, "front desk");
+    d = d.replace(/\bInsurance:\s*/i, "Insurance: ");
+    d = d.replace(/\bOffice DNA\b/g, "office rules");
+    d = d.replace(/\bSLA\b/g, "window");
+    d = d.replace(/\bDNA\b/g, "office rules");
+    return d;
+  }
+
+  /** Collapse near-duplicate items that describe the same morning decision. */
+  function topicKey(item) {
+    var s = ((item && item.summary) || "").toLowerCase();
+    if (/overnight|emergency|urgent call|same-day emergency|on-call callback/i.test(s)) {
+      return "overnight_emergency";
+    }
+    if (/lab|crown seat/i.test(s)) return "lab_crown";
+    if (/new patient|npe|08:30|insurance benefits/i.test(s)) return "new_patient_prep";
+    if (/cancel/i.test(s)) return "cancellation";
+    if (/prophy recall/i.test(s)) return "recall_prophy";
+    if (/perio/i.test(s)) return "recall_perio";
+    if (/waitlist/i.test(s)) return "waitlist";
+    return s.replace(/\s+/g, " ").trim().slice(0, 48);
+  }
+
+  function actionScore(item) {
+    var s = ((item && item.summary) || "").toLowerCase();
+    var score = item.actionRequired ? 2 : 0;
+    if (/callback|call back|schedule|verify|confirm|contact|offer|fill/i.test(s)) score += 3;
+    if (/same-day care needed|emergency —/i.test(s) && !/callback|schedule/i.test(s)) score -= 1;
+    score += (item.confidence || 0);
+    return score;
+  }
+
+  function dedupeByTopic(items) {
+    var best = {};
+    var order = [];
+    items.forEach(function (item) {
+      var key = topicKey(item);
+      if (!key) return;
+      if (!best[key]) {
+        best[key] = item;
+        order.push(key);
+        return;
+      }
+      if (actionScore(item) > actionScore(best[key])) {
+        best[key] = item;
+      }
+    });
+    return order.map(function (key) {
+      return best[key];
+    });
+  }
+
+  function isScheduleRisk(item) {
+    if (!item || !item.summary) return false;
+    var s = item.summary.toLowerCase();
+    // Counts and capacity alone do not change morning decisions — risks do
+    if (/appointments scheduled today/i.test(s)) return false;
+    if (/open blocks available/i.test(s)) return false;
+    return (
+      item.actionRequired === true ||
+      /cancel/i.test(s) ||
+      /lab/i.test(s) ||
+      /confirm/i.test(s) ||
+      /risk/i.test(s) ||
+      /conflict/i.test(s) ||
+      /overbook/i.test(s)
+    );
+  }
+
+  function isInsuranceOrPrepDetail(item) {
+    if (!item) return false;
+    var blob = ((item.summary || "") + " " + (item.detail || "")).toLowerCase();
+    return (
+      /insurance|verify|benefits|anxiety|emotional|new patient|npe/i.test(blob) ||
+      item.actionRequired === true
+    );
+  }
+
+  function buildBeforeOpen(data) {
+    var emergency = sectionItems(data.sections, "emergent_followups");
+    var overnight = sectionItems(data.sections, "overnight_calls").filter(function (item) {
+      return item.actionRequired === true;
+    });
+    var alerts = sectionItems(data.sections, "alerts").filter(function (item) {
+      return item.actionRequired === true;
+    });
+
+    return dedupeByTopic(emergency.concat(overnight).concat(alerts))
+      .sort(function (a, b) {
+        return actionScore(b) - actionScore(a);
+      })
+      .slice(0, LIMITS.beforeOpen);
+  }
+
+  function buildScheduleRisks(data) {
+    var schedule = sectionItems(data.sections, "schedule_snapshot").filter(isScheduleRisk);
+    var labs = sectionItems(data.sections, "squeeze_in_capacity").filter(function (item) {
+      return /lab|crown seat|confirm/i.test(item.summary || "");
+    });
+    return dedupeByTopic(schedule.concat(labs)).slice(0, LIMITS.scheduleRisks);
+  }
+
+  function buildPatientPrep(data) {
+    var patients = sectionItems(data.sections, "new_patients_today").filter(isInsuranceOrPrepDetail);
+    var insuranceRecs = (data.topRecommendations || []).filter(function (rec) {
+      return (
+        rec.category === "patient_experience" ||
+        /insurance|npe|new patient|anxiety/i.test(rec.recommendation || "")
+      );
+    });
+
+    var fromRecs = insuranceRecs.map(function (rec) {
+      return {
+        id: rec.id,
+        summary: rec.recommendation,
+        detail: rec.reason,
+        owner: rec.owner,
+        actionRequired: rec.priority === "critical" || rec.priority === "high",
+        confidence: rec.confidence,
+      };
+    });
+
+    // Prefer the patient row (has time + insurance context) over the generic rec
+    return dedupeByTopic(patients.concat(fromRecs)).slice(0, LIMITS.patientPrep);
+  }
+
+  function buildTodayMoves(data) {
+    var waitlist = sectionItems(data.sections, "waitlist_cancellations");
+    var recall = sectionItems(data.sections, "recall_opportunities");
+    var squeeze = sectionItems(data.sections, "squeeze_in_capacity").filter(function (item) {
+      return /waitlist|squeeze|open doctor|cancellation|fill/i.test(item.summary || "");
+    });
+
+    // High-impact opportunities only — exclude overnight emergencies already covered above
+    var opps = (data.opportunities || [])
+      .filter(function (opp) {
+        if (/overnight|emergency|urgent/i.test(opp.title || "")) return false;
+        return opp.estimatedImpact === "high" || opp.confidence >= 0.8;
+      })
+      .slice(0, 2)
+      .map(function (opp) {
+        return {
+          id: opp.id,
+          summary: opp.title,
+          detail: opp.description,
+          owner: opp.suggestedOwner,
+          actionRequired: false,
+          confidence: opp.confidence,
+        };
       });
-    });
 
-    var healthOrder = { critical: 0, warning: 1, healthy: 2 };
-    kpis.sort(function (a, b) {
-      return (healthOrder[a.health] ?? 2) - (healthOrder[b.health] ?? 2);
+    var merged = waitlist.concat(recall).concat(squeeze).concat(opps).filter(function (item) {
+      return topicKey(item) !== "overnight_emergency";
     });
-
-    return kpis.slice(0, SNAPSHOT_LIMIT);
+    return dedupeByTopic(merged).slice(0, LIMITS.todayMoves);
   }
 
-  function renderMetrics(metrics) {
-    var container = $("mbMetrics");
-    if (!container) return;
-
-    var featured = selectSnapshotKpis(metrics);
-
-    if (featured.length === 0) {
-      container.innerHTML = '<p class="mb-empty">Practice metrics will appear here.</p>';
-      return;
-    }
-
-    container.innerHTML = featured
-      .map(function (kpi) {
-        return (
-          '<div class="mb-snapshot-card mb-metric-health-' +
-          escapeHtml(kpi.health) +
-          '">' +
-          '<span class="mb-snapshot-value">' +
-          escapeHtml(formatKpiValue(kpi)) +
-          "</span>" +
-          '<span class="mb-snapshot-name">' +
-          escapeHtml(kpi.name) +
-          "</span>" +
-          (kpi.target != null
-            ? '<span class="mb-snapshot-target">Target ' +
-              escapeHtml(String(kpi.target)) +
-              (kpi.unit === "%" ? "%" : kpi.unit ? " " + escapeHtml(kpi.unit) : "") +
-              "</span>"
-            : "") +
-          "</div>"
-        );
-      })
-      .join("");
+  function emptyState(message) {
+    return '<p class="mb-empty">' + escapeHtml(message) + "</p>";
   }
 
-  function renderTodaysFocus(recommendations) {
-    var container = $("mbFocus");
-    if (!container) return;
-
-    var focusItems = (recommendations || [])
-      .filter(function (rec) {
-        return rec.priority === "critical" || rec.priority === "high";
-      })
-      .slice(0, 3);
-
-    if (focusItems.length === 0) {
-      focusItems = (recommendations || []).slice(0, 2);
+  function renderItemList(items, options) {
+    options = options || {};
+    if (!items || items.length === 0) {
+      return emptyState(options.emptyMessage || "Nothing flagged — you're clear.");
     }
 
-    if (focusItems.length === 0) {
-      container.innerHTML =
-        '<p class="mb-focus-calm">Your morning looks clear. Review the schedule and opportunities below when you are ready.</p>';
-      return;
-    }
+    var html = '<ul class="mb-item-list">';
+    items.forEach(function (item) {
+      var summary = humanizeSummary(item.summary);
+      var detail = humanizeDetail(item.detail);
+      var urgent = item.actionRequired === true || options.forceUrgent === true;
 
-    var html = '<ol class="mb-focus-list">';
-    focusItems.forEach(function (rec, index) {
-      html +=
-        '<li class="mb-focus-item mb-priority-' +
-        escapeHtml(rec.priority) +
-        '">' +
-        '<span class="mb-focus-num" aria-hidden="true">' +
-        (index + 1) +
-        "</span>" +
-        '<div class="mb-focus-body">' +
-        '<p class="mb-focus-text">' +
-        escapeHtml(rec.recommendation) +
-        "</p>" +
-        '<p class="mb-focus-meta">' +
-        '<span class="mb-priority-badge mb-priority-' +
-        escapeHtml(rec.priority) +
-        '">' +
-        escapeHtml(PRIORITY_LABELS[rec.priority] || rec.priority) +
-        "</span>" +
-        '<span class="mb-item-owner">' +
-        escapeHtml(ownerLabel(rec.owner)) +
-        "</span>" +
-        "</p>" +
-        "</div>" +
-        "</li>";
-    });
-    html += "</ol>";
-    container.innerHTML = html;
-  }
-
-  function renderSectionCard(containerId, headingId, section, displayTitle) {
-    var container = $(containerId);
-    if (!container) return;
-
-    if (!section || !section.items || section.items.length === 0) {
-      container.innerHTML =
-        '<div class="mb-card-header">' +
-        '<h3 class="mb-card-title" id="' +
-        headingId +
-        '">' +
-        escapeHtml(displayTitle) +
-        '</h3></div><p class="mb-empty">All clear — nothing flagged.</p>';
-      return;
-    }
-
-    var priorityClass = section.priority ? " mb-priority-" + section.priority : "";
-    var html =
-      '<div class="mb-card-header">' +
-      '<h3 class="mb-card-title" id="' +
-      headingId +
-      '">' +
-      escapeHtml(displayTitle) +
-      "</h3>" +
-      (section.priority
-        ? '<span class="mb-priority-badge' +
-          priorityClass +
-          '">' +
-          escapeHtml(PRIORITY_LABELS[section.priority] || section.priority) +
-          "</span>"
-        : "") +
-      "</div>" +
-      '<ul class="mb-item-list">';
-
-    section.items.forEach(function (item) {
       html +=
         '<li class="mb-item' +
-        (item.actionRequired ? " mb-item-action" : "") +
+        (urgent ? " mb-item-urgent" : "") +
         '">' +
         '<div class="mb-item-main">' +
-        (item.actionRequired
-          ? '<span class="mb-action-dot" aria-label="Action required"></span>'
-          : "") +
+        (urgent ? '<span class="mb-item-mark" aria-hidden="true"></span>' : "") +
+        '<div class="mb-item-copy">' +
         '<p class="mb-item-summary">' +
-        escapeHtml(item.summary) +
+        escapeHtml(summary) +
         "</p>" +
-        (item.detail ? '<p class="mb-item-detail">' + escapeHtml(item.detail) + "</p>" : "") +
+        (detail ? '<p class="mb-item-detail">' + escapeHtml(detail) + "</p>" : "") +
         "</div>" +
-        '<div class="mb-item-meta">' +
-        '<span class="mb-item-owner">' +
-        escapeHtml(ownerLabel(item.owner)) +
-        "</span>" +
-        (item.confidence != null
-          ? '<span class="mb-item-confidence">' +
-            Math.round(item.confidence * 100) +
-            "% confidence</span>"
+        "</div>" +
+        (item.owner
+          ? '<p class="mb-item-owner">' + escapeHtml(ownerLabel(item.owner)) + "</p>"
           : "") +
-        "</div>" +
         "</li>";
     });
-
     html += "</ul>";
-    container.innerHTML = html;
+    return html;
   }
 
-  function renderOpportunities(opportunities) {
-    var container = $("mbOpportunities");
-    if (!container) return;
+  function setSectionVisibility(sectionId, hasContent) {
+    var el = $(sectionId);
+    if (!el) return;
+    // Keep "Before doors open" always visible — empty is a success state
+    if (sectionId === "mbBeforeOpen") {
+      el.hidden = false;
+      return;
+    }
+    el.hidden = !hasContent;
+  }
 
-    if (!opportunities || opportunities.length === 0) {
-      container.innerHTML =
-        '<div class="mb-card-header">' +
-        '<h3 class="mb-card-title" id="mbOpportunitiesHeading">Top Opportunities</h3>' +
-        '</div><p class="mb-empty">No opportunities detected today.</p>';
+  function renderBeforeOpen(data) {
+    var items = buildBeforeOpen(data);
+    var body = $("mbBeforeOpenBody");
+    if (!body) return;
+    body.innerHTML = renderItemList(items, {
+      emptyMessage: "Quiet overnight — nothing needs attention before doors open.",
+    });
+    setSectionVisibility("mbBeforeOpen", true);
+  }
+
+  function renderScheduleRisks(data) {
+    var items = buildScheduleRisks(data);
+    var body = $("mbScheduleRisksBody");
+    if (!body) return;
+    body.innerHTML = renderItemList(items, {
+      emptyMessage: "Schedule looks steady — no risks flagged.",
+    });
+    setSectionVisibility("mbScheduleRisks", items.length > 0);
+  }
+
+  function renderPatientPrep(data) {
+    var items = buildPatientPrep(data);
+    var body = $("mbPatientPrepBody");
+    if (!body) return;
+    body.innerHTML = renderItemList(items, {
+      emptyMessage: "No special patient prep flagged for today.",
+    });
+    setSectionVisibility("mbPatientPrep", items.length > 0);
+  }
+
+  function renderTodayMoves(data) {
+    var items = buildTodayMoves(data);
+    var body = $("mbTodayMovesBody");
+    if (!body) return;
+    body.innerHTML = renderItemList(items, {
+      emptyMessage: "No same-day openings or fill opportunities right now.",
+    });
+    setSectionVisibility("mbTodayMoves", items.length > 0);
+  }
+
+  function renderQuietNote(note) {
+    var textEl = $("mbQuietNoteText");
+    var aside = $("mbQuietNote");
+    if (!textEl || !aside) return;
+
+    var cleaned = (note || "").trim();
+    // Soften awkward metric phrasing from generator
+    cleaned = cleaned.replace(/at\s+(\d+)\s*calls?/i, "— $1 calls");
+    cleaned = cleaned.replace(/Calls captured\s*[—–-]\s*/i, "Overnight calls captured ");
+    cleaned = cleaned.replace(/Overnight calls captured\s+(\d+)\s*calls?/i, "Overnight: $1 calls captured");
+    cleaned = cleaned.replace(/5 calls/i, "5 calls");
+    cleaned = cleaned.replace(/\s*—\s*—\s*/g, " — ");
+
+    if (!cleaned) {
+      aside.hidden = true;
       return;
     }
 
-    var html =
-      '<div class="mb-card-header">' +
-      '<h3 class="mb-card-title" id="mbOpportunitiesHeading">Top Opportunities</h3>' +
-      '<span class="mb-count-badge">' +
-      opportunities.length +
-      "</span>" +
-      "</div>" +
-      '<ul class="mb-opp-list">';
-
-    opportunities.slice(0, 5).forEach(function (opp) {
-      html +=
-        '<li class="mb-opp">' +
-        '<p class="mb-opp-title">' +
-        escapeHtml(opp.title) +
-        "</p>" +
-        '<p class="mb-opp-desc">' +
-        escapeHtml(opp.description) +
-        "</p>" +
-        '<div class="mb-opp-meta">' +
-        '<span class="mb-opp-type">' +
-        escapeHtml(opp.type.replace(/_/g, " ")) +
-        "</span>" +
-        (opp.estimatedImpact
-          ? '<span class="mb-opp-impact">' +
-            escapeHtml(IMPACT_LABELS[opp.estimatedImpact] || opp.estimatedImpact) +
-            "</span>"
-          : "") +
-        '<span class="mb-item-confidence">' +
-        Math.round(opp.confidence * 100) +
-        "%</span>" +
-        "</div>" +
-        "</li>";
-    });
-
-    html += "</ul>";
-    container.innerHTML = html;
+    textEl.textContent = cleaned;
+    aside.hidden = false;
   }
 
-  function renderRecommendations(recommendations) {
-    var container = $("mbRecommendations");
-    if (!container) return;
+  function renderSubline(data) {
+    var el = $("mbSubline");
+    if (!el) return;
 
-    if (!recommendations || recommendations.length === 0) {
-      container.innerHTML =
-        '<div class="mb-card-header">' +
-        '<h3 class="mb-card-title" id="mbRecommendationsHeading">Recommended Actions</h3>' +
-        '</div><p class="mb-empty">No recommendations for today.</p>';
+    var before = buildBeforeOpen(data).length;
+    var risks = buildScheduleRisks(data).length;
+    var prep = buildPatientPrep(data).length;
+    var moves = buildTodayMoves(data).length;
+    var total = before + risks + prep + moves;
+
+    if (total === 0) {
+      el.textContent = "The practice is ready. Nothing needs your attention before doors open.";
       return;
     }
 
-    var html =
-      '<div class="mb-card-header">' +
-      '<h3 class="mb-card-title" id="mbRecommendationsHeading">Recommended Actions</h3>' +
-      "</div>" +
-      '<ul class="mb-rec-list">';
+    if (before > 0) {
+      el.textContent =
+        before === 1
+          ? "One thing needs attention before doors open."
+          : before + " things need attention before doors open.";
+      return;
+    }
 
-    recommendations.slice(0, 5).forEach(function (rec) {
-      html +=
-        '<li class="mb-rec mb-priority-' +
-        escapeHtml(rec.priority) +
-        '">' +
-        '<div class="mb-rec-header">' +
-        '<span class="mb-priority-badge mb-priority-' +
-        escapeHtml(rec.priority) +
-        '">' +
-        escapeHtml(PRIORITY_LABELS[rec.priority] || rec.priority) +
-        "</span>" +
-        '<span class="mb-item-owner">' +
-        escapeHtml(ownerLabel(rec.owner)) +
-        "</span>" +
-        "</div>" +
-        '<p class="mb-rec-text">' +
-        escapeHtml(rec.recommendation) +
-        "</p>" +
-        '<p class="mb-rec-reason">' +
-        escapeHtml(rec.reason) +
-        "</p>" +
-        "</li>";
-    });
-
-    html += "</ul>";
-    container.innerHTML = html;
+    el.textContent = "A few things worth knowing before the day starts.";
   }
 
-  function renderStewardship(note) {
-    var textEl = $("mbStewardshipText");
-    if (textEl) textEl.textContent = note || "Practice operating within normal parameters.";
-  }
-
-  function renderDashboard(data) {
+  function renderBrief(data) {
     $("mbRecipient").textContent = data.recipientName || "Doctor";
     $("mbPracticeName").textContent = data.practiceName || "";
     $("mbDate").textContent = formatDate(data.date);
-    $("mbReadTime").textContent = String(data.estimatedReadMinutes || 3);
 
     var generatedEl = $("mbGeneratedAt");
     if (generatedEl) generatedEl.textContent = formatDateTime(data.generatedAt);
 
-    renderTodaysFocus(data.topRecommendations);
-    renderMetrics(data.metrics);
-
-    renderSectionCard(
-      "mbSchedule",
-      "mbScheduleHeading",
-      findSection(data.sections, SECTION_IDS.schedule),
-      SECTION_TITLES.schedule
-    );
-    renderSectionCard(
-      "mbOvernight",
-      "mbOvernightHeading",
-      findSection(data.sections, SECTION_IDS.overnight),
-      SECTION_TITLES.overnight
-    );
-    renderSectionCard(
-      "mbEmergency",
-      "mbEmergencyHeading",
-      findSection(data.sections, SECTION_IDS.emergency),
-      SECTION_TITLES.emergency
-    );
-    renderSectionCard(
-      "mbNewPatients",
-      "mbNewPatientsHeading",
-      findSection(data.sections, SECTION_IDS.newPatients),
-      SECTION_TITLES.newPatients
-    );
-
-    renderOpportunities(data.opportunities);
-    renderRecommendations(data.topRecommendations);
-    renderStewardship(data.stewardshipNote);
+    renderSubline(data);
+    renderBeforeOpen(data);
+    renderScheduleRisks(data);
+    renderPatientPrep(data);
+    renderTodayMoves(data);
+    renderQuietNote(data.stewardshipNote);
   }
 
-  function showDashboard() {
+  function showBrief() {
     $("mbLoading").hidden = true;
     $("mbError").hidden = true;
     $("mbDashboard").hidden = false;
@@ -443,8 +507,8 @@
         if (!data.previewMode) {
           console.warn("Morning Brief preview: expected previewMode flag");
         }
-        renderDashboard(data);
-        showDashboard();
+        renderBrief(data);
+        showBrief();
       })
       .catch(function () {
         showError();

@@ -1,5 +1,5 @@
 /**
- * Intelligence Inbox — dashboard module adapter.
+ * Next — decision workspace adapter (Intelligence Inbox).
  */
 (function () {
   "use strict";
@@ -16,7 +16,7 @@
       container.innerHTML =
         '<div class="ii-page">' +
         '<main class="ii-main">' +
-        '<div class="fd-container fd-container--wide ii-container"></div>' +
+        '<div class="ii-container"></div>' +
         "</main></div>";
 
       fetch(TEMPLATE_URL)

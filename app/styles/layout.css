@@ -13,7 +13,9 @@
  *   1920+  ultrawide — content caps, margins absorb excess
  */
 
-.fd-dashboard {
+:root,
+.fd-dashboard,
+.fd-companion {
   /* Spacing scale — fluid between phone and desktop */
   --fd-space-1: clamp(0.25rem, 0.2rem + 0.25vw, 0.375rem);
   --fd-space-2: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
@@ -33,7 +35,7 @@
   --fd-width-reading: 38rem;   /* ~608px — narrative / My Day */
   --fd-width-narrow: 44rem;    /* ~704px — forms, placeholders */
   --fd-width-standard: 56rem;  /* ~896px — mixed content */
-  --fd-width-wide: 68rem;      /* ~1088px — dashboard grids */
+  --fd-width-wide: 68rem;      /* ~1088px — denser workspace layouts */
   --fd-width-max: 76rem;       /* ~1216px — absolute shell cap */
 
   /* Typography scale */

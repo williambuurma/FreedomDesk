@@ -1,5 +1,5 @@
 /**
- * Shared role, priority, and owner labels for dashboard modules.
+ * Shared role, priority, and owner labels for app workspaces.
  */
 (function () {
   "use strict";

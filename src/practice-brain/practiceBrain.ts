@@ -27,6 +27,10 @@
 
 import type { OperationalEvent } from "../events/types.ts";
 import { operationalEventToCallSummarySignal } from "../events/normalize.ts";
+import {
+  PracticeImprovementEngine,
+  type ImprovementResult,
+} from "../practice-improvement/index.ts";
 import { DailyAwareness, defaultDailyAwareness } from "./dailyAwareness.ts";
 import { defaultMorningBriefGenerator, MorningBriefGenerator } from "./morningBrief.ts";
 import { MOCK_PRACTICE_ID } from "./mockData.ts";
@@ -78,6 +82,8 @@ export interface PracticeBrainDependencies {
   opportunityDetector: IOpportunityDetector;
   recommendationEngine: IRecommendationEngine;
   morningBrief: IMorningBriefGenerator;
+  /** Shared Practice Improvement Engine — same pipeline as all intelligence domains. */
+  improvementEngine?: PracticeImprovementEngine;
 }
 
 const defaultDependencies: PracticeBrainDependencies = {
@@ -96,6 +102,7 @@ const defaultDependencies: PracticeBrainDependencies = {
 export class PracticeBrain {
   private readonly practiceId: PracticeId;
   private readonly deps: PracticeBrainDependencies;
+  private readonly improvementEngine: PracticeImprovementEngine;
 
   constructor(
     practiceId: PracticeId = MOCK_PRACTICE_ID,
@@ -103,10 +110,25 @@ export class PracticeBrain {
   ) {
     this.practiceId = practiceId;
     this.deps = { ...defaultDependencies, ...dependencies };
+    this.improvementEngine =
+      dependencies.improvementEngine || new PracticeImprovementEngine();
   }
 
   getPracticeId(): PracticeId {
     return this.practiceId;
+  }
+
+  /**
+   * Judge an operational event through the shared Practice Improvement Engine.
+   * Same pipeline as Phone / Operating / Supply / Owner — not a separate path.
+   */
+  judgeEvent(event: OperationalEvent): ImprovementResult {
+    if (event.practiceId !== this.practiceId) {
+      throw new Error(
+        `Tenant isolation violation: event practiceId ${event.practiceId} !== ${this.practiceId}`
+      );
+    }
+    return this.improvementEngine.processEvent(event);
   }
 
   /**

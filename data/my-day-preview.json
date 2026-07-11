@@ -1,6 +1,6 @@
 {
   "previewMode": true,
-  "generatedAt": "2026-07-11T03:31:47.577Z",
+  "generatedAt": "2026-07-11T03:54:32.948Z",
   "practiceName": "Cascade Family Dentistry",
   "date": "2026-07-11",
   "staffSettings": {
@@ -340,7 +340,7 @@
       ],
       "decisionCards": [
         {
-          "id": "imp_1783740707575_d57t2l",
+          "id": "imp_1783742072947_1a50at",
           "kind": "recoverable_phone_opportunity",
           "situation": "An urgent caller from yesterday reported facial swelling but never scheduled.",
           "recommendation": "Call Emily Johnson first. She reported worsening facial swelling, requested an afternoon appointment, and no completed callback is recorded.",
@@ -350,7 +350,7 @@
           "whyText": "Call Emily Johnson first. She reported worsening facial swelling, requested an afternoon appointment, and no completed callback is recorded.",
           "accent": "urgent",
           "group": "urgent",
-          "recommendationId": "imp_1783740707575_d57t2l",
+          "recommendationId": "imp_1783742072947_1a50at",
           "practiceId": "practice_cascade_family_gr",
           "dedupeKey": "practice_cascade_family_gr|phone|recoverable_phone_opportunity|pat_ref_emily_johnson|risk",
           "priority": "high",
@@ -366,40 +366,9 @@
             }
           ],
           "disposition": "recommend",
-          "outcomeStatuses": [
-            "accepted",
-            "snoozed",
-            "dismissed",
-            "completed"
-          ]
-        },
-        {
-          "id": "imp_1783740707576_600yic",
-          "kind": "recoverable_schedule_opportunity",
-          "situation": "A 60-minute opening became available tomorrow at 10:30 AM.",
-          "recommendation": "Offer it to Maria Lopez for her unscheduled crown because the procedure fits, benefits are verified, and she previously requested a morning appointment.",
-          "primaryAction": "Call Maria.",
-          "subject": "Maria Lopez",
-          "stake": "An open chair stays empty",
-          "whyText": "Offer it to Maria Lopez for her unscheduled crown because the procedure fits, benefits are verified, and she previously requested a morning appointment.",
-          "accent": "opportunity",
-          "group": "opportunity",
-          "recommendationId": "imp_1783740707576_600yic",
-          "practiceId": "practice_cascade_family_gr",
-          "dedupeKey": "practice_cascade_family_gr|operating|recoverable_schedule_opportunity|pat_ref_maria_lopez|opportunity",
-          "priority": "high",
-          "evidence": [
-            {
-              "description": "60-minute doctor block opened tomorrow at 10:30 AM"
-            },
-            {
-              "description": "Unscheduled crown treatment pending for Maria Lopez; benefits verified"
-            },
-            {
-              "description": "Maria previously requested a morning appointment"
-            }
-          ],
-          "disposition": "recommend",
+          "arbitration": "surface",
+          "arbitrationReason": "Primary recommendation — highest value for attention right now",
+          "rank": 1,
           "outcomeStatuses": [
             "accepted",
             "snoozed",
@@ -410,7 +379,7 @@
       ],
       "priorities": [
         {
-          "id": "rec_1783740707573_11",
+          "id": "rec_1783742072945_11",
           "action": "Overnight urgent call requires on-call callback within 30 min SLA",
           "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
           "priority": "critical",
@@ -418,7 +387,7 @@
           "category": "emergency"
         },
         {
-          "id": "rec_1783740707573_1",
+          "id": "rec_1783742072945_1",
           "action": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
           "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
           "priority": "critical",
@@ -426,7 +395,7 @@
           "category": "emergency"
         },
         {
-          "id": "rec_1783740707573_3",
+          "id": "rec_1783742072945_3",
           "action": "Verify insurance benefits before NPE arrival; note emotional flags for clinical prep.",
           "reason": "New patient first impression depends on honest insurance handling and anxiety-aware prep — Constitution truth before efficiency.",
           "priority": "medium",
@@ -436,7 +405,7 @@
       ],
       "patientsAttention": [
         {
-          "id": "brief_item_rec_1783740707573_11",
+          "id": "brief_item_rec_1783742072945_11",
           "name": "Overnight caller",
           "issue": "Overnight urgent call requires on-call callback within 30 min SLA",
           "action": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
@@ -444,7 +413,7 @@
           "priority": "critical"
         },
         {
-          "id": "brief_item_rec_1783740707573_1",
+          "id": "brief_item_rec_1783742072945_1",
           "name": "Overnight caller",
           "issue": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
           "action": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
@@ -485,7 +454,56 @@
           "description": "Cancelled slot may be offered to waitlist per Office DNA waitlist policy within 15-minute target latency.",
           "reason": "cancellation recovery · 85% confidence · high impact"
         }
-      ]
+      ],
+      "waitingDecisions": [
+        {
+          "id": "imp_1783742072947_fpbep3",
+          "kind": "recoverable_schedule_opportunity",
+          "situation": "A 60-minute opening became available tomorrow at 10:30 AM.",
+          "recommendation": "Offer it to Maria Lopez for her unscheduled crown because the procedure fits, benefits are verified, and she previously requested a morning appointment.",
+          "primaryAction": "Call Maria.",
+          "subject": "Maria Lopez",
+          "stake": "An open chair stays empty",
+          "whyText": "Offer it to Maria Lopez for her unscheduled crown because the procedure fits, benefits are verified, and she previously requested a morning appointment.",
+          "accent": "opportunity",
+          "group": "opportunity",
+          "recommendationId": "imp_1783742072947_fpbep3",
+          "practiceId": "practice_cascade_family_gr",
+          "dedupeKey": "practice_cascade_family_gr|operating|recoverable_schedule_opportunity|pat_ref_maria_lopez|opportunity",
+          "priority": "high",
+          "evidence": [
+            {
+              "description": "60-minute doctor block opened tomorrow at 10:30 AM"
+            },
+            {
+              "description": "Unscheduled crown treatment pending for Maria Lopez; benefits verified"
+            },
+            {
+              "description": "Maria previously requested a morning appointment"
+            }
+          ],
+          "disposition": "recommend",
+          "arbitration": "wait",
+          "arbitrationReason": "Waiting — available after primary attention clears",
+          "rank": null,
+          "outcomeStatuses": [
+            "accepted",
+            "snoozed",
+            "dismissed",
+            "completed"
+          ],
+          "available": true
+        }
+      ],
+      "arbitrationSummary": {
+        "primaryId": "imp_1783742072947_1a50at",
+        "surfaced": 1,
+        "waiting": 1,
+        "escalated": 0,
+        "merged": 0,
+        "suppressed": 0,
+        "expired": 0
+      }
     }
   }
 }

@@ -315,6 +315,60 @@ export interface PipelineContext {
   openActionKeys?: Set<string>;
 }
 
+/**
+ * Decision Arbitration — post-pipeline coordination over competing recommendations.
+ * Protects attention: one primary surface; others wait, merge, suppress, expire, or escalate.
+ */
+export type ArbitrationDisposition =
+  | "surface"
+  | "wait"
+  | "merge"
+  | "suppress"
+  | "expire"
+  | "escalate";
+
+export interface DecisionArbitrationContext {
+  practiceId: PracticeId;
+  now: ISOTimestamp;
+  /** Max recommendations to surface at once. Default 1 — protect attention. */
+  maxSurface?: number;
+  /** Max interrupt-tier surfaces. Default 1. */
+  maxInterrupts?: number;
+  /** Open Action dedupe keys — suppress equivalents already in flight. */
+  openActionKeys?: Set<string>;
+  /** Prior outcomes — expire superseded/expired recommendations. */
+  outcomes?: Outcome[];
+  /** Learning signals — soft boost when prior similar recommendations were accepted. */
+  learnings?: LearningSignal[];
+}
+
+export interface ArbitratedDecision {
+  result: ImprovementResult;
+  disposition: ArbitrationDisposition;
+  /** 1-based rank among surfaced items; null when not surfaced. */
+  rank: number | null;
+  reason: string;
+  /** Related recommendation ids (winner when suppressed/merged, peers when escalated). */
+  relatedIds: string[];
+  projection: DecisionFirstProjection | null;
+}
+
+export interface DecisionArbitrationResult {
+  practiceId: PracticeId;
+  now: ISOTimestamp;
+  /** Single most valuable recommendation for this moment (or null if none). */
+  primary: ArbitratedDecision | null;
+  /** Attention-safe projections to show — length ≤ maxSurface. */
+  surface: ArbitratedDecision[];
+  waiting: ArbitratedDecision[];
+  merged: ArbitratedDecision[];
+  suppressed: ArbitratedDecision[];
+  expired: ArbitratedDecision[];
+  escalated: ArbitratedDecision[];
+  /** Full ordered arbitration ledger. */
+  items: ArbitratedDecision[];
+}
+
 export interface DomainAssessmentModule {
   readonly domain: IntelligenceDomain;
   accepts(event: OperationalEvent): boolean;

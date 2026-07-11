@@ -41,13 +41,19 @@ describe("Morning Brief preview data", () => {
     assert.ok(Array.isArray(data.sections) && data.sections.length > 0);
     assert.ok(Array.isArray(data.opportunities) && data.opportunities.length > 0);
     assert.ok(Array.isArray(data.topRecommendations) && data.topRecommendations.length > 0);
-    assert.ok(Array.isArray(data.decisionCards) && data.decisionCards.length >= 1);
-    const phone = data.decisionCards.find((c) => c.kind === "recoverable_phone_opportunity");
-    assert.ok(phone, "expected recoverable_phone_opportunity decision card");
-    assert.match(phone.primaryAction, /Call Emily/i);
-    const rso = data.decisionCards.find((c) => c.kind === "recoverable_schedule_opportunity");
-    assert.ok(rso, "expected recoverable_schedule_opportunity decision card");
+    assert.ok(Array.isArray(data.decisionCards) && data.decisionCards.length === 1);
+    const primary = data.decisionCards[0];
+    assert.equal(primary.kind, "recoverable_phone_opportunity");
+    assert.equal(primary.arbitration, "surface");
+    assert.match(primary.primaryAction, /Call Emily/i);
+    assert.ok(Array.isArray(data.waitingDecisions));
+    const rso = data.waitingDecisions.find(
+      (c) => c.kind === "recoverable_schedule_opportunity"
+    );
+    assert.ok(rso, "schedule opportunity should wait under arbitration");
     assert.match(rso.primaryAction, /Call Maria/i);
+    assert.ok(data.arbitrationSummary);
+    assert.equal(data.arbitrationSummary.surfaced, 1);
     assert.ok(data.metrics && Array.isArray(data.metrics.departments));
     assert.ok(data.stewardshipNote && data.stewardshipNote.length > 0);
 

@@ -23,7 +23,6 @@ async function main() {
     PracticeImprovementEngine,
     buildDemoScheduleOpeningEvent,
     buildDemoPhoneRecoveryEvent,
-    projectDecisionFirst,
   } = await import("../src/practice-improvement/index.ts");
 
   const brain = new PracticeBrain(MOCK_PRACTICE_ID);
@@ -31,46 +30,49 @@ async function main() {
   const { morningBrief, opportunities, metrics } = result;
 
   const engine = new PracticeImprovementEngine();
-  const phoneResult = engine.processEvent(buildDemoPhoneRecoveryEvent());
-  const phoneCard = projectDecisionFirst(phoneResult);
-  const scheduleResult = engine.processEvent(buildDemoScheduleOpeningEvent());
-  const scheduleCard = projectDecisionFirst(scheduleResult);
+  const { arbitration } = engine.processAndArbitrate(
+    [buildDemoPhoneRecoveryEvent(), buildDemoScheduleOpeningEvent()],
+    {
+      practiceId: "practice_cascade_family_gr",
+      now: new Date().toISOString(),
+      maxSurface: 1,
+    }
+  );
 
-  const decisionCards = [];
-  if (phoneCard) {
-    decisionCards.push({
-      id: phoneCard.recommendationId,
-      kind: "recoverable_phone_opportunity",
-      situation: phoneCard.situation,
-      recommendation: phoneCard.recommendation,
-      primaryAction: phoneCard.primaryAction,
-      subject: phoneCard.subject,
-      stake: phoneCard.stake,
-      whyText: phoneCard.whyText,
-      accent: phoneCard.accent,
-      group: phoneCard.group,
-      recommendationId: phoneCard.recommendationId,
-      practiceId: phoneCard.practiceId,
-      evidence: phoneCard.evidence,
-    });
+  function toCard(item) {
+    const card = item.projection;
+    if (!card) return null;
+    const kind =
+      item.result.situation?.kind ||
+      (item.result.domain === "phone"
+        ? "recoverable_phone_opportunity"
+        : item.result.domain === "operating"
+          ? "recoverable_schedule_opportunity"
+          : "improvement_recommendation");
+    return {
+      id: card.recommendationId,
+      kind,
+      situation: card.situation,
+      recommendation: card.recommendation,
+      primaryAction: card.primaryAction,
+      subject: card.subject,
+      stake: card.stake,
+      whyText: card.whyText,
+      accent: card.accent,
+      group: card.group,
+      recommendationId: card.recommendationId,
+      practiceId: card.practiceId,
+      evidence: card.evidence,
+      arbitration: item.disposition,
+      arbitrationReason: item.reason,
+      rank: item.rank,
+    };
   }
-  if (scheduleCard) {
-    decisionCards.push({
-      id: scheduleCard.recommendationId,
-      kind: "recoverable_schedule_opportunity",
-      situation: scheduleCard.situation,
-      recommendation: scheduleCard.recommendation,
-      primaryAction: scheduleCard.primaryAction,
-      subject: scheduleCard.subject,
-      stake: scheduleCard.stake,
-      whyText: scheduleCard.whyText,
-      accent: scheduleCard.accent,
-      group: scheduleCard.group,
-      recommendationId: scheduleCard.recommendationId,
-      practiceId: scheduleCard.practiceId,
-      evidence: scheduleCard.evidence,
-    });
-  }
+
+  const decisionCards = arbitration.surface.map(toCard).filter(Boolean);
+  const waitingDecisions = [...arbitration.waiting, ...arbitration.escalated]
+    .map(toCard)
+    .filter(Boolean);
 
   const preview = {
     previewMode: true,
@@ -102,6 +104,16 @@ async function main() {
       suggestedOwner: opp.suggestedOwner,
     })),
     decisionCards,
+    waitingDecisions,
+    arbitrationSummary: {
+      primaryId: arbitration.primary?.result.recommendation?.id || null,
+      surfaced: arbitration.surface.length,
+      waiting: arbitration.waiting.length,
+      escalated: arbitration.escalated.length,
+      merged: arbitration.merged.length,
+      suppressed: arbitration.suppressed.length,
+      expired: arbitration.expired.length,
+    },
     metrics: {
       asOf: metrics.asOf,
       stewardshipHighlight: metrics.stewardshipHighlight,
@@ -124,7 +136,7 @@ async function main() {
   fs.writeFileSync(outputPath, JSON.stringify(preview, null, 2) + "\n", "utf8");
   console.error(`Morning Brief preview written to ${outputPath}`);
   console.error(
-    `  ${preview.sections.length} sections, ${preview.opportunities.length} opportunities, ${preview.topRecommendations.length} recommendations, ${preview.decisionCards.length} decision cards`
+    `  ${preview.sections.length} sections, ${preview.opportunities.length} opportunities, ${preview.topRecommendations.length} recommendations, ${preview.decisionCards.length} decision cards (primary), ${preview.waitingDecisions.length} waiting`
   );
 }
 

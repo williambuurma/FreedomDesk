@@ -1475,76 +1475,81 @@ function buildRoleView(roleConfig, brainResult, memorySummary, memory, staffSett
 }
 
 /**
- * Run Phone Opportunity Recovery through the real Practice Improvement Engine
- * and attach a decision-first card for Today (not a hardcoded mockup).
+ * Run competing intelligence recommendations through Decision Arbitration.
+ * Surfaces one primary card; keeps the rest available (wait / escalate / merge).
  */
-async function buildRecoverablePhoneDecisionCard() {
+async function buildArbitratedDecisionCards() {
   const {
     PracticeImprovementEngine,
     buildDemoPhoneRecoveryEvent,
-    projectDecisionFirst,
-  } = await import("../src/practice-improvement/index.ts");
-
-  const engine = new PracticeImprovementEngine();
-  const result = engine.processEvent(buildDemoPhoneRecoveryEvent());
-  const card = projectDecisionFirst(result);
-  if (!card) return null;
-
-  return {
-    id: card.recommendationId,
-    kind: "recoverable_phone_opportunity",
-    situation: card.situation,
-    recommendation: card.recommendation,
-    primaryAction: card.primaryAction,
-    subject: card.subject,
-    stake: card.stake,
-    whyText: card.whyText,
-    accent: card.accent,
-    group: card.group,
-    recommendationId: card.recommendationId,
-    practiceId: card.practiceId,
-    dedupeKey: card.dedupeKey,
-    priority: card.priority,
-    evidence: card.evidence,
-    disposition: result.disposition,
-    outcomeStatuses: ["accepted", "snoozed", "dismissed", "completed"],
-  };
-}
-
-/**
- * Run Recoverable Schedule Opportunity through the real Practice Improvement Engine
- * and attach a decision-first card for Today (not a hardcoded mockup).
- */
-async function buildRecoverableScheduleDecisionCard() {
-  const {
-    PracticeImprovementEngine,
     buildDemoScheduleOpeningEvent,
-    projectDecisionFirst,
   } = await import("../src/practice-improvement/index.ts");
 
   const engine = new PracticeImprovementEngine();
-  const result = engine.processEvent(buildDemoScheduleOpeningEvent());
-  const card = projectDecisionFirst(result);
-  if (!card) return null;
+  const { arbitration } = engine.processAndArbitrate(
+    [buildDemoPhoneRecoveryEvent(), buildDemoScheduleOpeningEvent()],
+    {
+      practiceId: "practice_cascade_family_gr",
+      now: new Date().toISOString(),
+      maxSurface: 1,
+    }
+  );
+
+  function toCard(item, extras = {}) {
+    const card = item.projection;
+    if (!card) return null;
+    const kind =
+      item.result.situation?.kind ||
+      (item.result.domain === "phone"
+        ? "recoverable_phone_opportunity"
+        : item.result.domain === "operating"
+          ? "recoverable_schedule_opportunity"
+          : "improvement_recommendation");
+    return {
+      id: card.recommendationId,
+      kind,
+      situation: card.situation,
+      recommendation: card.recommendation,
+      primaryAction: card.primaryAction,
+      subject: card.subject,
+      stake: card.stake,
+      whyText: card.whyText,
+      accent: card.accent,
+      group: card.group,
+      recommendationId: card.recommendationId,
+      practiceId: card.practiceId,
+      dedupeKey: card.dedupeKey,
+      priority: card.priority,
+      evidence: card.evidence,
+      disposition: item.result.disposition,
+      arbitration: item.disposition,
+      arbitrationReason: item.reason,
+      rank: item.rank,
+      outcomeStatuses: ["accepted", "snoozed", "dismissed", "completed"],
+      ...extras,
+    };
+  }
+
+  const decisionCards = arbitration.surface
+    .map((item) => toCard(item))
+    .filter(Boolean);
+
+  const waitingDecisions = [...arbitration.waiting, ...arbitration.escalated]
+    .map((item) => toCard(item, { available: true }))
+    .filter(Boolean);
 
   return {
-    id: card.recommendationId,
-    kind: "recoverable_schedule_opportunity",
-    situation: card.situation,
-    recommendation: card.recommendation,
-    primaryAction: card.primaryAction,
-    subject: card.subject,
-    stake: card.stake,
-    whyText: card.whyText,
-    accent: card.accent,
-    group: card.group,
-    recommendationId: card.recommendationId,
-    practiceId: card.practiceId,
-    dedupeKey: card.dedupeKey,
-    priority: card.priority,
-    evidence: card.evidence,
-    disposition: result.disposition,
-    outcomeStatuses: ["accepted", "snoozed", "dismissed", "completed"],
+    decisionCards,
+    waitingDecisions,
+    arbitrationSummary: {
+      primaryId: arbitration.primary?.result.recommendation?.id || null,
+      surfaced: arbitration.surface.length,
+      waiting: arbitration.waiting.length,
+      escalated: arbitration.escalated.length,
+      merged: arbitration.merged.length,
+      suppressed: arbitration.suppressed.length,
+      expired: arbitration.expired.length,
+    },
   };
 }
 
@@ -1559,8 +1564,8 @@ async function main() {
   const memory = createMockPracticeMemory();
   const memorySummary = generateMorningMemorySummary(memory);
   const staffSettings = loadStaffSettings();
-  const phoneDecision = await buildRecoverablePhoneDecisionCard();
-  const scheduleDecision = await buildRecoverableScheduleDecisionCard();
+  const { decisionCards, waitingDecisions, arbitrationSummary } =
+    await buildArbitratedDecisionCards();
 
   const roles = {};
   for (const roleId of Object.keys(ROLE_CONFIG)) {
@@ -1574,12 +1579,14 @@ async function main() {
   }
 
   if (roles.front_desk) {
-    const cards = [];
-    if (phoneDecision) cards.push(phoneDecision);
-    if (scheduleDecision) cards.push(scheduleDecision);
-    roles.front_desk.decisionCards = cards;
+    roles.front_desk.decisionCards = decisionCards;
+    roles.front_desk.waitingDecisions = waitingDecisions;
+    roles.front_desk.arbitrationSummary = arbitrationSummary;
     // Prefer the named recovery over a generic open-chair gap label.
-    if (scheduleDecision) {
+    if (
+      decisionCards.some((c) => c.kind === "recoverable_schedule_opportunity") ||
+      waitingDecisions.some((c) => c.kind === "recoverable_schedule_opportunity")
+    ) {
       roles.front_desk.scheduleGaps = [
         {
           id: "gap-rso-1030",
@@ -1615,7 +1622,7 @@ async function main() {
     const view = roles[roleId];
     if (roleId === "front_desk") {
       console.error(
-        `  ${roleId}: ${view.urgentTasks?.length ?? 0} urgent, ${view.todayTasks?.length ?? 0} today, ${view.attentionCards?.length ?? 0} attention cards, ${view.decisionCards?.length ?? 0} decision cards`
+        `  ${roleId}: ${view.urgentTasks?.length ?? 0} urgent, ${view.todayTasks?.length ?? 0} today, ${view.attentionCards?.length ?? 0} attention cards, ${view.decisionCards?.length ?? 0} decision cards (primary), ${view.waitingDecisions?.length ?? 0} waiting`
       );
     } else {
       console.error(

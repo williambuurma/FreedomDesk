@@ -11,6 +11,10 @@
  */
 
 import type { OperationalEvent, PracticeId } from "../events/types.ts";
+import {
+  arbitrateDecisions,
+  arbitrateImprovementBatch,
+} from "./decisionArbitration.ts";
 import { DEFAULT_DOMAIN_MODULES } from "./domains/registry.ts";
 import {
   learningSignalFromOutcome,
@@ -21,6 +25,8 @@ import { runImprovementPipeline } from "./pipeline.ts";
 import {
   IMPROVEMENT_ENGINE_VERSION,
   PRACTICE_IMPROVEMENT_OBJECTIVE,
+  type DecisionArbitrationContext,
+  type DecisionArbitrationResult,
   type DomainAssessmentModule,
   type ImprovementResult,
   type LearningSignal,
@@ -73,6 +79,54 @@ export class PracticeImprovementEngine {
       (r) => r.disposition === "ignore" || r.disposition === "defer"
     );
     return { results, surfaced, silenced };
+  }
+
+  /**
+   * Arbitrate already-produced ImprovementResults into one attention-safe set.
+   * Reuses impact evaluation, outcomes, and learning — does not re-run domains.
+   */
+  arbitrate(
+    results: ImprovementResult[],
+    ctx?: Partial<DecisionArbitrationContext>
+  ): DecisionArbitrationResult {
+    const practiceId =
+      ctx?.practiceId ||
+      results[0]?.practiceId ||
+      "unknown_practice";
+    return arbitrateDecisions(results, {
+      practiceId,
+      now: ctx?.now || new Date().toISOString(),
+      maxSurface: ctx?.maxSurface,
+      maxInterrupts: ctx?.maxInterrupts,
+      openActionKeys: ctx?.openActionKeys,
+      outcomes: ctx?.outcomes ?? this.outcomes.list(practiceId),
+      learnings: ctx?.learnings ?? this.listLearnings(practiceId),
+    });
+  }
+
+  /**
+   * Process events through the pipeline, then arbitrate competing recommendations.
+   * Demonstrates multiple intelligence domains → one primary decision.
+   */
+  processAndArbitrate(
+    events: OperationalEvent[],
+    ctx?: Partial<PipelineContext & DecisionArbitrationContext>
+  ): {
+    batch: ReturnType<PracticeImprovementEngine["processBatch"]>;
+    arbitration: DecisionArbitrationResult;
+  } {
+    const batch = this.processBatch(events, ctx);
+    const practiceId = ctx?.practiceId || events[0]?.practiceId || "unknown_practice";
+    const arbitration = arbitrateImprovementBatch(batch, {
+      practiceId,
+      now: ctx?.now || new Date().toISOString(),
+      maxSurface: ctx?.maxSurface,
+      maxInterrupts: ctx?.maxInterrupts,
+      openActionKeys: ctx?.openActionKeys,
+      outcomes: ctx?.outcomes ?? this.outcomes.list(practiceId),
+      learnings: ctx?.learnings ?? this.listLearnings(practiceId),
+    });
+    return { batch, arbitration };
   }
 
   /**

@@ -35,6 +35,10 @@ export {
   type PipelineContext,
   type DomainAssessmentModule,
   type DecisionFirstProjection,
+  type ArbitrationDisposition,
+  type DecisionArbitrationContext,
+  type ArbitratedDecision,
+  type DecisionArbitrationResult,
 } from "./types.ts";
 
 export {
@@ -56,6 +60,12 @@ export {
 export { evaluateImpact } from "./impactEvaluation.ts";
 
 export { runImprovementPipeline } from "./pipeline.ts";
+
+export {
+  arbitrateDecisions,
+  arbitrateImprovementBatch,
+  compareArbitrationCandidates,
+} from "./decisionArbitration.ts";
 
 export {
   OutcomeRecorder,

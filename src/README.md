@@ -57,12 +57,15 @@ Quiet by default: below confidence floors, non-material impact, or PMS-duplicati
 
 **Recoverable Schedule Opportunity:** when an `appointment_cancelled` event carries a `schedule_opportunity/v1` payload, the operating domain ranks fill candidates (duration, provider, urgency, preference, insurance) and surfaces one decision-first recommendation — Situation → Recommendation → Primary Action — via the shared pipeline. Fixtures live in `fixtures/recoverableScheduleOpportunity.ts` and are projected into Today preview decision cards.
 
+**Decision Arbitration:** when multiple domains surface recommendations at once, `arbitrateDecisions()` / `processAndArbitrate()` picks one primary card and routes the rest to wait, merge, suppress, expire, or escalate — reusing impact evaluation, dedupe keys, confidence, and outcome learning. Protects attention; does not redesign domains or UI.
+
 ```ts
 import { PracticeImprovementEngine } from "./practice-improvement/index.ts";
 
 const engine = new PracticeImprovementEngine();
-const result = engine.processEvent(operationalEvent);
-// result.disposition: action | recommend | defer | ignore
+const { arbitration } = engine.processAndArbitrate([phoneEvent, scheduleEvent]);
+// arbitration.primary — single most valuable recommendation right now
+// arbitration.waiting / escalated — kept available without competing cards
 ```
 
 ## Naming note

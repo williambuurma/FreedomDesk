@@ -50,6 +50,94 @@
   opacity: 0.4;
 }
 
+/* ── Decision flow motion (settle → breath → arrive) ── */
+
+.fd-dashboard-content .fd-dc--primary {
+  transform-origin: center top;
+  will-change: opacity, transform;
+}
+
+.fd-dashboard-content .fd-dc--resolving {
+  opacity: 1;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.fd-dashboard-content .fd-dc--resolving .fd-dc-resolved {
+  color: var(--fd-positive);
+  transition: color 0.18s ease;
+}
+
+.fd-dashboard-content .fd-dc--exiting {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.985);
+  transition: opacity 0.32s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+  pointer-events: none;
+}
+
+.fd-dashboard-content .fd-dc--entering {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fd-dashboard-content .fd-dc--entering.fd-dc--entered {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fd-dashboard-content .fd-dc-clear,
+.fd-dashboard-content .td-decision-clear {
+  padding: 1rem 0.15rem 0.35rem;
+  opacity: 0;
+  animation: fd-dc-clear-in 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fd-dashboard-content .td-decision-clear-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  color: var(--fd-navy);
+}
+
+.fd-dashboard-content .td-decision-clear-body {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  color: var(--fd-ink-body);
+}
+
+@keyframes fd-dc-clear-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fd-dashboard-content .fd-dc--primary,
+  .fd-dashboard-content .fd-dc--resolving,
+  .fd-dashboard-content .fd-dc--exiting,
+  .fd-dashboard-content .fd-dc--entering,
+  .fd-dashboard-content .fd-dc--entering.fd-dc--entered,
+  .fd-dashboard-content .fd-dc-clear,
+  .fd-dashboard-content .td-decision-clear {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
 /* ── Situation ── */
 
 .fd-dashboard-content .fd-dc-situation {

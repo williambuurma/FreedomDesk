@@ -2,6 +2,9 @@
  * Today — single operating workspace.
  * Morning Brief is the morning state of this surface, not a separate home.
  * Role-aware content; same visual language as the prior My Day layout.
+ *
+ * Decision flow: one primary recommendation at a time from Arbitration.
+ * Completing advances calmly to the next — never a pile of cards.
  */
 (function () {
   "use strict";
@@ -9,11 +12,14 @@
   var PREVIEW_URL = "../data/my-day-preview.json";
   var STORAGE_KEY = "freedomdesk_today_role";
   var LEGACY_STORAGE_KEY = "freedomdesk_my_day_role";
-  var OUTCOME_STORAGE_KEY = "freedomdesk_today_decision_outcomes";
 
   var UI = window.FreedomDeskUI;
   var Labels = window.FreedomDeskLabels;
   var Staff = window.FreedomDeskPracticeStaff;
+
+  function Flow() {
+    return window.FreedomDeskDecisionFlow;
+  }
 
   var state = {
     data: null,
@@ -22,6 +28,7 @@
     taskIndex: {},
     eventsBound: false,
     morningActive: false,
+    advancing: false,
   };
 
   function $(id) {
@@ -33,114 +40,135 @@
     return new Date().getHours() < 11;
   }
 
-  function loadOutcomeOverrides() {
-    try {
-      var raw = localStorage.getItem(OUTCOME_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch (_e) {
-      return {};
+  function decisionQueue(view) {
+    var flow = Flow();
+    if (!flow || !view) return [];
+    return flow.buildQueue(view.decisionCards, view.waitingDecisions);
+  }
+
+  function renderPrimaryDecisionCard(card, options) {
+    var flow = Flow();
+    if (!UI || !UI.renderDecisionCard || !card || !flow) return "";
+    var opts = options || {};
+    var id = flow.cardId(card);
+    var status = flow.getOutcomeStatus(id);
+    var isTerminal = flow.isTerminal(status);
+    var isAccepted = status === "accepted";
+    var acceptDisabled = isAccepted ? " disabled" : "";
+    var motionClass = opts.entering ? " fd-dc--entering" : "";
+
+    var html = UI.renderDecisionCard({
+      id: id,
+      situation: card.situation,
+      subject: card.subject || "",
+      guidance: card.recommendation || "",
+      stake: card.stake || "",
+      whyText: card.whyText || "",
+      evidence: card.evidence || [],
+      accent: card.accent || "opportunity",
+      prominence: "primary",
+      group: card.group || "opportunity",
+      resolvedLabel: isTerminal ? flow.outcomeLabel(status) : "",
+      actionLabel: isTerminal
+        ? ""
+        : isAccepted
+          ? "Calling"
+          : card.primaryAction || "Act",
+      primaryAttrs:
+        ' data-decision-outcome="accepted" data-recommendation-id="' +
+        id +
+        '"' +
+        acceptDisabled,
+      secondaryActions: isTerminal
+        ? []
+        : [
+            {
+              label: "Done",
+              strong: true,
+              attrs:
+                ' data-decision-outcome="completed" data-recommendation-id="' +
+                id +
+                '"',
+            },
+            {
+              label: "Later",
+              attrs:
+                ' data-decision-outcome="snoozed" data-recommendation-id="' +
+                id +
+                '"',
+            },
+            {
+              label: "Not needed",
+              attrs:
+                ' data-decision-outcome="dismissed" data-recommendation-id="' +
+                id +
+                '"',
+            },
+          ],
+    });
+
+    if (!motionClass || !html) return html;
+    return html.replace('class="fd-dc ', 'class="fd-dc' + motionClass + " ");
+  }
+
+  function renderClearDecisionState() {
+    return (
+      '<div class="td-decision-clear fd-dc-clear" role="status">' +
+      '<p class="td-decision-clear-title">You\'re clear.</p>' +
+      '<p class="td-decision-clear-body">Nothing needs your attention right now.</p>' +
+      "</div>"
+    );
+  }
+
+  function renderDecisionSurface(view, options) {
+    var opts = options || {};
+    var flow = Flow();
+    if (!flow) return "";
+    var queue = decisionQueue(view);
+    var primary = flow.primaryDecision(queue);
+    if (!primary) return renderClearDecisionState();
+    return (
+      '<div class="td-decision-cards" aria-label="Recommended decision">' +
+      renderPrimaryDecisionCard(primary, { entering: !!opts.entering }) +
+      "</div>"
+    );
+  }
+
+  function paintDecisionSurface(urgentEl, view, options) {
+    if (!urgentEl) return;
+    var opts = options || {};
+    var flow = Flow();
+    var surface = renderDecisionSurface(view, opts);
+    var urgentTasksHtml =
+      view.urgentTasks && view.urgentTasks.length
+        ? UI.renderUrgentSection(view.urgentTasks, "")
+        : "";
+
+    if (surface.indexOf("td-decision-clear") !== -1 && !urgentTasksHtml) {
+      urgentEl.hidden = false;
+      urgentEl.innerHTML = surface;
+    } else if (surface) {
+      urgentEl.hidden = false;
+      urgentEl.innerHTML = surface + urgentTasksHtml;
+    } else {
+      urgentEl.hidden = false;
+      urgentEl.innerHTML = UI.renderUrgentSection(
+        view.urgentTasks,
+        "You're clear — nothing urgent."
+      );
     }
-  }
 
-  function saveOutcomeOverrides(overrides) {
-    try {
-      localStorage.setItem(OUTCOME_STORAGE_KEY, JSON.stringify(overrides));
-    } catch (_e) {
-      /* ignore */
+    if (opts.entering && flow) {
+      var card = urgentEl.querySelector(".fd-dc--primary");
+      flow.markEntering(card);
     }
-  }
-
-  function setDecisionOutcome(recommendationId, status) {
-    var overrides = loadOutcomeOverrides();
-    overrides[recommendationId] = {
-      status: status,
-      recordedAt: new Date().toISOString(),
-    };
-    saveOutcomeOverrides(overrides);
-  }
-
-  function outcomeLabel(status) {
-    if (status === "accepted") return "Calling";
-    if (status === "snoozed") return "Later";
-    if (status === "dismissed") return "Not needed";
-    if (status === "completed") return "Done";
-    return status || "";
-  }
-
-  function renderDecisionCards(cards) {
-    if (!UI || !UI.renderDecisionCard || !cards || !cards.length) return "";
-    var overrides = loadOutcomeOverrides();
-
-    return cards
-      .map(function (card) {
-        var outcome = overrides[card.recommendationId || card.id];
-        var status = outcome && outcome.status;
-        // Terminal outcomes close the card. Accepted (Call) commits but still
-        // allows Done / Later / Not needed — same pattern as Intelligence Inbox.
-        var isTerminal =
-          status === "completed" ||
-          status === "dismissed" ||
-          status === "snoozed";
-        var isAccepted = status === "accepted";
-        var id = card.recommendationId || card.id;
-        var acceptDisabled = isAccepted ? " disabled" : "";
-
-        return UI.renderDecisionCard({
-          id: id,
-          situation: card.situation,
-          subject: card.subject || "",
-          guidance: card.recommendation || "",
-          stake: card.stake || "",
-          whyText: card.whyText || "",
-          evidence: card.evidence || [],
-          accent: card.accent || "opportunity",
-          prominence: "primary",
-          group: card.group || "opportunity",
-          resolvedLabel: isTerminal ? outcomeLabel(status) : "",
-          actionLabel: isTerminal
-            ? ""
-            : isAccepted
-              ? "Calling"
-              : card.primaryAction || "Act",
-          primaryAttrs:
-            ' data-decision-outcome="accepted" data-recommendation-id="' +
-            id +
-            '"' +
-            acceptDisabled,
-          secondaryActions: isTerminal
-            ? []
-            : [
-                {
-                  label: "Done",
-                  strong: true,
-                  attrs:
-                    ' data-decision-outcome="completed" data-recommendation-id="' +
-                    id +
-                    '"',
-                },
-                {
-                  label: "Later",
-                  attrs:
-                    ' data-decision-outcome="snoozed" data-recommendation-id="' +
-                    id +
-                    '"',
-                },
-                {
-                  label: "Not needed",
-                  attrs:
-                    ' data-decision-outcome="dismissed" data-recommendation-id="' +
-                    id +
-                    '"',
-                },
-              ],
-        });
-      })
-      .join("");
   }
 
   function getStoredRole() {
     try {
-      var stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      var stored =
+        localStorage.getItem(STORAGE_KEY) ||
+        localStorage.getItem(LEGACY_STORAGE_KEY);
       if (stored && Labels.MY_DAY_ROLES[stored]) return stored;
     } catch (_e) {
       /* localStorage unavailable */
@@ -162,7 +190,9 @@
   }
 
   function roleSwitcherHtml() {
-    var roles = state.staff ? Staff.roleSwitcherRoles(state.staff) : Labels.MY_DAY_ROLES;
+    var roles = state.staff
+      ? Staff.roleSwitcherRoles(state.staff)
+      : Labels.MY_DAY_ROLES;
     return UI.renderRoleSwitcher(roles, state.roleId);
   }
 
@@ -267,26 +297,14 @@
 
     var urgentEl = $("mdUrgent");
     if (urgentEl) {
-      var decisionCards = view.decisionCards || [];
       // Morning Brief already surfaces the same PIE decision — avoid duplicate cards.
       if (useMorning) {
         urgentEl.innerHTML = "";
         urgentEl.hidden = true;
-      } else if (decisionCards.length) {
-        urgentEl.hidden = false;
-        urgentEl.innerHTML =
-          '<div class="td-decision-cards" aria-label="Recommended decisions">' +
-          renderDecisionCards(decisionCards) +
-          "</div>" +
-          (view.urgentTasks && view.urgentTasks.length
-            ? UI.renderUrgentSection(view.urgentTasks, "")
-            : "");
       } else {
-        urgentEl.hidden = false;
-        urgentEl.innerHTML = UI.renderUrgentSection(
-          view.urgentTasks,
-          "You're clear — nothing urgent."
-        );
+        paintDecisionSurface(urgentEl, view, {
+          entering: !!opts.decisionEntering,
+        });
       }
     }
 
@@ -297,7 +315,11 @@
       // Morning decisions already cover waitlist / open-chair — don't repeat them.
       if (useMorning) {
         todayTasks = todayTasks.filter(function (task) {
-          var blob = ((task.label || "") + " " + (task.instruction || "")).toLowerCase();
+          var blob = (
+            (task.label || "") +
+            " " +
+            (task.instruction || "")
+          ).toLowerCase();
           return !/open hygiene|waitlist|short-call|open chair/i.test(blob);
         });
         scheduleGaps = [];
@@ -309,7 +331,11 @@
         todayEl.hidden = false;
         todayEl.innerHTML = UI.renderSectionCard(
           "",
-          UI.renderTodaySection(todayTasks, scheduleGaps, "Nothing else on your list."),
+          UI.renderTodaySection(
+            todayTasks,
+            scheduleGaps,
+            "Nothing else on your list."
+          ),
           { id: "mdTodayCard", quiet: true }
         );
       }
@@ -372,28 +398,113 @@
         prioritiesEl.hidden = false;
         prioritiesEl.innerHTML = UI.renderSectionCard(
           "",
-          UI.renderClinicalPriorities(clinical, "No clinical priorities flagged."),
+          UI.renderClinicalPriorities(
+            clinical,
+            "No clinical priorities flagged."
+          ),
           { id: "mdClinicalPrioritiesCard", compact: true, quiet: true }
         );
       }
     }
   }
 
-  function renderRole() {
+  function renderRole(options) {
+    var opts = options || {};
     var view = getRoleView();
     if (!view || !state.data) return;
 
-    UI.closeWorkPanel();
+    if (!opts.preservePanel) UI.closeWorkPanel();
     renderRoleBar();
     state.morningActive = isMorningPhase();
 
     renderMorningState().then(function (morningRendered) {
       setLayoutVisibility();
       if (state.roleId === "front_desk") {
-        renderReceptionist(view, { morningRendered: morningRendered });
+        renderReceptionist(view, {
+          morningRendered: morningRendered,
+          decisionEntering: !!opts.decisionEntering,
+        });
       } else {
         renderDoctor(view);
       }
+    });
+  }
+
+  /**
+   * Soft in-place update for non-terminal outcomes (e.g. Call → Calling).
+   * Avoids a full-page flash when committing without advancing.
+   */
+  function refreshPrimaryCardInPlace(urgentEl, view) {
+    var flow = Flow();
+    if (!urgentEl || !flow) return;
+    var queue = decisionQueue(view);
+    var primary = flow.primaryDecision(queue);
+    var host = urgentEl.querySelector(".td-decision-cards");
+    if (!host || !primary) {
+      paintDecisionSurface(urgentEl, view, { entering: false });
+      return;
+    }
+    host.innerHTML = renderPrimaryDecisionCard(primary, { entering: false });
+  }
+
+  function handleDecisionOutcome(outcomeBtn, container) {
+    var flow = Flow();
+    if (!flow || state.advancing) return;
+
+    var recommendationId = outcomeBtn.getAttribute("data-recommendation-id");
+    var outcomeStatus = outcomeBtn.getAttribute("data-decision-outcome");
+    if (!recommendationId || !outcomeStatus) return;
+
+    var view = getRoleView();
+    if (!view) return;
+
+    // Maps to Practice Improvement Engine OutcomeStatus:
+    // accepted | snoozed | dismissed | completed → learning pipeline.
+    flow.setOutcome(recommendationId, outcomeStatus);
+
+    var urgentEl = $("mdUrgent");
+    var cardEl =
+      outcomeBtn.closest(".fd-dc") ||
+      (urgentEl && urgentEl.querySelector(".fd-dc--primary"));
+
+    // Accepted commits attention without advancing the queue.
+    if (!flow.isTerminal(outcomeStatus)) {
+      if (urgentEl && !urgentEl.hidden) {
+        refreshPrimaryCardInPlace(urgentEl, view);
+      } else {
+        renderRole({ preservePanel: true });
+      }
+      return;
+    }
+
+    state.advancing = true;
+    var buttons = cardEl ? cardEl.querySelectorAll("button, a") : [];
+    Array.prototype.forEach.call(buttons, function (btn) {
+      btn.disabled = true;
+    });
+
+    // Show resolved label briefly before the card settles away.
+    if (cardEl) {
+      var act = cardEl.querySelector(".fd-dc-act");
+      if (act) {
+        act.innerHTML =
+          '<span class="fd-dc-resolved">' +
+          flow.outcomeLabel(outcomeStatus) +
+          "</span>";
+      }
+      cardEl.classList.add("fd-dc--resolved");
+    }
+
+    flow.animateAdvance(cardEl, {
+      resolvedLabel: flow.outcomeLabel(outcomeStatus),
+      onReady: function () {
+        state.advancing = false;
+        if (urgentEl && !urgentEl.hidden && state.roleId === "front_desk") {
+          paintDecisionSurface(urgentEl, view, { entering: true });
+        } else {
+          renderRole({ preservePanel: true, decisionEntering: true });
+        }
+      },
     });
   }
 
@@ -407,7 +518,12 @@
       var roleBtn = event.target.closest("[data-role].fd-ui-role-btn");
       if (roleBtn) {
         var nextRole = roleBtn.getAttribute("data-role");
-        if (!nextRole || !Labels.MY_DAY_ROLES[nextRole] || nextRole === state.roleId) return;
+        if (
+          !nextRole ||
+          !Labels.MY_DAY_ROLES[nextRole] ||
+          nextRole === state.roleId
+        )
+          return;
 
         state.roleId = nextRole;
         storeRole(nextRole);
@@ -426,14 +542,11 @@
 
       var outcomeBtn = event.target.closest("[data-decision-outcome]");
       if (outcomeBtn && container.contains(outcomeBtn)) {
-        var recommendationId = outcomeBtn.getAttribute("data-recommendation-id");
-        var outcomeStatus = outcomeBtn.getAttribute("data-decision-outcome");
-        if (recommendationId && outcomeStatus) {
-          // Maps to Practice Improvement Engine OutcomeStatus:
-          // accepted | snoozed | dismissed | completed → learning pipeline.
-          setDecisionOutcome(recommendationId, outcomeStatus);
-          renderRole();
+        // Morning Brief owns outcomes inside the morning mount.
+        if (outcomeBtn.closest("#tdMorning, #tdMorningMount, .td-morning")) {
+          return;
         }
+        handleDecisionOutcome(outcomeBtn, container);
       }
     });
   }

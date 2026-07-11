@@ -10,6 +10,13 @@
   var SECONDARY_LIMIT = 2;
   var whyBound = false;
   var mountRoot = null;
+  var briefData = null;
+  var advancing = false;
+  var eventsBound = false;
+
+  function Flow() {
+    return window.FreedomDeskDecisionFlow;
+  }
 
   /**
    * Ops judgments: operational problem first, patient second.
@@ -339,18 +346,123 @@
       });
   }
 
-  function renderDecisionCard(decision, isPrimary, kicker) {
+  function arbitrationQueue(data) {
+    var flow = Flow();
+    if (!flow || !data) return [];
+    return flow.buildQueue(data.decisionCards, data.waitingDecisions);
+  }
+
+  function pieCardToDecision(card) {
+    if (!card) return null;
+    var flow = Flow();
+    var id = flow ? flow.cardId(card) : card.recommendationId || card.id;
+    return {
+      topic: card.kind || id,
+      recommendationId: id,
+      priority: card.priority === "high" ? 90 : 70,
+      group:
+        card.group === "urgent"
+          ? "do_first"
+          : card.group || "opportunity",
+      accent: card.accent || "",
+      problem: card.situation,
+      patient: card.subject || null,
+      recommendation: card.recommendation,
+      action: card.primaryAction,
+      why: card.whyText || "",
+      consequence: card.stake || "",
+      evidence: card.evidence || [],
+      fromArbitration: true,
+    };
+  }
+
+  /** Primary from Decision Arbitration when available; else judgment list. */
+  function resolvePrimary(decisions, data) {
+    var flow = Flow();
+    if (flow && data) {
+      var queue = arbitrationQueue(data);
+      // When arbitration supplied the queue, stay on that queue — never fall
+      // back to judgments (would re-surface completed recommendations).
+      if (queue.length) {
+        var primaryCard = flow.primaryDecision(queue);
+        return primaryCard ? pieCardToDecision(primaryCard) : null;
+      }
+    }
+    return decisions[0] || null;
+  }
+
+  function renderDecisionCard(decision, isPrimary) {
     var UI = window.FreedomDeskUI;
-    if (!UI || !UI.renderDecisionCard) return "";
+    var flow = Flow();
+    if (!UI || !UI.renderDecisionCard || !decision) return "";
+
+    var id =
+      decision.recommendationId || decision.topic || decision.problem || "";
+    var status = flow && id ? flow.getOutcomeStatus(id) : "";
+    var isTerminal = flow && flow.isTerminal(status);
+    var isAccepted = status === "accepted";
+    var interactive = !!(isPrimary && decision.fromArbitration && flow && id);
+
+    if (interactive) {
+      return UI.renderDecisionCard({
+        id: id,
+        situation: decision.problem,
+        subject: decision.patient || "",
+        stake: decision.consequence || "",
+        guidance: decision.recommendation || "",
+        whyText: decision.why || "",
+        evidence: decision.evidence || [],
+        accent: decision.accent || "",
+        prominence: "primary",
+        group: decision.group || "",
+        resolvedLabel: isTerminal ? flow.outcomeLabel(status) : "",
+        actionLabel: isTerminal
+          ? ""
+          : isAccepted
+            ? "Calling"
+            : decision.action || "Act",
+        primaryAttrs:
+          ' data-decision-outcome="accepted" data-recommendation-id="' +
+          id +
+          '"' +
+          (isAccepted ? " disabled" : ""),
+        secondaryActions: isTerminal
+          ? []
+          : [
+              {
+                label: "Done",
+                strong: true,
+                attrs:
+                  ' data-decision-outcome="completed" data-recommendation-id="' +
+                  id +
+                  '"',
+              },
+              {
+                label: "Later",
+                attrs:
+                  ' data-decision-outcome="snoozed" data-recommendation-id="' +
+                  id +
+                  '"',
+              },
+              {
+                label: "Not needed",
+                attrs:
+                  ' data-decision-outcome="dismissed" data-recommendation-id="' +
+                  id +
+                  '"',
+              },
+            ],
+      });
+    }
 
     return UI.renderDecisionCard({
-      id: decision.topic || decision.problem,
+      id: id,
       situation: decision.problem,
       subject: decision.patient || "",
       stake: decision.consequence || "",
       guidance: decision.recommendation || "",
       actionLabel: decision.action || "",
-      href: decision.actionHref || "#",
+      href: isPrimary ? decision.actionHref || "#today" : undefined,
       whyText: decision.why || "",
       accent: decision.accent || "",
       prominence: isPrimary ? "primary" : "secondary",
@@ -422,7 +534,65 @@
     el.textContent = hasPrimary ? "One decision first." : "Clear morning.";
   }
 
-  function renderBrief(data) {
+  function secondaryFromJudgments(decisions, primary) {
+    var primaryKind = primary && primary.topic;
+    var primaryProblem = primary && primary.problem;
+    return decisions.filter(function (d) {
+      if (!d) return false;
+      if (primary && d.topic === primaryKind) return false;
+      // Avoid duplicating the arbitration primary when judgment aliases match.
+      if (
+        primaryProblem &&
+        d.problem &&
+        d.problem === primaryProblem
+      ) {
+        return false;
+      }
+      if (
+        primary &&
+        primary.fromArbitration &&
+        (d.topic === "overnight_emergency" || d.topic === "waitlist")
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  function renderPrimarySlot(layout, primary, options) {
+    var opts = options || {};
+    var flow = Flow();
+    if (!layout) return;
+
+    var primaryHost = layout.querySelector(".mb-section--primary .mb-section-cards");
+    if (!primaryHost) {
+      // Full layout not yet built — caller handles first paint.
+      return;
+    }
+
+    if (!primary) {
+      primaryHost.innerHTML =
+        '<div class="td-decision-clear fd-dc-clear" role="status">' +
+        '<p class="td-decision-clear-title">You\'re clear.</p>' +
+        '<p class="td-decision-clear-body">Nothing needs your attention right now.</p>' +
+        "</div>";
+      renderSubline(false);
+      return;
+    }
+
+    primaryHost.innerHTML = renderDecisionCard(primary, true);
+    renderSubline(true);
+
+    if (opts.entering && flow) {
+      var card = primaryHost.querySelector(".fd-dc--primary");
+      flow.markEntering(card);
+    }
+  }
+
+  function renderBrief(data, options) {
+    var opts = options || {};
+    briefData = data;
+
     $("mbPracticeName").textContent = data.practiceName || "";
     $("mbDate").textContent = formatDate(data.date);
 
@@ -430,8 +600,8 @@
     if (generatedEl) generatedEl.textContent = formatDateTime(data.generatedAt);
 
     var decisions = buildDecisions(detectTopics(data), data);
-    var primary = decisions[0] || null;
-    var rest = decisions.slice(1);
+    var primary = resolvePrimary(decisions, data);
+    var rest = secondaryFromJudgments(decisions, primary);
     var secondary = rest.slice(0, SECONDARY_LIMIT);
     var remaining = rest.slice(SECONDARY_LIMIT);
 
@@ -440,8 +610,12 @@
     var layout = $("mbDecisions");
     if (!layout) return;
 
-    if (!primary) {
-      layout.innerHTML = '<p class="mb-empty">Clear morning.</p>';
+    if (!primary && !secondary.length) {
+      layout.innerHTML =
+        '<div class="td-decision-clear fd-dc-clear" role="status">' +
+        '<p class="td-decision-clear-title">Clear morning.</p>' +
+        '<p class="td-decision-clear-body">Nothing needs your attention right now.</p>' +
+        "</div>";
       renderRemaining([]);
       return;
     }
@@ -457,7 +631,16 @@
       else other.push(d);
     });
 
-    var html = renderSection("do_first", [primary], { primary: true });
+    if (opts.primaryOnly && layout.querySelector(".mb-section--primary")) {
+      renderPrimarySlot(layout, primary, { entering: !!opts.entering });
+      return;
+    }
+
+    var html = primary
+      ? renderSection("do_first", [primary], { primary: true })
+      : '<section class="mb-section mb-section--primary"><div class="mb-section-cards">' +
+        '<p class="mb-empty mb-empty--inline">You\'re clear.</p>' +
+        "</div></section>";
     var secondaryAll = protect.concat(opportunity).concat(other);
     if (secondaryAll.length) {
       // No section label — primary card vs quiet rows is enough hierarchy.
@@ -468,10 +651,77 @@
     }
     layout.innerHTML = html;
     renderRemaining(remaining);
-    if (!whyBound && window.FreedomDeskUI && window.FreedomDeskUI.bindReasoningToggles) {
+
+    if (opts.entering && Flow() && primary) {
+      var card = layout.querySelector(".fd-dc--primary");
+      Flow().markEntering(card);
+    }
+
+    if (
+      !whyBound &&
+      window.FreedomDeskUI &&
+      window.FreedomDeskUI.bindReasoningToggles
+    ) {
       window.FreedomDeskUI.bindReasoningToggles(layout);
       whyBound = true;
     }
+
+    bindOutcomeEvents(layout);
+  }
+
+  function handleBriefOutcome(outcomeBtn) {
+    var flow = Flow();
+    if (!flow || advancing || !briefData) return;
+
+    var recommendationId = outcomeBtn.getAttribute("data-recommendation-id");
+    var outcomeStatus = outcomeBtn.getAttribute("data-decision-outcome");
+    if (!recommendationId || !outcomeStatus) return;
+
+    flow.setOutcome(recommendationId, outcomeStatus);
+
+    var layout = $("mbDecisions");
+    var cardEl = outcomeBtn.closest(".fd-dc");
+
+    if (!flow.isTerminal(outcomeStatus)) {
+      renderBrief(briefData, { primaryOnly: true });
+      return;
+    }
+
+    advancing = true;
+    var buttons = cardEl ? cardEl.querySelectorAll("button, a") : [];
+    Array.prototype.forEach.call(buttons, function (btn) {
+      btn.disabled = true;
+    });
+
+    if (cardEl) {
+      var act = cardEl.querySelector(".fd-dc-act");
+      if (act) {
+        act.innerHTML =
+          '<span class="fd-dc-resolved">' +
+          flow.outcomeLabel(outcomeStatus) +
+          "</span>";
+      }
+      cardEl.classList.add("fd-dc--resolved");
+    }
+
+    flow.animateAdvance(cardEl, {
+      resolvedLabel: flow.outcomeLabel(outcomeStatus),
+      onReady: function () {
+        advancing = false;
+        renderBrief(briefData, { primaryOnly: true, entering: true });
+      },
+    });
+  }
+
+  function bindOutcomeEvents(layout) {
+    if (eventsBound || !layout) return;
+    eventsBound = true;
+    layout.addEventListener("click", function (event) {
+      var outcomeBtn = event.target.closest("[data-decision-outcome]");
+      if (!outcomeBtn || !layout.contains(outcomeBtn)) return;
+      event.preventDefault();
+      handleBriefOutcome(outcomeBtn);
+    });
   }
 
   function showBrief() {
@@ -526,6 +776,9 @@
     if (!host) return Promise.resolve(false);
     mountRoot = host;
     whyBound = false;
+    eventsBound = false;
+    advancing = false;
+    briefData = null;
 
     return fetch("modules/morning-brief/template.html")
       .then(function (res) {

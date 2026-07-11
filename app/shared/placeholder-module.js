@@ -1,5 +1,6 @@
 /**
- * Factory for app workspaces that are not yet implemented.
+ * Factory for app workspaces that are not yet fully live.
+ * Alpha empty states stay calm and useful — never a feature roadmap.
  */
 (function () {
   "use strict";
@@ -19,6 +20,76 @@
       '<svg class="fd-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></svg>',
   };
 
+  function escape(str) {
+    return FreedomDeskUtils.escapeHtml(str);
+  }
+
+  function renderPatientsEmpty(config) {
+    return (
+      '<div class="fd-module-page fd-module-page--empty">' +
+      '<header class="fd-module-header">' +
+      '<p class="fd-module-page-desc">' +
+      escape(
+        config.emptyHint ||
+          "Find a patient when you need context — without leaving the schedule."
+      ) +
+      "</p>" +
+      "</header>" +
+      '<label class="fd-empty-search">' +
+      '<span class="fd-empty-search-label">Search</span>' +
+      '<input type="search" class="fd-empty-search-input" placeholder="Name, phone, or chart #" disabled aria-disabled="true" />' +
+      "</label>" +
+      '<p class="fd-empty-status" role="status">Patient lookup opens here next.</p>' +
+      "</div>"
+    );
+  }
+
+  function renderAskEmpty(config) {
+    return (
+      '<div class="fd-module-page fd-module-page--empty">' +
+      '<header class="fd-module-header">' +
+      '<p class="fd-module-page-desc">' +
+      escape(
+        config.emptyHint ||
+          "Ask about today’s schedule, a patient, or what still needs attention."
+      ) +
+      "</p>" +
+      "</header>" +
+      '<label class="fd-empty-ask">' +
+      '<span class="fd-empty-ask-label">Ask</span>' +
+      '<textarea class="fd-empty-ask-input" rows="3" placeholder="Who still needs a callback?" disabled aria-disabled="true"></textarea>' +
+      "</label>" +
+      '<p class="fd-empty-status" role="status">Answers will stay grounded in practice context.</p>' +
+      "</div>"
+    );
+  }
+
+  function renderGenericEmpty(config) {
+    var icon = ICONS[config.navIcon] || "";
+    return (
+      '<div class="fd-module-page fd-module-page--empty">' +
+      '<header class="fd-module-header">' +
+      '<h2 class="fd-module-page-title">' +
+      escape(config.label) +
+      "</h2>" +
+      '<p class="fd-module-page-desc">' +
+      escape(config.description || "") +
+      "</p>" +
+      "</header>" +
+      '<div class="fd-placeholder-card">' +
+      icon +
+      '<p class="fd-placeholder-state">Coming soon</p>' +
+      '<p class="fd-placeholder-hint">' +
+      escape(
+        config.emptyHint ||
+          "This workspace will open here when it is ready."
+      ) +
+      "</p>" +
+      "</div>" +
+      "</div>"
+    );
+  }
+
   window.FreedomDeskPlaceholder = function (config) {
     return {
       id: config.id,
@@ -28,43 +99,15 @@
       navVisible: config.navVisible,
       navHint: config.navHint,
       init: function (container) {
-        var icon = ICONS[config.navIcon] || "";
-        var featuresHtml = "";
-        var kickerHtml = config.kicker
-          ? '<p class="fd-module-kicker">' +
-            FreedomDeskUtils.escapeHtml(config.kicker) +
-            "</p>"
-          : "";
-
-        if (config.features && config.features.length > 0) {
-          featuresHtml =
-            '<ul class="fd-placeholder-features">' +
-            config.features
-              .map(function (feature) {
-                return "<li>" + FreedomDeskUtils.escapeHtml(feature) + "</li>";
-              })
-              .join("") +
-            "</ul>";
+        if (config.id === "patients") {
+          container.innerHTML = renderPatientsEmpty(config);
+          return;
         }
-
-        container.innerHTML =
-          '<div class="fd-module-page">' +
-          '<header class="fd-module-header">' +
-          kickerHtml +
-          '<h2 class="fd-module-page-title">' +
-          FreedomDeskUtils.escapeHtml(config.label) +
-          "</h2>" +
-          '<p class="fd-module-page-desc">' +
-          FreedomDeskUtils.escapeHtml(config.description) +
-          "</p>" +
-          "</header>" +
-          '<div class="fd-placeholder-card">' +
-          icon +
-          '<p class="fd-placeholder-state">Not live yet</p>' +
-          '<p class="fd-placeholder-hint">This workspace will open here when it is ready.</p>' +
-          featuresHtml +
-          "</div>" +
-          "</div>";
+        if (config.id === "ask") {
+          container.innerHTML = renderAskEmpty(config);
+          return;
+        }
+        container.innerHTML = renderGenericEmpty(config);
       },
     };
   };

@@ -183,6 +183,84 @@
     });
   }
 
+  /** Quiet progress line — never invent urgency. */
+  function remainingLabel(count) {
+    var n = Number(count) || 0;
+    if (n <= 0) return "";
+    if (n === 1) return "1 waiting";
+    return n + " waiting";
+  }
+
+  function focusPrimaryAction(root) {
+    var scope = root || document;
+    var btn = scope.querySelector(
+      ".fd-dc--primary .fd-dc-primary:not([disabled])"
+    );
+    if (!btn || typeof btn.focus !== "function") return;
+    try {
+      btn.focus({ preventScroll: true });
+    } catch (_e) {
+      btn.focus();
+    }
+  }
+
+  function isTypingTarget(el) {
+    if (!el || !el.tagName) return false;
+    var tag = el.tagName.toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select") return true;
+    if (el.isContentEditable) return true;
+    return false;
+  }
+
+  /**
+   * Keyboard speed for the primary decision:
+   * Enter / C → primary act · D → Done · L → Later · N → Not needed · ? → Why?
+   */
+  function matchShortcut(event) {
+    if (!event || event.metaKey || event.ctrlKey || event.altKey) return null;
+    if (isTypingTarget(event.target)) return null;
+    var key = event.key;
+    if (key === "Enter" || key === "c" || key === "C") return "accepted";
+    if (key === "d" || key === "D") return "completed";
+    if (key === "l" || key === "L") return "snoozed";
+    if (key === "n" || key === "N") return "dismissed";
+    if (key === "?" || (key === "/" && event.shiftKey)) return "why";
+    return null;
+  }
+
+  function findPrimaryCard(root) {
+    var scope = root || document;
+    return scope.querySelector(".fd-dc--primary:not(.fd-dc--exiting)");
+  }
+
+  function invokeShortcut(root, outcome) {
+    var card = findPrimaryCard(root);
+    if (!card || !outcome) return false;
+    if (outcome === "why") {
+      var why = card.querySelector(".fd-dc-why");
+      if (why) {
+        why.click();
+        return true;
+      }
+      return false;
+    }
+    // Enter / C always means the visible primary CTA (Call → Done after accept).
+    if (outcome === "accepted") {
+      var primary = card.querySelector(".fd-dc-primary:not([disabled])");
+      if (primary) {
+        primary.click();
+        return true;
+      }
+      return false;
+    }
+    var btn = card.querySelector(
+      '[data-decision-outcome="' + outcome + '"]:not([disabled])'
+    );
+    if (!btn) return false;
+    btn.click();
+    return true;
+  }
+
   window.FreedomDeskDecisionFlow = {
     STORAGE_KEY: STORAGE_KEY,
     TIMING: TIMING,
@@ -197,9 +275,14 @@
     activeQueue: activeQueue,
     primaryDecision: primaryDecision,
     remainingAfterPrimary: remainingAfterPrimary,
+    remainingLabel: remainingLabel,
     outcomeLabel: outcomeLabel,
     wait: wait,
     animateAdvance: animateAdvance,
     markEntering: markEntering,
+    focusPrimaryAction: focusPrimaryAction,
+    matchShortcut: matchShortcut,
+    invokeShortcut: invokeShortcut,
+    findPrimaryCard: findPrimaryCard,
   };
 })();

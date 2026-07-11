@@ -18,7 +18,7 @@
   /**
    * FreedomDesk Decision Card — the product's atomic unit.
    *
-   * Face (≤2s): Situation → Subject → Guidance → Act
+   * Face (≤2s): Situation → Subject → Recommendation → Act
    * Supporting detail (stake, because, evidence) lives behind Why?
    *
    * options:
@@ -32,6 +32,47 @@
    *   secondaryActions — [{ label, attrs, strong? }]
    *   resolvedLabel — replaces act row when done
    */
+  function cleanActionLabel(label) {
+    return String(label || "")
+      .replace(/\.\s*$/, "")
+      .trim();
+  }
+
+  /** First sentence on the face; full detail belongs in Why. */
+  function faceGuidance(guidance) {
+    var g = String(guidance || "").trim();
+    if (!g) return "";
+    if (g.length <= 110) return g;
+    // Prefer the clause before justification — keeps Situation → Recommendation crisp.
+    var clause = g.match(
+      /^[\s\S]{20,108}?(?=\s+because\b|\s+so that\b|\s+—|\s+–)/i
+    );
+    if (clause) {
+      var clipped = clause[0].trim().replace(/[,:;]\s*$/, "");
+      return /[.!?]$/.test(clipped) ? clipped : clipped + ".";
+    }
+    var match = g.match(/^[\s\S]+?[.!?…](?=\s|$)/);
+    if (match && match[0].length >= 24 && match[0].length <= 110) {
+      return match[0].trim();
+    }
+    var cut = g.slice(0, 100);
+    var at = cut.lastIndexOf(" ");
+    return (at > 40 ? cut.slice(0, at) : cut).trim() + "…";
+  }
+
+  /** Never make the user reread the face recommendation in Why. */
+  function whyDetail(guidance, whyText) {
+    var why = String(whyText || "").trim();
+    var g = String(guidance || "").trim();
+    if (!why) return "";
+    if (!g) return why;
+    if (why === g) return "";
+    if (why.indexOf(g) === 0) {
+      return why.slice(g.length).replace(/^[\s—–-]+/, "").trim();
+    }
+    return why;
+  }
+
   function renderDecisionCard(options) {
     var opts = options || {};
     var situation = opts.situation || "";
@@ -45,15 +86,36 @@
     else if (accent === "opportunity") classes += " fd-dc--opportunity";
     if (opts.resolvedLabel) classes += " fd-dc--resolved";
 
+    var fullGuidance = String(opts.guidance || "").trim();
+    var shortGuidance =
+      prominence === "primary" ? faceGuidance(fullGuidance) : fullGuidance;
+    // Secondary rows: one quiet line of guidance, never a competing CTA.
+    if (prominence === "secondary" && shortGuidance.length > 72) {
+      shortGuidance = faceGuidance(shortGuidance);
+    }
+
     var subject = opts.subject
       ? '<p class="fd-dc-subject">' + escapeHtml(opts.subject) + "</p>"
       : "";
-    var guidance = opts.guidance
-      ? '<p class="fd-dc-guidance">' + escapeHtml(opts.guidance) + "</p>"
+    var guidance = shortGuidance
+      ? '<p class="fd-dc-guidance">' + escapeHtml(shortGuidance) + "</p>"
       : "";
 
     var reasonId = opts.id ? "fd-dc-reason-" + opts.id : "";
-    var hasWhy = !!(opts.stake || opts.whyText || (opts.evidence && opts.evidence.length));
+    var detailWhy = whyDetail(fullGuidance, opts.whyText);
+    var whyRecommendation =
+      prominence === "primary" &&
+      fullGuidance &&
+      shortGuidance &&
+      fullGuidance !== shortGuidance
+        ? fullGuidance
+        : "";
+    var hasWhy = !!(
+      opts.stake ||
+      detailWhy ||
+      whyRecommendation ||
+      (opts.evidence && opts.evidence.length)
+    );
     var whyButton = "";
     var whyPanel = "";
 
@@ -89,13 +151,19 @@
         (opts.stake
           ? '<p class="fd-dc-stake">' + escapeHtml(opts.stake) + "</p>"
           : "") +
-        (opts.whyText
-          ? '<p class="fd-dc-reason-text">' + escapeHtml(opts.whyText) + "</p>"
+        (whyRecommendation
+          ? '<p class="fd-dc-reason-text">' +
+            escapeHtml(whyRecommendation) +
+            "</p>"
+          : "") +
+        (detailWhy
+          ? '<p class="fd-dc-reason-text">' + escapeHtml(detailWhy) + "</p>"
           : "") +
         evidenceHtml +
         "</div>";
     }
 
+    var actionLabel = cleanActionLabel(opts.actionLabel);
     var actRow = "";
     if (opts.resolvedLabel) {
       actRow =
@@ -103,23 +171,22 @@
         '<span class="fd-dc-resolved">' +
         escapeHtml(opts.resolvedLabel) +
         "</span>" +
-        (whyButton || "") +
         "</div>";
-    } else if (opts.actionLabel) {
+    } else if (actionLabel && prominence === "primary") {
       var primary;
       if (opts.href) {
         primary =
           '<a class="fd-dc-primary" href="' +
           escapeHtml(opts.href) +
           '">' +
-          escapeHtml(opts.actionLabel) +
+          escapeHtml(actionLabel) +
           "</a>";
       } else {
         primary =
           '<button type="button" class="fd-dc-primary"' +
           (opts.primaryAttrs || "") +
           ">" +
-          escapeHtml(opts.actionLabel) +
+          escapeHtml(actionLabel) +
           "</button>";
       }
 
@@ -143,15 +210,19 @@
           "</div>";
       }
 
-      actRow =
-        '<div class="fd-dc-act">' +
-        primary +
-        (whyButton || "") +
-        secondary +
-        "</div>";
-    } else if (whyButton) {
-      actRow = '<div class="fd-dc-act">' + whyButton + "</div>";
+      // Act row is only the next step + outcomes — Why sits with the copy.
+      actRow = '<div class="fd-dc-act">' + primary + secondary + "</div>";
     }
+
+    var whyRow = whyButton
+      ? '<div class="fd-dc-why-row">' + whyButton + "</div>"
+      : "";
+
+    var statusHint = opts.statusHint
+      ? '<p class="fd-dc-status-hint" role="status">' +
+        escapeHtml(opts.statusHint) +
+        "</p>"
+      : "";
 
     return (
       '<article class="' +
@@ -165,8 +236,10 @@
       "</h2>" +
       subject +
       guidance +
-      actRow +
+      whyRow +
       whyPanel +
+      statusHint +
+      actRow +
       "</article>"
     );
   }
@@ -398,7 +471,8 @@
   /**
    * Today — tasks plus open schedule gaps.
    */
-  function renderTodaySection(todayTasks, scheduleGaps, emptyMessage) {
+  function renderTodaySection(todayTasks, scheduleGaps, emptyMessage, options) {
+    var sectionOpts = options || {};
     var html = "";
 
     if (scheduleGaps && scheduleGaps.length > 0) {
@@ -428,7 +502,10 @@
     html += renderWorkTaskList(
       todayTasks,
       emptyMessage || "Nothing else on your list — keep the schedule moving.",
-      { anchor: false }
+      {
+        anchor: false,
+        quietActions: !!sectionOpts.quietActions,
+      }
     );
 
     return html;
@@ -654,7 +731,7 @@
       "</p>" +
       recommendationHtml +
       "</div>" +
-      renderWorkTaskButton(task) +
+      (opts.quietActions ? "" : renderWorkTaskButton(task)) +
       "</li>"
     );
   }
@@ -675,6 +752,7 @@
         anchor: opts.anchor,
         showFirstCritical: showFirst,
         urgentBlock: opts.urgentBlock,
+        quietActions: opts.quietActions,
       });
     });
     html += "</ul>";
@@ -1031,8 +1109,9 @@
   }
 
   function timeGreetingForHour(hour) {
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
+    // Overnight closeout still feels like evening — morning starts at 5.
+    if (hour >= 5 && hour < 12) return "Good morning";
+    if (hour >= 12 && hour < 17) return "Good afternoon";
     return "Good evening";
   }
 
@@ -1273,7 +1352,8 @@
   }
 
   function bindReasoningToggles(container) {
-    if (!container) return;
+    if (!container || container.getAttribute("data-fd-why-bound") === "1") return;
+    container.setAttribute("data-fd-why-bound", "1");
 
     container.addEventListener("click", function (event) {
       var btn = event.target.closest("[data-reason-toggle]");

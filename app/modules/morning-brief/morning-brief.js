@@ -8,7 +8,6 @@
 
   var PREVIEW_URL = "../data/morning-brief-preview.json";
   var SECONDARY_LIMIT = 2;
-  var whyBound = false;
   var mountRoot = null;
   var briefData = null;
   var advancing = false;
@@ -87,7 +86,7 @@
       priority: 55,
       group: "opportunity",
       accent: "opportunity",
-      problem: "Patient ready for treatment discussion",
+      problem: "Perio discussion ready",
       patient: null,
       recommendation: "Discuss perio before dismissal",
       action: "Open patient",
@@ -99,7 +98,7 @@
       priority: 50,
       group: "opportunity",
       accent: "opportunity",
-      problem: "Patient ready for treatment discussion",
+      problem: "Recall discussion ready",
       patient: null,
       recommendation: "Discuss recall before dismissal",
       action: "Open patient",
@@ -328,6 +327,7 @@
         if (!judgment) return null;
         return {
           topic: topic,
+          recommendationId: "judgment_" + topic,
           priority: judgment.priority,
           group: judgment.group || "other",
           accent: judgment.accent || "",
@@ -350,6 +350,26 @@
     var flow = Flow();
     if (!flow || !data) return [];
     return flow.buildQueue(data.decisionCards, data.waitingDecisions);
+  }
+
+  /**
+   * Topics already resolved via Arbitration — keep judgments from re-surfacing them.
+   */
+  function resolvedArbitrationTopics(data) {
+    var flow = Flow();
+    var resolved = {};
+    if (!flow || !data) return resolved;
+    arbitrationQueue(data).forEach(function (card) {
+      if (!flow.isTerminal(flow.getOutcomeStatus(flow.cardId(card)))) return;
+      if (card.kind === "recoverable_phone_opportunity") {
+        resolved.overnight_emergency = true;
+      }
+      if (card.kind === "recoverable_schedule_opportunity") {
+        resolved.waitlist = true;
+        resolved.cancellation = true;
+      }
+    });
+    return resolved;
   }
 
   function pieCardToDecision(card) {
@@ -376,19 +396,46 @@
     };
   }
 
-  /** Primary from Decision Arbitration when available; else judgment list. */
+  /** Primary from Decision Arbitration when available; else next judgment. */
   function resolvePrimary(decisions, data) {
     var flow = Flow();
     if (flow && data) {
       var queue = arbitrationQueue(data);
-      // When arbitration supplied the queue, stay on that queue — never fall
-      // back to judgments (would re-surface completed recommendations).
       if (queue.length) {
         var primaryCard = flow.primaryDecision(queue);
-        return primaryCard ? pieCardToDecision(primaryCard) : null;
+        if (primaryCard) return pieCardToDecision(primaryCard);
+        // Queue exhausted — continue with remaining morning judgments.
       }
     }
     return decisions[0] || null;
+  }
+
+  function timeAwareGreeting() {
+    var hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good morning.";
+    if (hour >= 12 && hour < 17) return "Good afternoon.";
+    return "Good evening.";
+  }
+
+  function paintGreeting() {
+    var title = mountRoot
+      ? mountRoot.querySelector(".mb-intro-title")
+      : document.querySelector(".mb-intro-title");
+    if (title) title.textContent = timeAwareGreeting();
+  }
+
+  function paintRemainingHint(count) {
+    var el = $("mbRemainingHint");
+    if (!el) return;
+    var flow = Flow();
+    var label = flow && flow.remainingLabel ? flow.remainingLabel(count) : "";
+    if (!label) {
+      el.textContent = "";
+      el.hidden = true;
+      return;
+    }
+    el.textContent = label;
+    el.hidden = false;
   }
 
   function renderDecisionCard(decision, isPrimary) {
@@ -401,33 +448,29 @@
     var status = flow && id ? flow.getOutcomeStatus(id) : "";
     var isTerminal = flow && flow.isTerminal(status);
     var isAccepted = status === "accepted";
-    var interactive = !!(isPrimary && decision.fromArbitration && flow && id);
+    // Primary always gets outcome controls — judgments included after arbitration.
+    var interactive = !!(isPrimary && flow && id);
 
     if (interactive) {
-      return UI.renderDecisionCard({
-        id: id,
-        situation: decision.problem,
-        subject: decision.patient || "",
-        stake: decision.consequence || "",
-        guidance: decision.recommendation || "",
-        whyText: decision.why || "",
-        evidence: decision.evidence || [],
-        accent: decision.accent || "",
-        prominence: "primary",
-        group: decision.group || "",
-        resolvedLabel: isTerminal ? flow.outcomeLabel(status) : "",
-        actionLabel: isTerminal
-          ? ""
-          : isAccepted
-            ? "Calling"
-            : decision.action || "Act",
-        primaryAttrs:
-          ' data-decision-outcome="accepted" data-recommendation-id="' +
-          id +
-          '"' +
-          (isAccepted ? " disabled" : ""),
-        secondaryActions: isTerminal
-          ? []
+      var secondaryActions = isTerminal
+        ? []
+        : isAccepted
+          ? [
+              {
+                label: "Later",
+                attrs:
+                  ' data-decision-outcome="snoozed" data-recommendation-id="' +
+                  id +
+                  '"',
+              },
+              {
+                label: "Not needed",
+                attrs:
+                  ' data-decision-outcome="dismissed" data-recommendation-id="' +
+                  id +
+                  '"',
+              },
+            ]
           : [
               {
                 label: "Done",
@@ -451,7 +494,36 @@
                   id +
                   '"',
               },
-            ],
+            ];
+
+      return UI.renderDecisionCard({
+        id: id,
+        situation: decision.problem,
+        subject: decision.patient || "",
+        stake: decision.consequence || "",
+        guidance: decision.recommendation || "",
+        whyText: decision.why || "",
+        evidence: decision.evidence || [],
+        accent: decision.accent || "",
+        prominence: "primary",
+        group: decision.group || "",
+        resolvedLabel: isTerminal ? flow.outcomeLabel(status) : "",
+        statusHint: isAccepted
+          ? "Place the call, then mark Done."
+          : "",
+        actionLabel: isTerminal
+          ? ""
+          : isAccepted
+            ? "Done"
+            : decision.action || "Act",
+        primaryAttrs: isAccepted
+          ? ' data-decision-outcome="completed" data-recommendation-id="' +
+            id +
+            '"'
+          : ' data-decision-outcome="accepted" data-recommendation-id="' +
+            id +
+            '"',
+        secondaryActions: secondaryActions,
       });
     }
 
@@ -461,8 +533,7 @@
       subject: decision.patient || "",
       stake: decision.consequence || "",
       guidance: decision.recommendation || "",
-      actionLabel: decision.action || "",
-      href: isPrimary ? decision.actionHref || "#today" : undefined,
+      // Secondary rows are awareness only — no competing next action.
       whyText: decision.why || "",
       accent: decision.accent || "",
       prominence: isPrimary ? "primary" : "secondary",
@@ -531,14 +602,18 @@
   function renderSubline(hasPrimary) {
     var el = $("mbSubline");
     if (!el) return;
-    el.textContent = hasPrimary ? "One decision first." : "Clear morning.";
+    // Progress lives in the remaining hint; clear state lives on the card.
+    el.textContent = "";
+    el.hidden = true;
   }
 
-  function secondaryFromJudgments(decisions, primary) {
+  function secondaryFromJudgments(decisions, primary, data) {
     var primaryKind = primary && primary.topic;
     var primaryProblem = primary && primary.problem;
+    var resolved = resolvedArbitrationTopics(data);
     return decisions.filter(function (d) {
       if (!d) return false;
+      if (resolved[d.topic] || resolved[canonicalTopic(d.topic)]) return false;
       if (primary && d.topic === primaryKind) return false;
       // Avoid duplicating the arbitration primary when judgment aliases match.
       if (
@@ -577,6 +652,7 @@
         '<p class="td-decision-clear-body">Nothing needs your attention right now.</p>' +
         "</div>";
       renderSubline(false);
+      paintRemainingHint(0);
       return;
     }
 
@@ -587,11 +663,18 @@
       var card = primaryHost.querySelector(".fd-dc--primary");
       flow.markEntering(card);
     }
+    if (flow && flow.focusPrimaryAction) {
+      window.setTimeout(function () {
+        flow.focusPrimaryAction(primaryHost);
+      }, opts.entering ? 80 : 0);
+    }
   }
 
   function renderBrief(data, options) {
     var opts = options || {};
     briefData = data;
+
+    paintGreeting();
 
     $("mbPracticeName").textContent = data.practiceName || "";
     $("mbDate").textContent = formatDate(data.date);
@@ -599,13 +682,34 @@
     var generatedEl = $("mbGeneratedAt");
     if (generatedEl) generatedEl.textContent = formatDateTime(data.generatedAt);
 
-    var decisions = buildDecisions(detectTopics(data), data);
+    var flow = Flow();
+    var resolved = resolvedArbitrationTopics(data);
+    var decisions = buildDecisions(detectTopics(data), data).filter(function (d) {
+      if (resolved[d.topic] || resolved[canonicalTopic(d.topic)]) return false;
+      // Judgment outcomes (Done / Later / Not needed) stay dismissed.
+      if (
+        flow &&
+        d.recommendationId &&
+        flow.isTerminal(flow.getOutcomeStatus(d.recommendationId))
+      ) {
+        return false;
+      }
+      return true;
+    });
     var primary = resolvePrimary(decisions, data);
-    var rest = secondaryFromJudgments(decisions, primary);
+    var rest = secondaryFromJudgments(decisions, primary, data);
     var secondary = rest.slice(0, SECONDARY_LIMIT);
     var remaining = rest.slice(SECONDARY_LIMIT);
+    // Count only decisions that will become primary — not quiet awareness rows
+    // while Arbitration still owns the queue.
+    var arbQueue = arbitrationQueue(data);
+    var waitingCount =
+      flow && arbQueue.length && flow.primaryDecision(arbQueue)
+        ? flow.remainingAfterPrimary(arbQueue)
+        : rest.length;
 
     renderSubline(!!primary);
+    paintRemainingHint(primary ? waitingCount : 0);
 
     var layout = $("mbDecisions");
     if (!layout) return;
@@ -613,11 +717,21 @@
     if (!primary && !secondary.length) {
       layout.innerHTML =
         '<div class="td-decision-clear fd-dc-clear" role="status">' +
-        '<p class="td-decision-clear-title">Clear morning.</p>' +
+        '<p class="td-decision-clear-title">You\'re clear.</p>' +
         '<p class="td-decision-clear-body">Nothing needs your attention right now.</p>' +
         "</div>";
       renderRemaining([]);
       return;
+    }
+
+    // Never claim clear while quieter work remains — promote next judgment.
+    if (!primary && secondary.length) {
+      primary = secondary[0];
+      secondary = secondary.slice(1);
+      remaining = rest.slice(SECONDARY_LIMIT + 1);
+      waitingCount = secondary.length + remaining.length;
+      renderSubline(true);
+      paintRemainingHint(waitingCount);
     }
 
     var protect = [];
@@ -631,16 +745,15 @@
       else other.push(d);
     });
 
-    if (opts.primaryOnly && layout.querySelector(".mb-section--primary")) {
+    if (opts.primaryOnly && layout.querySelector(".mb-section--primary") && primary) {
       renderPrimarySlot(layout, primary, { entering: !!opts.entering });
+      paintRemainingHint(waitingCount);
       return;
     }
 
     var html = primary
       ? renderSection("do_first", [primary], { primary: true })
-      : '<section class="mb-section mb-section--primary"><div class="mb-section-cards">' +
-        '<p class="mb-empty mb-empty--inline">You\'re clear.</p>' +
-        "</div></section>";
+      : "";
     var secondaryAll = protect.concat(opportunity).concat(other);
     if (secondaryAll.length) {
       // No section label — primary card vs quiet rows is enough hierarchy.
@@ -657,15 +770,13 @@
       Flow().markEntering(card);
     }
 
-    if (
-      !whyBound &&
-      window.FreedomDeskUI &&
-      window.FreedomDeskUI.bindReasoningToggles
-    ) {
-      window.FreedomDeskUI.bindReasoningToggles(layout);
-      whyBound = true;
+    if (Flow() && Flow().focusPrimaryAction && primary) {
+      window.setTimeout(function () {
+        Flow().focusPrimaryAction(layout);
+      }, opts.entering ? 80 : 0);
     }
 
+    // Why? is bound once on the Today host — do not double-bind here.
     bindOutcomeEvents(layout);
   }
 
@@ -708,7 +819,8 @@
       resolvedLabel: flow.outcomeLabel(outcomeStatus),
       onReady: function () {
         advancing = false;
-        renderBrief(briefData, { primaryOnly: true, entering: true });
+        // Full re-render when advancing — keeps secondary list honest.
+        renderBrief(briefData, { entering: true });
       },
     });
   }
@@ -721,6 +833,23 @@
       if (!outcomeBtn || !layout.contains(outcomeBtn)) return;
       event.preventDefault();
       handleBriefOutcome(outcomeBtn);
+    });
+  }
+
+  function bindKeyboardShortcuts() {
+    if (bindKeyboardShortcuts._bound) return;
+    bindKeyboardShortcuts._bound = true;
+    document.addEventListener("keydown", function (event) {
+      if (!mountRoot || !briefData || advancing) return;
+      if (!document.body.contains(mountRoot)) return;
+      if (mountRoot.closest("[hidden]")) return;
+      var flow = Flow();
+      if (!flow || !flow.matchShortcut) return;
+      var outcome = flow.matchShortcut(event);
+      if (!outcome) return;
+      if (flow.invokeShortcut(mountRoot, outcome)) {
+        event.preventDefault();
+      }
     });
   }
 
@@ -754,6 +883,7 @@
         }
         renderBrief(data);
         showBrief();
+        bindKeyboardShortcuts();
         return true;
       })
       .catch(function () {
@@ -764,7 +894,6 @@
 
   function init() {
     mountRoot = null;
-    whyBound = false;
     loadAndRender();
   }
 
@@ -775,7 +904,6 @@
   function renderInto(host) {
     if (!host) return Promise.resolve(false);
     mountRoot = host;
-    whyBound = false;
     eventsBound = false;
     advancing = false;
     briefData = null;

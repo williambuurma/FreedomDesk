@@ -104,7 +104,7 @@
 }
 
 .fd-dashboard-content .td-decision-clear-body {
-  margin: 0.35rem 0 0;
+  margin: 0.25rem 0 0;
   font-size: 0.8125rem;
   font-weight: 450;
   letter-spacing: -0.01em;
@@ -200,6 +200,19 @@
   color: var(--fd-ink-tertiary);
 }
 
+.fd-dashboard-content .fd-dc-status-hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--fd-navy);
+}
+
+.fd-dashboard-content .fd-dc-status-hint + .fd-dc-act {
+  margin-top: 0.45rem;
+}
+
 /* ── Act ── */
 
 .fd-dashboard-content .fd-dc-act {
@@ -213,11 +226,11 @@
 }
 
 .fd-dashboard-content .fd-dc--primary .fd-dc-act {
-  margin-top: 0.75rem;
+  margin-top: 0.65rem;
 }
 
 .fd-dashboard-content .fd-dc--secondary .fd-dc-act {
-  margin-top: 0.3rem;
+  display: none;
 }
 
 .fd-dashboard-content .fd-dc-primary {
@@ -309,19 +322,45 @@
 .fd-dashboard-content .fd-dc-secondary-btn {
   appearance: none;
   margin: 0;
-  padding: 0.15rem 0;
+  padding: 0.35rem 0.15rem;
+  min-height: 1.75rem;
   border: none;
   background: none;
   font: inherit;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--fd-ink-tertiary);
   cursor: pointer;
 }
 
+.fd-dashboard-content .fd-dc-secondary-btn:focus-visible {
+  outline: 2px solid var(--fd-navy-mid);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .fd-dashboard-content .fd-dc-secondary-btn:hover:not(:disabled) {
   color: var(--fd-navy-muted);
+}
+
+.fd-dashboard-content .fd-dc-why:focus-visible {
+  outline: 2px solid var(--fd-navy-mid);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.fd-dashboard-content .td-decision-remaining,
+.fd-dashboard-content .mb-intro-remaining {
+  margin: 0 0 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  color: var(--fd-ink-tertiary);
+}
+
+.fd-dashboard-content .mb-intro-remaining[hidden] {
+  display: none !important;
 }
 
 .fd-dashboard-content .fd-dc-secondary-btn:disabled {
@@ -349,7 +388,7 @@
 .fd-dashboard-content .fd-dc-why {
   appearance: none;
   margin: 0;
-  padding: 0.15rem 0;
+  padding: 0.1rem 0;
   border: none;
   background: none;
   font: inherit;
@@ -366,8 +405,8 @@
 }
 
 .fd-dashboard-content .fd-dc-reason {
-  margin: 0.55rem 0 0;
-  padding: 0.5rem 0 0;
+  margin: 0.45rem 0 0;
+  padding: 0.45rem 0 0;
   border-top: 1px solid var(--fd-divider-subtle);
 }
 

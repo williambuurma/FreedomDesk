@@ -924,8 +924,9 @@ function buildHeadsUp(_patientsAttention, briefSections, _opportunities) {
         add(null, "Lab pickup today", `heads-lab-${item.id}`);
       } else if (/maintenance|equipment/i.test(summary)) {
         const timeMatch = summary.match(/\d{1,2}:\d{2}/);
+        // Default afternoon — bare "2:00" formats as 2:00 AM and erodes trust.
         add(
-          timeMatch ? timeMatch[0] : "2:00",
+          timeMatch ? timeMatch[0] : "14:00",
           summary.slice(0, 55) || "Equipment maintenance this afternoon",
           `heads-maint-${item.id}`
         );
@@ -940,7 +941,7 @@ function buildHeadsUp(_patientsAttention, briefSections, _opportunities) {
     add(null, "Lab pickup today", "heads-lab-default");
   }
   if (!seen.has("heads-maint-default")) {
-    add("2:00", "Equipment maintenance in operatory 3", "heads-maint-default");
+    add("14:00", "Equipment maintenance in operatory 3", "heads-maint-default");
   }
 
   return items.slice(0, 4);

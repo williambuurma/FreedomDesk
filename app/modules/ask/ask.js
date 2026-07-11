@@ -1,5 +1,5 @@
 /**
- * Ask FreedomDesk — practice Q&A workspace (placeholder).
+ * Ask FreedomDesk — practice Q&A workspace (not in Alpha nav).
  */
 (function () {
   "use strict";
@@ -11,14 +11,9 @@
       order: 2,
       navIcon: "ask",
       navHint: "Questions",
-      description:
-        "Ask about today’s schedule, a patient, or what needs attention — answers stay grounded in practice context.",
-      features: [
-        "Plain-language questions about the day",
-        "Answers from calls, schedule, and decisions",
-        "Uncertainty stays visible — no guessing",
-        "Points you to the right next step",
-      ],
+      navVisible: false,
+      emptyHint:
+        "Ask about today’s schedule, a patient, or what still needs attention.",
     })
   );
 })();

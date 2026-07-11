@@ -95,4 +95,27 @@ describe("decision flow queue", () => {
     );
     assert.equal(queue.length, 1);
   });
+
+  it("labels remaining work quietly", () => {
+    const Flow = loadDecisionFlow();
+    assert.equal(Flow.remainingLabel(0), "");
+    assert.equal(Flow.remainingLabel(1), "1 waiting");
+    assert.equal(Flow.remainingLabel(3), "3 waiting");
+  });
+
+  it("maps keyboard shortcuts without stealing typing", () => {
+    const Flow = loadDecisionFlow();
+    assert.equal(
+      Flow.matchShortcut({ key: "d", target: { tagName: "DIV" } }),
+      "completed"
+    );
+    assert.equal(
+      Flow.matchShortcut({ key: "Enter", target: { tagName: "DIV" } }),
+      "accepted"
+    );
+    assert.equal(
+      Flow.matchShortcut({ key: "d", target: { tagName: "INPUT" } }),
+      null
+    );
+  });
 });

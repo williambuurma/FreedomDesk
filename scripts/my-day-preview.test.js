@@ -203,7 +203,7 @@ describe("Today dashboard module", () => {
     assert.match(dashboard, /"intelligence-inbox":\s*"today"/);
   });
 
-  test("primary nav is Today, Patients, Ask only", () => {
+  test("primary nav is Today only during Front Desk Alpha", () => {
     const todayMod = fs.readFileSync(path.join(appRoot, "modules/today/module.js"), "utf8");
     const briefMod = fs.readFileSync(path.join(appRoot, "modules/morning-brief/module.js"), "utf8");
     const inboxMod = fs.readFileSync(
@@ -219,7 +219,7 @@ describe("Today dashboard module", () => {
 
     assert.match(briefMod, /navVisible:\s*false/);
     assert.match(inboxMod, /navVisible:\s*false/);
-    assert.match(patients, /label:\s*"Patients"/);
-    assert.match(ask, /label:\s*"Ask FreedomDesk"/);
+    assert.match(patients, /navVisible:\s*false/);
+    assert.match(ask, /navVisible:\s*false/);
   });
 });

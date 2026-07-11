@@ -54,33 +54,27 @@
     var status = flow.getOutcomeStatus(id);
     var isTerminal = flow.isTerminal(status);
     var isAccepted = status === "accepted";
-    var acceptDisabled = isAccepted ? " disabled" : "";
     var motionClass = opts.entering ? " fd-dc--entering" : "";
 
-    var html = UI.renderDecisionCard({
-      id: id,
-      situation: card.situation,
-      subject: card.subject || "",
-      guidance: card.recommendation || "",
-      stake: card.stake || "",
-      whyText: card.whyText || "",
-      evidence: card.evidence || [],
-      accent: card.accent || "opportunity",
-      prominence: "primary",
-      group: card.group || "opportunity",
-      resolvedLabel: isTerminal ? flow.outcomeLabel(status) : "",
-      actionLabel: isTerminal
-        ? ""
-        : isAccepted
-          ? "Calling"
-          : card.primaryAction || "Act",
-      primaryAttrs:
-        ' data-decision-outcome="accepted" data-recommendation-id="' +
-        id +
-        '"' +
-        acceptDisabled,
-      secondaryActions: isTerminal
-        ? []
+    var secondaryActions = isTerminal
+      ? []
+      : isAccepted
+        ? [
+            {
+              label: "Later",
+              attrs:
+                ' data-decision-outcome="snoozed" data-recommendation-id="' +
+                id +
+                '"',
+            },
+            {
+              label: "Not needed",
+              attrs:
+                ' data-decision-outcome="dismissed" data-recommendation-id="' +
+                id +
+                '"',
+            },
+          ]
         : [
             {
               label: "Done",
@@ -104,7 +98,34 @@
                 id +
                 '"',
             },
-          ],
+          ];
+
+    var html = UI.renderDecisionCard({
+      id: id,
+      situation: card.situation,
+      subject: card.subject || "",
+      guidance: card.recommendation || "",
+      stake: card.stake || "",
+      whyText: card.whyText || "",
+      evidence: card.evidence || [],
+      accent: card.accent || "opportunity",
+      prominence: "primary",
+      group: card.group || "opportunity",
+      resolvedLabel: isTerminal ? flow.outcomeLabel(status) : "",
+      statusHint: isAccepted ? "Place the call, then mark Done." : "",
+      actionLabel: isTerminal
+        ? ""
+        : isAccepted
+          ? "Done"
+          : card.primaryAction || "Act",
+      primaryAttrs: isAccepted
+        ? ' data-decision-outcome="completed" data-recommendation-id="' +
+          id +
+          '"'
+        : ' data-decision-outcome="accepted" data-recommendation-id="' +
+          id +
+          '"',
+      secondaryActions: secondaryActions,
     });
 
     if (!motionClass || !html) return html;
@@ -127,8 +148,15 @@
     var queue = decisionQueue(view);
     var primary = flow.primaryDecision(queue);
     if (!primary) return renderClearDecisionState();
+    var remaining = flow.remainingAfterPrimary(queue);
+    var hint = flow.remainingLabel(remaining);
     return (
       '<div class="td-decision-cards" aria-label="Recommended decision">' +
+      (hint
+        ? '<p class="td-decision-remaining" aria-live="polite">' +
+          hint +
+          "</p>"
+        : "") +
       renderPrimaryDecisionCard(primary, { entering: !!opts.entering }) +
       "</div>"
     );
@@ -161,6 +189,11 @@
     if (opts.entering && flow) {
       var card = urgentEl.querySelector(".fd-dc--primary");
       flow.markEntering(card);
+    }
+    if (flow && flow.focusPrimaryAction && surface.indexOf("td-decision-clear") === -1) {
+      window.setTimeout(function () {
+        flow.focusPrimaryAction(urgentEl);
+      }, opts.entering ? 80 : 0);
     }
   }
 
@@ -334,7 +367,8 @@
           UI.renderTodaySection(
             todayTasks,
             scheduleGaps,
-            "Nothing else on your list."
+            "Nothing else on your list.",
+            { quietActions: useMorning }
           ),
           { id: "mdTodayCard", quiet: true }
         );
@@ -547,6 +581,23 @@
           return;
         }
         handleDecisionOutcome(outcomeBtn, container);
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (state.advancing || state.roleId !== "front_desk") return;
+      if (!container || !document.body.contains(container)) return;
+      // Morning Brief owns shortcuts while its mount is visible.
+      var morningEl = $("tdMorning");
+      if (morningEl && !morningEl.hidden) return;
+      var urgentEl = $("mdUrgent");
+      if (!urgentEl || urgentEl.hidden) return;
+      var flow = Flow();
+      if (!flow || !flow.matchShortcut) return;
+      var outcome = flow.matchShortcut(event);
+      if (!outcome) return;
+      if (flow.invokeShortcut(urgentEl, outcome)) {
+        event.preventDefault();
       }
     });
   }

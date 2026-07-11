@@ -1,7 +1,7 @@
 /**
  * FreedomDesk companion shell — UI v2
  * Permanent icon rail + workspace routing. Settings in the sidebar footer.
- * Primary nav: Today · Patients · Ask FreedomDesk.
+ * Primary nav: Today (Patients / Ask stay registered, hidden until live).
  */
 (function () {
   "use strict";

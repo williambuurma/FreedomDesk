@@ -18,6 +18,11 @@ body.fd-coord-open {
   gap: 6px;
 }
 
+.fd-companion-header-actions[hidden],
+.fd-coord-trigger[hidden] {
+  display: none !important;
+}
+
 .fd-coord-trigger {
   display: inline-flex;
   align-items: center;

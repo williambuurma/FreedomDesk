@@ -546,6 +546,58 @@ body.fd-companion {
   opacity: 0.4;
 }
 
+/* ── Alpha empty states (Patients / Ask) ── */
+
+.fd-empty-search,
+.fd-empty-ask {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 0.85rem;
+}
+
+.fd-empty-search-label,
+.fd-empty-ask-label {
+  font-size: 0.625rem;
+  font-weight: 550;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fd-ink-tertiary);
+}
+
+.fd-empty-search-input,
+.fd-empty-ask-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(24, 53, 98, 0.1);
+  border-radius: 8px;
+  background: var(--fd-surface-raised, #fff);
+  color: var(--fd-navy);
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  resize: none;
+}
+
+.fd-empty-search-input:disabled,
+.fd-empty-ask-input:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  color: var(--fd-ink-tertiary);
+}
+
+.fd-empty-status {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  color: var(--fd-ink-tertiary);
+  line-height: 1.4;
+}
+
 /* ── Narrow phone: companion fills viewport; hide PMS stage ── */
 
 @media (max-width: 719px) {

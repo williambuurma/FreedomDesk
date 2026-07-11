@@ -1,5 +1,5 @@
 /**
- * Patients — lookup workspace (placeholder).
+ * Patients — lookup workspace (not in Alpha nav).
  */
 (function () {
   "use strict";
@@ -11,14 +11,9 @@
       order: 1,
       navIcon: "users",
       navHint: "Lookup",
-      description:
+      navVisible: false,
+      emptyHint:
         "Find a patient when you need context — intake, insurance, and recent call handoffs.",
-      features: [
-        "New-patient intake status",
-        "Insurance classification (PPO, HKD, Medicaid)",
-        "Updates from recent calls",
-        "Quick lookup without opening the PMS",
-      ],
     })
   );
 })();

@@ -661,12 +661,12 @@
   display: flex;
   justify-content: flex-end;
   margin: 0 0 0.55rem;
-  opacity: 0.45;
+  opacity: 0.7;
 }
 
 .fd-dashboard-content .md-role-bar:hover,
 .fd-dashboard-content .md-role-bar:focus-within {
-  opacity: 0.85;
+  opacity: 1;
 }
 
 .fd-dashboard-content .md-role-bar .fd-ui-role-switcher {
@@ -910,19 +910,22 @@
   color: var(--fd-ink-tertiary);
   background: transparent;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, opacity 0.15s ease;
   white-space: nowrap;
+  opacity: 0.55;
 }
 
 .fd-dashboard-content .fd-ui-role-btn:hover {
   color: var(--fd-navy-muted);
+  opacity: 0.9;
 }
 
 .fd-dashboard-content .fd-ui-role-btn-active {
   background: transparent;
-  color: var(--fd-navy-muted);
-  font-weight: 550;
+  color: var(--fd-navy);
+  font-weight: 600;
   box-shadow: none;
+  opacity: 1;
 }
 
 /* ── Section panels ── */

@@ -1,5 +1,9 @@
 /**
  * Phone Intelligence — call_completed and boundary_utterance assessments.
+ *
+ * Phone Opportunity Recovery: when a call_completed event carries a
+ * phone_opportunity/v1 payload, assess resolution quality and draft one
+ * named recommendation (Situation → Recommendation → Action).
  */
 
 import type { OperationalEvent } from "../../events/types.ts";
@@ -8,6 +12,15 @@ import {
   looksLikePmsDuplicate,
   materialReason,
 } from "../gates.ts";
+import {
+  assessPhoneOpportunity,
+  buildPhonePrimaryAction,
+  buildPhoneRecommendationLine,
+  buildPhoneSituationLine,
+  buildPhoneStake,
+  isPhoneOpportunityPayload,
+  selectPhoneRecipient,
+} from "../phoneOpportunity.ts";
 import type {
   CommitmentDraft,
   DomainAssessmentModule,
@@ -31,6 +44,7 @@ export const phoneDomain: DomainAssessmentModule = {
   accepts(event: OperationalEvent): boolean {
     if (event.eventType === "boundary_utterance") return true;
     if (event.eventType !== "call_completed") return false;
+    if (isPhoneOpportunityPayload(event.payload)) return true;
     if (!isCallPayload(event.payload)) return false;
     const p = event.payload;
     // Phone owns actionable call follow-ups — not every completed call
@@ -48,10 +62,39 @@ export const phoneDomain: DomainAssessmentModule = {
 
   understand(event: OperationalEvent, _ctx: PipelineContext): Understanding {
     const evidence = evidenceFromEvent(event);
-    const urgencyTier = resolveUrgency(event);
     const confidence = event.uncertainty.confidence;
     const notes: string[] = [];
     const intentHints: string[] = [];
+
+    if (isPhoneOpportunityPayload(event.payload)) {
+      const p = event.payload;
+      intentHints.push(p.opportunityType, "recoverable_phone_opportunity");
+      notes.push("phone_opportunity_payload");
+      if (p.careDelayed) notes.push("care_delayed");
+      if (p.barriers.length) notes.push(`barriers:${p.barriers.join(",")}`);
+
+      return {
+        domain: "phone",
+        eventId: event.id,
+        practiceId: event.practiceId,
+        summary: "Recoverable phone opportunity — unresolved call needs follow-up",
+        intentHints,
+        urgencyTier: resolveUrgency(event),
+        confidence,
+        evidence,
+        uncertainty: event.uncertainty,
+        subject: {
+          patientReferenceId: p.call.patientReferenceId,
+          callId: p.call.callId,
+        },
+        pmsDuplicateRisk: looksLikePmsDuplicate(
+          event.routing?.recommendedNextStep || ""
+        ),
+        notes,
+      };
+    }
+
+    const urgencyTier = resolveUrgency(event);
 
     if (isCallPayload(event.payload)) {
       intentHints.push(event.payload.intent);
@@ -98,6 +141,32 @@ export const phoneDomain: DomainAssessmentModule = {
     ctx: PipelineContext
   ): Situation | null {
     if (understanding.pmsDuplicateRisk) return null;
+
+    if (isPhoneOpportunityPayload(event.payload)) {
+      const assessment = assessPhoneOpportunity(event.payload);
+      // Quiet when the call was resolved, weak, duplicate, or not material.
+      if (!assessment.shouldRecommend || assessment.scored.suppressed) {
+        return null;
+      }
+
+      return {
+        id: nextId("sit"),
+        practiceId: ctx.practiceId,
+        domain: "phone",
+        kind: "recoverable_phone_opportunity",
+        summary: buildPhoneSituationLine(event.payload),
+        subject: {
+          patientReferenceId: event.payload.call.patientReferenceId,
+          callId: event.payload.call.callId,
+        },
+        evidence: understanding.evidence,
+        confidence: understanding.confidence,
+        detectedAt: ctx.now,
+        sourceEventIds: [event.id],
+        tags: ["phone", "phone_recovery", event.payload.opportunityType],
+      };
+    }
+
     if (event.eventType === "boundary_utterance") {
       return {
         id: nextId("sit"),
@@ -150,6 +219,59 @@ export const phoneDomain: DomainAssessmentModule = {
     event: OperationalEvent,
     ctx: PipelineContext
   ): OpportunityOrRisk | null {
+    if (situation.kind === "recoverable_phone_opportunity") {
+      if (!isPhoneOpportunityPayload(event.payload)) return null;
+      const assessment = assessPhoneOpportunity(event.payload);
+      if (!assessment.shouldRecommend) return null;
+
+      const p = event.payload;
+      const isClinicalRisk =
+        p.opportunityType === "emergency_no_callback" ||
+        p.opportunityType === "urgent_symptoms_unresolved" ||
+        p.clinicalUrgency === "critical" ||
+        p.clinicalUrgency === "high";
+
+      const kind: "opportunity" | "risk" = isClinicalRisk ? "risk" : "opportunity";
+      const estimatedImpact: OpportunityOrRisk["estimatedImpact"] =
+        isClinicalRisk ||
+        p.estimatedProductionImpact === "high" ||
+        p.conversionLikelihood === "high"
+          ? "high"
+          : "medium";
+
+      const material = isMaterialImprovement({
+        estimatedImpact,
+        urgencyTier: assessment.scored.urgencyTier,
+        confidence: understanding.confidence,
+        kind,
+      });
+
+      return {
+        id: nextId("opp"),
+        practiceId: ctx.practiceId,
+        domain: "phone",
+        kind,
+        title: isClinicalRisk
+          ? "Recover urgent unresolved phone call"
+          : "Recover unresolved phone opportunity",
+        description: buildPhoneRecommendationLine(p),
+        situationId: situation.id,
+        confidence: understanding.confidence,
+        estimatedImpact,
+        evidence: understanding.evidence,
+        suggestedOwner: selectPhoneRecipient(p),
+        urgencyTier: assessment.scored.urgencyTier,
+        materialImprovement: material,
+        reasonMaterial: materialReason({
+          material,
+          estimatedImpact,
+          urgencyTier: assessment.scored.urgencyTier,
+          kind,
+        }),
+        sourceEventIds: [event.id],
+      };
+    }
+
     const urgencyTier = understanding.urgencyTier;
     let estimatedImpact: OpportunityOrRisk["estimatedImpact"] = "medium";
     let kind: "opportunity" | "risk" = "opportunity";
@@ -222,6 +344,47 @@ export const phoneDomain: DomainAssessmentModule = {
     _ctx: PipelineContext
   ): CommitmentDraft | null {
     if (!item.materialImprovement) return null;
+
+    if (situation.kind === "recoverable_phone_opportunity") {
+      if (!isPhoneOpportunityPayload(event.payload)) return null;
+      const assessment = assessPhoneOpportunity(event.payload);
+      if (!assessment.shouldRecommend) return null;
+
+      const p = event.payload;
+      const primaryAction = buildPhonePrimaryAction(p);
+      const recommendation = buildPhoneRecommendationLine(p);
+
+      return {
+        verb: p.suggestedAction === "Verify insurance" ? "Verify" : "Call",
+        object: p.call.patientReferenceId,
+        because: recommendation,
+        primaryResponsibility: item.suggestedOwner,
+        urgencyTier: item.urgencyTier,
+        confidence: item.confidence,
+        evidence: item.evidence,
+        uncertainty: understanding.uncertainty.confidence
+          ? understanding.uncertainty
+          : defaultUncertainty(item.confidence),
+        dueRule:
+          item.urgencyTier === "critical"
+            ? "callback_sla"
+            : p.clinicalUrgency === "high"
+              ? "same_day"
+              : "end_of_shift",
+        dependencies: [],
+        recommendedNextStep:
+          event.routing?.recommendedNextStep?.trim() || recommendation,
+        expectedOutcome:
+          p.clinicalUrgency === "high" || p.clinicalUrgency === "critical"
+            ? "Patient contacted; clinically appropriate same-day or urgent path offered"
+            : "Unresolved call recovered into a scheduled visit or clear next step",
+        ifIgnored: buildPhoneStake(p),
+        decision:
+          primaryAction.length <= 72
+            ? primaryAction
+            : primaryAction.slice(0, 69).trimEnd() + "…",
+      };
+    }
 
     const nextStep =
       event.routing?.recommendedNextStep?.trim() ||

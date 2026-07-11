@@ -79,8 +79,19 @@ describe("Today preview data", () => {
 
     assert.ok(Array.isArray(receptionist.decisionCards));
     assert.ok(receptionist.decisionCards.length >= 1);
-    const rso = receptionist.decisionCards[0];
-    assert.equal(rso.kind, "recoverable_schedule_opportunity");
+    const phone = receptionist.decisionCards.find(
+      (c) => c.kind === "recoverable_phone_opportunity"
+    );
+    assert.ok(phone, "expected recoverable_phone_opportunity decision card");
+    assert.match(phone.situation, /urgent caller|swelling/i);
+    assert.match(phone.recommendation, /Emily Johnson/i);
+    assert.match(phone.primaryAction, /Call Emily/i);
+    assert.ok(phone.recommendationId);
+
+    const rso = receptionist.decisionCards.find(
+      (c) => c.kind === "recoverable_schedule_opportunity"
+    );
+    assert.ok(rso, "expected recoverable_schedule_opportunity decision card");
     assert.match(rso.situation, /60-minute opening/i);
     assert.match(rso.recommendation, /Maria Lopez/i);
     assert.match(rso.primaryAction, /Call Maria/i);

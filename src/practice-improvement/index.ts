@@ -34,6 +34,7 @@ export {
   type CommitmentDraft,
   type PipelineContext,
   type DomainAssessmentModule,
+  type DecisionFirstProjection,
 } from "./types.ts";
 
 export {
@@ -98,8 +99,30 @@ export {
   type ScheduleOpportunityPayload,
   type RankedCandidate,
   type ScheduleOpportunityAssessment,
-  type DecisionFirstProjection,
 } from "./scheduleOpportunity.ts";
+
+export {
+  MIN_PHONE_OPPORTUNITY_SCORE,
+  isPhoneOpportunityPayload,
+  selectPhoneRecipient,
+  scorePhoneOpportunity,
+  rankPhoneOpportunities,
+  assessPhoneOpportunity,
+  buildPhoneSituationLine,
+  buildPhoneRecommendationLine,
+  buildPhonePrimaryAction,
+  buildPhoneStake,
+  phoneLearningObservation,
+  projectPhoneDecisionFirst,
+  type PhoneOpportunityType,
+  type ResolutionQuality,
+  type ClinicalUrgency,
+  type ConversionLikelihood,
+  type PhoneOpportunityPayload,
+  type ScoredPhoneOpportunity,
+  type PhoneOpportunityAssessment,
+  type PhoneLearningObservation,
+} from "./phoneOpportunity.ts";
 
 export {
   DEMO_SCHEDULE_PRACTICE_ID,
@@ -107,3 +130,18 @@ export {
   buildDemoSchedulePayload,
   buildDemoScheduleOpeningEvent,
 } from "./fixtures/recoverableScheduleOpportunity.ts";
+
+export {
+  DEMO_PHONE_PRACTICE_ID,
+  buildDemoPhonePayload,
+  buildDemoUrgentSwellingPayload,
+  buildDemoNewPatientPayload,
+  buildDemoTreatmentPayload,
+  buildDemoInsurancePayload,
+  buildDemoLanguageBarrierPayload,
+  buildDemoResolvedPayload,
+  buildDemoWeakPayload,
+  buildDemoIllegitimateRevenuePayload,
+  buildDemoPhoneRecoveryEvent,
+  buildDemoNewPatientRecoveryEvent,
+} from "./fixtures/recoverablePhoneOpportunity.ts";

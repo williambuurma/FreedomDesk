@@ -22,6 +22,7 @@ async function main() {
   const {
     PracticeImprovementEngine,
     buildDemoScheduleOpeningEvent,
+    buildDemoPhoneRecoveryEvent,
     projectDecisionFirst,
   } = await import("../src/practice-improvement/index.ts");
 
@@ -30,8 +31,46 @@ async function main() {
   const { morningBrief, opportunities, metrics } = result;
 
   const engine = new PracticeImprovementEngine();
+  const phoneResult = engine.processEvent(buildDemoPhoneRecoveryEvent());
+  const phoneCard = projectDecisionFirst(phoneResult);
   const scheduleResult = engine.processEvent(buildDemoScheduleOpeningEvent());
   const scheduleCard = projectDecisionFirst(scheduleResult);
+
+  const decisionCards = [];
+  if (phoneCard) {
+    decisionCards.push({
+      id: phoneCard.recommendationId,
+      kind: "recoverable_phone_opportunity",
+      situation: phoneCard.situation,
+      recommendation: phoneCard.recommendation,
+      primaryAction: phoneCard.primaryAction,
+      subject: phoneCard.subject,
+      stake: phoneCard.stake,
+      whyText: phoneCard.whyText,
+      accent: phoneCard.accent,
+      group: phoneCard.group,
+      recommendationId: phoneCard.recommendationId,
+      practiceId: phoneCard.practiceId,
+      evidence: phoneCard.evidence,
+    });
+  }
+  if (scheduleCard) {
+    decisionCards.push({
+      id: scheduleCard.recommendationId,
+      kind: "recoverable_schedule_opportunity",
+      situation: scheduleCard.situation,
+      recommendation: scheduleCard.recommendation,
+      primaryAction: scheduleCard.primaryAction,
+      subject: scheduleCard.subject,
+      stake: scheduleCard.stake,
+      whyText: scheduleCard.whyText,
+      accent: scheduleCard.accent,
+      group: scheduleCard.group,
+      recommendationId: scheduleCard.recommendationId,
+      practiceId: scheduleCard.practiceId,
+      evidence: scheduleCard.evidence,
+    });
+  }
 
   const preview = {
     previewMode: true,
@@ -62,25 +101,7 @@ async function main() {
       estimatedImpact: opp.estimatedImpact,
       suggestedOwner: opp.suggestedOwner,
     })),
-    decisionCards: scheduleCard
-      ? [
-          {
-            id: scheduleCard.recommendationId,
-            kind: "recoverable_schedule_opportunity",
-            situation: scheduleCard.situation,
-            recommendation: scheduleCard.recommendation,
-            primaryAction: scheduleCard.primaryAction,
-            subject: scheduleCard.subject,
-            stake: scheduleCard.stake,
-            whyText: scheduleCard.whyText,
-            accent: scheduleCard.accent,
-            group: scheduleCard.group,
-            recommendationId: scheduleCard.recommendationId,
-            practiceId: scheduleCard.practiceId,
-            evidence: scheduleCard.evidence,
-          },
-        ]
-      : [],
+    decisionCards,
     metrics: {
       asOf: metrics.asOf,
       stewardshipHighlight: metrics.stewardshipHighlight,

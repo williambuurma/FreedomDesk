@@ -8,7 +8,13 @@
  * availability/preference, insurance readiness, and material decision change.
  */
 
-import type { ImprovementResult } from "./types.ts";
+import type { DecisionFirstProjection, ImprovementResult } from "./types.ts";
+import {
+  isPhoneOpportunityPayload,
+  projectPhoneDecisionFirst,
+} from "./phoneOpportunity.ts";
+
+export type { DecisionFirstProjection };
 
 /** Minimum opening length worth recovering (minutes). */
 export const MIN_RECOVERABLE_MINUTES = 45;
@@ -69,23 +75,6 @@ export interface ScheduleOpportunityAssessment {
   best: RankedCandidate | null;
   /** True when a named patient recommendation should be drafted */
   shouldRecommend: boolean;
-}
-
-/** Decision-first card projection for Today / Morning Brief. */
-export interface DecisionFirstProjection {
-  situation: string;
-  recommendation: string;
-  primaryAction: string;
-  subject: string;
-  stake: string;
-  whyText: string;
-  accent: "opportunity";
-  group: "opportunity";
-  recommendationId: string;
-  practiceId: string;
-  dedupeKey?: string;
-  priority?: string;
-  evidence: { description: string }[];
 }
 
 export function isScheduleOpportunityPayload(
@@ -317,6 +306,7 @@ export function buildPrimaryAction(candidate: ScheduleFillCandidate): string {
 
 /**
  * Project a surfaced ImprovementResult into Situation → Recommendation → Primary Action.
+ * Delegates phone opportunity payloads to the phone recovery projector.
  */
 export function projectDecisionFirst(
   result: ImprovementResult
@@ -332,6 +322,11 @@ export function projectDecisionFirst(
 
   const event = result.observation.events[0];
   const payload = event?.payload;
+
+  if (isPhoneOpportunityPayload(payload)) {
+    return projectPhoneDecisionFirst(result);
+  }
+
   let situation = result.situation?.summary || "";
   let subject = "";
   let recommendation = rec.explanation.because || rec.recommendedNextStep;

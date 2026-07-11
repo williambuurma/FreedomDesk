@@ -256,11 +256,21 @@
       found.waitlist = true;
     }
 
+    if (
+      data.decisionCards &&
+      data.decisionCards.some(function (c) {
+        return c.kind === "recoverable_phone_opportunity";
+      })
+    ) {
+      found.overnight_emergency = true;
+    }
+
     return Object.keys(found);
   }
 
   function buildDecisions(topics, data) {
     var pieWaitlist = null;
+    var piePhone = null;
     if (data && data.decisionCards && data.decisionCards.length) {
       var rso = data.decisionCards.find(function (c) {
         return c.kind === "recoverable_schedule_opportunity";
@@ -279,12 +289,35 @@
           consequence: rso.stake || "An open chair stays empty.",
         };
       }
+      var phone = data.decisionCards.find(function (c) {
+        return c.kind === "recoverable_phone_opportunity";
+      });
+      if (phone) {
+        piePhone = {
+          priority: 100,
+          group: "do_first",
+          accent: phone.accent || "urgent",
+          problem: phone.situation,
+          patient: phone.subject || null,
+          recommendation: phone.recommendation,
+          action: phone.primaryAction,
+          actionHref: "#today",
+          why: phone.whyText || "",
+          consequence:
+            phone.stake ||
+            "Symptoms may worsen and the patient may seek care elsewhere.",
+        };
+      }
     }
 
     return topics
       .map(function (topic) {
         var judgment =
-          topic === "waitlist" && pieWaitlist ? pieWaitlist : JUDGMENTS[topic];
+          topic === "overnight_emergency" && piePhone
+            ? piePhone
+            : topic === "waitlist" && pieWaitlist
+              ? pieWaitlist
+              : JUDGMENTS[topic];
         if (!judgment) return null;
         return {
           topic: topic,

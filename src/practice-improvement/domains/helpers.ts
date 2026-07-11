@@ -9,6 +9,7 @@ import type {
   UrgencyTier,
 } from "../events/types.ts";
 import type { OwnerRole } from "../practice-brain/types.ts";
+import { isPhoneOpportunityPayload } from "../phoneOpportunity.ts";
 
 export function isCallPayload(
   payload: OperationalEvent["payload"]
@@ -47,11 +48,28 @@ export function evidenceFromEvent(event: OperationalEvent): OperationalEventEvid
 }
 
 export function resolveOwner(event: OperationalEvent, fallback: OwnerRole = "front_desk"): OwnerRole {
+  if (isPhoneOpportunityPayload(event.payload)) {
+    return event.payload.suggestedRecipient || event.routing?.owner || fallback;
+  }
   return event.routing?.owner || fallback;
 }
 
 export function resolveUrgency(event: OperationalEvent): UrgencyTier {
   if (event.routing?.urgencyTier) return event.routing.urgencyTier;
+  if (isPhoneOpportunityPayload(event.payload)) {
+    const u = event.payload.clinicalUrgency;
+    if (u === "critical" || event.payload.opportunityType === "emergency_no_callback") {
+      return "critical";
+    }
+    if (u === "high" || event.payload.careDelayed) return "important";
+    if (
+      event.payload.conversionLikelihood === "high" ||
+      event.payload.estimatedProductionImpact === "high"
+    ) {
+      return "important";
+    }
+    return "informational";
+  }
   if (isCallPayload(event.payload)) {
     if (event.payload.sameDayEmergency || event.payload.urgency === "emergency") {
       return "critical";

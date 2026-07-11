@@ -291,6 +291,23 @@ export interface CommitmentDraft {
   decision?: string;
 }
 
+/** Decision-first card projection for Today / Morning Brief. */
+export interface DecisionFirstProjection {
+  situation: string;
+  recommendation: string;
+  primaryAction: string;
+  subject: string;
+  stake: string;
+  whyText: string;
+  accent: "opportunity" | "urgent" | "protect";
+  group: "opportunity" | "urgent" | "protect";
+  recommendationId: string;
+  practiceId: string;
+  dedupeKey?: string;
+  priority?: string;
+  evidence: { description: string }[];
+}
+
 export interface PipelineContext {
   practiceId: PracticeId;
   now: ISOTimestamp;

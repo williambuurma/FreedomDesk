@@ -1475,6 +1475,43 @@ function buildRoleView(roleConfig, brainResult, memorySummary, memory, staffSett
 }
 
 /**
+ * Run Phone Opportunity Recovery through the real Practice Improvement Engine
+ * and attach a decision-first card for Today (not a hardcoded mockup).
+ */
+async function buildRecoverablePhoneDecisionCard() {
+  const {
+    PracticeImprovementEngine,
+    buildDemoPhoneRecoveryEvent,
+    projectDecisionFirst,
+  } = await import("../src/practice-improvement/index.ts");
+
+  const engine = new PracticeImprovementEngine();
+  const result = engine.processEvent(buildDemoPhoneRecoveryEvent());
+  const card = projectDecisionFirst(result);
+  if (!card) return null;
+
+  return {
+    id: card.recommendationId,
+    kind: "recoverable_phone_opportunity",
+    situation: card.situation,
+    recommendation: card.recommendation,
+    primaryAction: card.primaryAction,
+    subject: card.subject,
+    stake: card.stake,
+    whyText: card.whyText,
+    accent: card.accent,
+    group: card.group,
+    recommendationId: card.recommendationId,
+    practiceId: card.practiceId,
+    dedupeKey: card.dedupeKey,
+    priority: card.priority,
+    evidence: card.evidence,
+    disposition: result.disposition,
+    outcomeStatuses: ["accepted", "snoozed", "dismissed", "completed"],
+  };
+}
+
+/**
  * Run Recoverable Schedule Opportunity through the real Practice Improvement Engine
  * and attach a decision-first card for Today (not a hardcoded mockup).
  */
@@ -1522,6 +1559,7 @@ async function main() {
   const memory = createMockPracticeMemory();
   const memorySummary = generateMorningMemorySummary(memory);
   const staffSettings = loadStaffSettings();
+  const phoneDecision = await buildRecoverablePhoneDecisionCard();
   const scheduleDecision = await buildRecoverableScheduleDecisionCard();
 
   const roles = {};
@@ -1535,18 +1573,23 @@ async function main() {
     );
   }
 
-  if (scheduleDecision && roles.front_desk) {
-    roles.front_desk.decisionCards = [scheduleDecision];
+  if (roles.front_desk) {
+    const cards = [];
+    if (phoneDecision) cards.push(phoneDecision);
+    if (scheduleDecision) cards.push(scheduleDecision);
+    roles.front_desk.decisionCards = cards;
     // Prefer the named recovery over a generic open-chair gap label.
-    roles.front_desk.scheduleGaps = [
-      {
-        id: "gap-rso-1030",
-        label: "Doctor opening",
-        time: "10:30 AM",
-        status: "available",
-        detail: "Offer to Maria Lopez — unscheduled crown",
-      },
-    ];
+    if (scheduleDecision) {
+      roles.front_desk.scheduleGaps = [
+        {
+          id: "gap-rso-1030",
+          label: "Doctor opening",
+          time: "10:30 AM",
+          status: "available",
+          detail: "Offer to Maria Lopez — unscheduled crown",
+        },
+      ];
+    }
   }
 
   const preview = {

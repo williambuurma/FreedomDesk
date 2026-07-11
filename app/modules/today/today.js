@@ -9,6 +9,7 @@
 (function () {
   "use strict";
 
+  var LIVE_URL = "/api/today";
   var PREVIEW_URL = "../data/my-day-preview.json";
   var STORAGE_KEY = "freedomdesk_today_role";
   var LEGACY_STORAGE_KEY = "freedomdesk_my_day_role";
@@ -625,22 +626,37 @@
     $("mdError").hidden = false;
   }
 
+  /** Prefer live /api/today (inbound call overlay); fall back to static preview. */
+  function loadTodayPayload() {
+    return fetch(LIVE_URL, { cache: "no-store" })
+      .then(function (res) {
+        if (res.ok) return res.json();
+        return null;
+      })
+      .catch(function () {
+        return null;
+      })
+      .then(function (live) {
+        if (live) return live;
+        return fetch(PREVIEW_URL).then(function (res) {
+          if (!res.ok) throw new Error("Failed to load preview");
+          return res.json();
+        });
+      });
+  }
+
   function init(container) {
     state.roleId = getStoredRole();
     state.morningActive = isMorningPhase();
 
-    Promise.all([fetch(PREVIEW_URL), Staff.load()])
+    Promise.all([loadTodayPayload(), Staff.load()])
       .then(function (results) {
-        var previewRes = results[0];
-        if (!previewRes.ok) throw new Error("Failed to load preview");
-        return previewRes.json().then(function (data) {
-          return { data: data, staff: results[1] };
-        });
+        return { data: results[0], staff: results[1] };
       })
       .then(function (payload) {
         state.staff = payload.staff;
         state.data = Staff.applyToMyDayData(payload.data, payload.staff);
-        if (!state.data.previewMode) {
+        if (!state.data.previewMode && !state.data.liveCallActive) {
           console.warn("Today preview: expected previewMode flag");
         }
         renderRole();

@@ -18,8 +18,8 @@
   "bookingMode": "request",
   "agentName": "Aly",
   "greeting": {
-    "businessHours": "Thank you for calling Cascade Family Dentistry. This is Aly. How can I help you today?",
-    "afterHours": "Thank you for calling Cascade Family Dentistry. You've reached our after-hours line. This is Aly. How can I help you?"
+    "businessHours": "Thanks for calling Cascade Family Dentistry. This is Aly. How can I help you?",
+    "afterHours": "Thanks for calling Cascade Family Dentistry. You've reached us after hours — this is Aly. How can I help?"
   },
   "hoursOfOperation": {
     "monday": { "open": "08:00", "close": "17:00" },

@@ -552,19 +552,38 @@
         "</p></div>";
     }
 
+    var executiveHtml = "";
+    if (summary.executiveSummary) {
+      executiveHtml =
+        '<div class="fd-ui-panel-ai-block">' +
+        '<p class="fd-ui-panel-subhead">Executive summary</p>' +
+        '<p class="fd-ui-panel-ai-text">' +
+        escapeHtml(summary.executiveSummary) +
+        "</p></div>";
+    } else if (summary.aiSummary) {
+      executiveHtml =
+        '<div class="fd-ui-panel-ai-block">' +
+        '<p class="fd-ui-panel-subhead">FreedomDesk summary</p>' +
+        '<p class="fd-ui-panel-ai-text">' +
+        escapeHtml(summary.aiSummary) +
+        "</p></div>";
+    }
+
+    var immediateHtml = "";
+    if (summary.immediateAttention && summary.immediateAttentionReason) {
+      immediateHtml = fact("Needs attention", summary.immediateAttentionReason);
+    }
+
     return (
       '<div class="fd-ui-panel-call-summary">' +
       headerHtml +
+      executiveHtml +
+      immediateHtml +
       fact("Caller", summary.caller) +
       fact("Date & time", summary.calledAt) +
       fact("Chief concern", summary.chiefConcern || summary.intent) +
-      (summary.aiSummary
-        ? '<div class="fd-ui-panel-ai-block">' +
-          '<p class="fd-ui-panel-subhead">FreedomDesk summary</p>' +
-          '<p class="fd-ui-panel-ai-text">' +
-          escapeHtml(summary.aiSummary) +
-          "</p></div>"
-        : fact("Reason for call", summary.intent)) +
+      fact("Suggested appointment", summary.suggestedAppointmentType) +
+      (!executiveHtml ? fact("Reason for call", summary.intent) : "") +
       nextStepHtml +
       (summary.phone
         ? '<p class="fd-ui-panel-phone"><span>Callback number</span> ' +

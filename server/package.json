@@ -2,7 +2,7 @@
   "name": "freedomdesk-server",
   "private": true,
   "version": "1.0.0",
-  "description": "FreedomDesk static site + lead capture API",
+  "description": "FreedomDesk Express server — leads, Today live read, Twilio voice webhooks",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "twilio": "^5.13.1"
   }
 }

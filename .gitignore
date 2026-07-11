@@ -5,7 +5,11 @@ server/node_modules/
 # Local environment & deploy cache
 .env
 .env.*
+!.env.example
 .vercel/
+
+# Live inbound call artifact (regenerated at runtime)
+data/latest-actionable-call.json
 
 # macOS & archive junk
 .DS_Store

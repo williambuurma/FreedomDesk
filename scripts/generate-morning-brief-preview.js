@@ -19,10 +19,19 @@ async function main() {
   const { PracticeBrain, MOCK_PRACTICE_ID } = await import(
     "../src/practice-brain/index.ts"
   );
+  const {
+    PracticeImprovementEngine,
+    buildDemoScheduleOpeningEvent,
+    projectDecisionFirst,
+  } = await import("../src/practice-improvement/index.ts");
 
   const brain = new PracticeBrain(MOCK_PRACTICE_ID);
   const result = brain.runDailyCycle();
   const { morningBrief, opportunities, metrics } = result;
+
+  const engine = new PracticeImprovementEngine();
+  const scheduleResult = engine.processEvent(buildDemoScheduleOpeningEvent());
+  const scheduleCard = projectDecisionFirst(scheduleResult);
 
   const preview = {
     previewMode: true,
@@ -53,6 +62,25 @@ async function main() {
       estimatedImpact: opp.estimatedImpact,
       suggestedOwner: opp.suggestedOwner,
     })),
+    decisionCards: scheduleCard
+      ? [
+          {
+            id: scheduleCard.recommendationId,
+            kind: "recoverable_schedule_opportunity",
+            situation: scheduleCard.situation,
+            recommendation: scheduleCard.recommendation,
+            primaryAction: scheduleCard.primaryAction,
+            subject: scheduleCard.subject,
+            stake: scheduleCard.stake,
+            whyText: scheduleCard.whyText,
+            accent: scheduleCard.accent,
+            group: scheduleCard.group,
+            recommendationId: scheduleCard.recommendationId,
+            practiceId: scheduleCard.practiceId,
+            evidence: scheduleCard.evidence,
+          },
+        ]
+      : [],
     metrics: {
       asOf: metrics.asOf,
       stewardshipHighlight: metrics.stewardshipHighlight,
@@ -75,7 +103,7 @@ async function main() {
   fs.writeFileSync(outputPath, JSON.stringify(preview, null, 2) + "\n", "utf8");
   console.error(`Morning Brief preview written to ${outputPath}`);
   console.error(
-    `  ${preview.sections.length} sections, ${preview.opportunities.length} opportunities, ${preview.topRecommendations.length} recommendations`
+    `  ${preview.sections.length} sections, ${preview.opportunities.length} opportunities, ${preview.topRecommendations.length} recommendations, ${preview.decisionCards.length} decision cards`
   );
 }
 

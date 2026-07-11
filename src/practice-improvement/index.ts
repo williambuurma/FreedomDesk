@@ -80,3 +80,30 @@ export {
   resetPracticeImprovementEngineRegistry,
   type PracticeImprovementEngineOptions,
 } from "./improvementEngine.ts";
+
+export {
+  MIN_RECOVERABLE_MINUTES,
+  MIN_CANDIDATE_SCORE,
+  isScheduleOpportunityPayload,
+  isMeaningfulOpening,
+  scoreCandidate,
+  rankCandidates,
+  assessScheduleOpportunity,
+  buildSituationLine,
+  buildRecommendationLine,
+  buildPrimaryAction,
+  projectDecisionFirst,
+  type ScheduleOpening,
+  type ScheduleFillCandidate,
+  type ScheduleOpportunityPayload,
+  type RankedCandidate,
+  type ScheduleOpportunityAssessment,
+  type DecisionFirstProjection,
+} from "./scheduleOpportunity.ts";
+
+export {
+  DEMO_SCHEDULE_PRACTICE_ID,
+  DEMO_CANDIDATE_MARIA,
+  buildDemoSchedulePayload,
+  buildDemoScheduleOpeningEvent,
+} from "./fixtures/recoverableScheduleOpportunity.ts";

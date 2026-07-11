@@ -41,6 +41,9 @@ describe("Morning Brief preview data", () => {
     assert.ok(Array.isArray(data.sections) && data.sections.length > 0);
     assert.ok(Array.isArray(data.opportunities) && data.opportunities.length > 0);
     assert.ok(Array.isArray(data.topRecommendations) && data.topRecommendations.length > 0);
+    assert.ok(Array.isArray(data.decisionCards) && data.decisionCards.length >= 1);
+    assert.equal(data.decisionCards[0].kind, "recoverable_schedule_opportunity");
+    assert.match(data.decisionCards[0].primaryAction, /Call Maria/i);
     assert.ok(data.metrics && Array.isArray(data.metrics.departments));
     assert.ok(data.stewardshipNote && data.stewardshipNote.length > 0);
 

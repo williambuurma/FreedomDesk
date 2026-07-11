@@ -77,6 +77,15 @@ describe("Today preview data", () => {
     assert.ok(Array.isArray(receptionist.scheduleGaps));
     assert.ok(Array.isArray(receptionist.headsUp));
 
+    assert.ok(Array.isArray(receptionist.decisionCards));
+    assert.ok(receptionist.decisionCards.length >= 1);
+    const rso = receptionist.decisionCards[0];
+    assert.equal(rso.kind, "recoverable_schedule_opportunity");
+    assert.match(rso.situation, /60-minute opening/i);
+    assert.match(rso.recommendation, /Maria Lopez/i);
+    assert.match(rso.primaryAction, /Call Maria/i);
+    assert.ok(rso.recommendationId);
+
     if (receptionist.scheduleGaps.length > 0) {
       assert.equal(receptionist.scheduleGaps[0].status, "available");
       assert.match(receptionist.scheduleGaps[0].time, /AM|PM/);

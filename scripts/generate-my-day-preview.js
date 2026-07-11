@@ -1467,9 +1467,47 @@ function buildRoleView(roleConfig, brainResult, memorySummary, memory, staffSett
     todayTasks: v3.todayTasks,
     scheduleGaps: v3.scheduleGaps,
     headsUp: v3.headsUp,
+    decisionCards: [],
     priorities,
     patientsAttention,
     opportunities: roleOpportunities,
+  };
+}
+
+/**
+ * Run Recoverable Schedule Opportunity through the real Practice Improvement Engine
+ * and attach a decision-first card for Today (not a hardcoded mockup).
+ */
+async function buildRecoverableScheduleDecisionCard() {
+  const {
+    PracticeImprovementEngine,
+    buildDemoScheduleOpeningEvent,
+    projectDecisionFirst,
+  } = await import("../src/practice-improvement/index.ts");
+
+  const engine = new PracticeImprovementEngine();
+  const result = engine.processEvent(buildDemoScheduleOpeningEvent());
+  const card = projectDecisionFirst(result);
+  if (!card) return null;
+
+  return {
+    id: card.recommendationId,
+    kind: "recoverable_schedule_opportunity",
+    situation: card.situation,
+    recommendation: card.recommendation,
+    primaryAction: card.primaryAction,
+    subject: card.subject,
+    stake: card.stake,
+    whyText: card.whyText,
+    accent: card.accent,
+    group: card.group,
+    recommendationId: card.recommendationId,
+    practiceId: card.practiceId,
+    dedupeKey: card.dedupeKey,
+    priority: card.priority,
+    evidence: card.evidence,
+    disposition: result.disposition,
+    outcomeStatuses: ["accepted", "snoozed", "dismissed", "completed"],
   };
 }
 
@@ -1484,6 +1522,7 @@ async function main() {
   const memory = createMockPracticeMemory();
   const memorySummary = generateMorningMemorySummary(memory);
   const staffSettings = loadStaffSettings();
+  const scheduleDecision = await buildRecoverableScheduleDecisionCard();
 
   const roles = {};
   for (const roleId of Object.keys(ROLE_CONFIG)) {
@@ -1494,6 +1533,20 @@ async function main() {
       memory,
       staffSettings
     );
+  }
+
+  if (scheduleDecision && roles.front_desk) {
+    roles.front_desk.decisionCards = [scheduleDecision];
+    // Prefer the named recovery over a generic open-chair gap label.
+    roles.front_desk.scheduleGaps = [
+      {
+        id: "gap-rso-1030",
+        label: "Doctor opening",
+        time: "10:30 AM",
+        status: "available",
+        detail: "Offer to Maria Lopez — unscheduled crown",
+      },
+    ];
   }
 
   const preview = {
@@ -1519,7 +1572,7 @@ async function main() {
     const view = roles[roleId];
     if (roleId === "front_desk") {
       console.error(
-        `  ${roleId}: ${view.urgentTasks?.length ?? 0} urgent, ${view.todayTasks?.length ?? 0} today, ${view.attentionCards?.length ?? 0} attention cards`
+        `  ${roleId}: ${view.urgentTasks?.length ?? 0} urgent, ${view.todayTasks?.length ?? 0} today, ${view.attentionCards?.length ?? 0} attention cards, ${view.decisionCards?.length ?? 0} decision cards`
       );
     } else {
       console.error(

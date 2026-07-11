@@ -46,12 +46,14 @@ Impact evaluation asks: material improvement? who receives it? interrupt? priori
 | Domain | Module | Typical events |
 |--------|--------|----------------|
 | Phone Intelligence | `domains/phone.ts` | `call_completed`, `boundary_utterance` |
-| Operating Intelligence | `domains/operating.ts` | cancellations, conflicts, verification |
+| Operating Intelligence | `domains/operating.ts` | cancellations, conflicts, verification; **Recoverable Schedule Opportunity** (candidate ranking → named fill) |
 | Supply Intelligence | `domains/supply.ts` | `lab_status_changed` |
 | Owner Intelligence | `domains/owner.ts` | strategic / process-quality signals |
 | Practice Brain | `domains/practiceBrain.ts` | practice-timescale quality gaps |
 
 Quiet by default: below confidence floors, non-material impact, or PMS-duplicating recommendations → **Ignore** / **Defer**. Never mirrors the PMS schedule or chart.
+
+**Recoverable Schedule Opportunity** (first demo capability on this engine): when an `appointment_cancelled` event carries a `schedule_opportunity/v1` payload, the operating domain ranks fill candidates (duration, provider, urgency, preference, insurance) and surfaces one decision-first recommendation — Situation → Recommendation → Primary Action — via the shared pipeline. Fixtures live in `fixtures/recoverableScheduleOpportunity.ts` and are projected into Today preview decision cards.
 
 ```ts
 import { PracticeImprovementEngine } from "./practice-improvement/index.ts";

@@ -1,6 +1,9 @@
 /**
  * Operating Intelligence — schedule, cancellation, conflict, insurance verification.
  * Improves practice rhythm without mirroring the PMS schedule of record.
+ *
+ * Recoverable Schedule Opportunity: when a cancellation carries opening + candidates,
+ * rank patients and draft one named recommendation (Situation → Recommendation → Action).
  */
 
 import type { OperationalEvent } from "../../events/types.ts";
@@ -9,6 +12,13 @@ import {
   looksLikePmsDuplicate,
   materialReason,
 } from "../gates.ts";
+import {
+  assessScheduleOpportunity,
+  buildPrimaryAction,
+  buildRecommendationLine,
+  buildSituationLine,
+  isScheduleOpportunityPayload,
+} from "../scheduleOpportunity.ts";
 import type {
   CommitmentDraft,
   DomainAssessmentModule,
@@ -41,8 +51,14 @@ export const operatingDomain: DomainAssessmentModule = {
   understand(event: OperationalEvent, _ctx: PipelineContext): Understanding {
     const urgencyTier = resolveUrgency(event);
     const nextStep = event.routing?.recommendedNextStep || "";
+    const hasScheduleOpp =
+      event.eventType === "appointment_cancelled" &&
+      isScheduleOpportunityPayload(event.payload);
+
     const labels: Record<string, string> = {
-      appointment_cancelled: "Appointment cancelled — recovery opportunity",
+      appointment_cancelled: hasScheduleOpp
+        ? "Recoverable schedule opening with fill candidates"
+        : "Appointment cancelled — recovery opportunity",
       schedule_conflict_detected: "Schedule conflict needs reconciliation",
       insurance_verification_needed: "Insurance verification needed before visit",
     };
@@ -52,14 +68,16 @@ export const operatingDomain: DomainAssessmentModule = {
       eventId: event.id,
       practiceId: event.practiceId,
       summary: labels[event.eventType] || event.eventType,
-      intentHints: [event.eventType],
+      intentHints: hasScheduleOpp
+        ? [event.eventType, "recoverable_schedule_opportunity"]
+        : [event.eventType],
       urgencyTier,
       confidence: event.uncertainty.confidence,
       evidence: evidenceFromEvent(event),
       uncertainty: event.uncertainty,
       subject: event.subject,
       pmsDuplicateRisk: looksLikePmsDuplicate(nextStep),
-      notes: [],
+      notes: hasScheduleOpp ? ["schedule_opportunity_payload"] : [],
     };
   },
 
@@ -69,6 +87,38 @@ export const operatingDomain: DomainAssessmentModule = {
     ctx: PipelineContext
   ): Situation | null {
     if (understanding.pmsDuplicateRisk) return null;
+
+    if (
+      event.eventType === "appointment_cancelled" &&
+      isScheduleOpportunityPayload(event.payload)
+    ) {
+      const assessment = assessScheduleOpportunity(event.payload);
+      if (!assessment.meaningfulOpening) {
+        return null;
+      }
+      // Quiet when no realistic patient fits — do not nag with weak waitlist noise.
+      if (!assessment.shouldRecommend || !assessment.best) {
+        return null;
+      }
+
+      const opening = event.payload.opening;
+      const best = assessment.best.candidate;
+      return {
+        id: nextId("sit"),
+        practiceId: ctx.practiceId,
+        domain: "operating",
+        kind: "recoverable_schedule_opportunity",
+        summary: buildSituationLine(opening),
+        subject: {
+          patientReferenceId: best.patientReferenceId,
+        },
+        evidence: understanding.evidence,
+        confidence: understanding.confidence,
+        detectedAt: ctx.now,
+        sourceEventIds: [event.id],
+        tags: ["operating", "schedule_recovery", event.eventType],
+      };
+    }
 
     const kindMap: Record<string, string> = {
       appointment_cancelled: "cancellation_recovery",
@@ -102,7 +152,15 @@ export const operatingDomain: DomainAssessmentModule = {
     let title = understanding.summary;
     let description = understanding.summary;
 
-    if (situation.kind === "cancellation_recovery") {
+    if (situation.kind === "recoverable_schedule_opportunity") {
+      if (!isScheduleOpportunityPayload(event.payload)) return null;
+      const assessment = assessScheduleOpportunity(event.payload);
+      if (!assessment.best) return null;
+
+      estimatedImpact = "high";
+      title = `Recover ${event.payload.opening.durationMinutes}-minute opening`;
+      description = buildRecommendationLine(event.payload.opening, assessment.best);
+    } else if (situation.kind === "cancellation_recovery") {
       estimatedImpact = "high";
       title = "Fill cancelled chair from waitlist";
       description =
@@ -159,6 +217,37 @@ export const operatingDomain: DomainAssessmentModule = {
     _ctx: PipelineContext
   ): CommitmentDraft | null {
     if (!item.materialImprovement) return null;
+
+    if (situation.kind === "recoverable_schedule_opportunity") {
+      if (!isScheduleOpportunityPayload(event.payload)) return null;
+      const assessment = assessScheduleOpportunity(event.payload);
+      if (!assessment.best) return null;
+
+      const opening = event.payload.opening;
+      const best = assessment.best;
+      const primaryAction = buildPrimaryAction(best.candidate);
+      const recommendation = buildRecommendationLine(opening, best);
+
+      return {
+        verb: "Call",
+        object: best.candidate.patientReferenceId,
+        because: recommendation,
+        primaryResponsibility: item.suggestedOwner,
+        urgencyTier: item.urgencyTier,
+        confidence: item.confidence,
+        evidence: item.evidence,
+        uncertainty: understanding.uncertainty.confidence
+          ? understanding.uncertainty
+          : defaultUncertainty(item.confidence),
+        dueRule: "same_day",
+        dependencies: [],
+        recommendedNextStep:
+          event.routing?.recommendedNextStep?.trim() || recommendation,
+        expectedOutcome: "Open chair recovered with an appropriate treatment visit",
+        ifIgnored: "An open chair stays empty",
+        decision: primaryAction.length <= 72 ? primaryAction : primaryAction.slice(0, 69).trimEnd() + "…",
+      };
+    }
 
     const defaults: Record<string, { verb: string; next: string; due: string }> = {
       cancellation_recovery: {

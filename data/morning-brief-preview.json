@@ -1,11 +1,11 @@
 {
   "previewMode": true,
-  "generatedAt": "2026-07-09T05:38:13.630Z",
+  "generatedAt": "2026-07-10T21:28:55.349Z",
   "recipientName": "Dr. Buurma",
   "practiceName": "Cascade Family Dentistry",
-  "date": "2026-07-09",
+  "date": "2026-07-10",
   "estimatedReadMinutes": 3,
-  "targetDeliveryAt": "2026-07-09T11:45:00.000Z",
+  "targetDeliveryAt": "2026-07-10T11:45:00.000Z",
   "stewardshipNote": "Calls captured at 5calls — trending positively vs. baseline.",
   "sections": [
     {
@@ -37,22 +37,22 @@
       "title": "Emergent follow-ups",
       "items": [
         {
-          "id": "brief_item_rec_1783575493630_11",
+          "id": "brief_item_rec_1783718935347_11",
           "summary": "Overnight urgent call requires on-call callback within 30 min SLA",
           "detail": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
           "confidence": 0.98,
           "actionRequired": true,
           "owner": "front_desk",
-          "relatedRecommendationId": "rec_1783575493630_11"
+          "relatedRecommendationId": "rec_1783718935347_11"
         },
         {
-          "id": "brief_item_rec_1783575493630_1",
+          "id": "brief_item_rec_1783718935347_1",
           "summary": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
           "detail": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
           "confidence": 0.95,
           "actionRequired": true,
           "owner": "front_desk",
-          "relatedRecommendationId": "rec_1783575493630_1"
+          "relatedRecommendationId": "rec_1783718935347_1"
         }
       ],
       "owner": "front_desk",
@@ -114,31 +114,31 @@
       "title": "Same-day squeeze-in & production",
       "items": [
         {
-          "id": "brief_item_rec_1783575493630_2",
+          "id": "brief_item_rec_1783718935347_2",
           "summary": "Confirm lab case status before crown seat; assistant prep per Assistant Workflow DNA.",
           "detail": "Treatment-specific typing on call reduces assistant surprise and chairside delay.",
           "confidence": 0.91,
           "actionRequired": false,
           "owner": "assistant",
-          "relatedRecommendationId": "rec_1783575493630_2"
+          "relatedRecommendationId": "rec_1783718935347_2"
         },
         {
-          "id": "brief_item_rec_1783575493630_9",
+          "id": "brief_item_rec_1783718935347_9",
           "summary": "Offer open doctor block for treatment scheduling or same-day emergency squeeze-in.",
           "detail": "Open doctor production time aligns with capacity optimization without inventing availability.",
           "confidence": 0.72,
           "actionRequired": false,
           "owner": "front_desk",
-          "relatedRecommendationId": "rec_1783575493630_9"
+          "relatedRecommendationId": "rec_1783718935347_9"
         },
         {
-          "id": "brief_item_rec_1783575493630_10",
+          "id": "brief_item_rec_1783718935347_10",
           "summary": "Offer open doctor block for treatment scheduling or same-day emergency squeeze-in.",
           "detail": "Open doctor production time aligns with capacity optimization without inventing availability.",
           "confidence": 0.72,
           "actionRequired": false,
           "owner": "front_desk",
-          "relatedRecommendationId": "rec_1783575493630_10"
+          "relatedRecommendationId": "rec_1783718935347_10"
         }
       ],
       "owner": "front_desk",
@@ -173,31 +173,31 @@
       "title": "Cancellation & waitlist actions",
       "items": [
         {
-          "id": "brief_item_rec_1783575493630_4",
+          "id": "brief_item_rec_1783718935347_4",
           "summary": "Contact waitlist candidates for cancellation recovery — 11:00 hygiene — sequential offer per Office DNA waitlist policy.",
           "detail": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes.",
           "confidence": 0.85,
           "actionRequired": false,
           "owner": "front_desk",
-          "relatedRecommendationId": "rec_1783575493630_4"
+          "relatedRecommendationId": "rec_1783718935347_4"
         },
         {
-          "id": "brief_item_rec_1783575493630_5",
+          "id": "brief_item_rec_1783718935347_5",
           "summary": "Contact waitlist candidates for waitlist match for cancelled hygiene slot — sequential offer per Office DNA waitlist policy.",
           "detail": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes.",
           "confidence": 0.82,
           "actionRequired": false,
           "owner": "front_desk",
-          "relatedRecommendationId": "rec_1783575493630_5"
+          "relatedRecommendationId": "rec_1783718935347_5"
         },
         {
-          "id": "brief_item_rec_1783575493630_7",
+          "id": "brief_item_rec_1783718935347_7",
           "summary": "Unfilled hygiene capacity — waitlist or recall candidate may fit 60-min prophy/perio.",
           "detail": "Detected scheduling opportunity with evidence-backed confidence 75%.",
           "confidence": 0.75,
           "actionRequired": false,
           "owner": "front_desk",
-          "relatedRecommendationId": "rec_1783575493630_7"
+          "relatedRecommendationId": "rec_1783718935347_7"
         }
       ],
       "owner": "front_desk",
@@ -208,22 +208,22 @@
       "title": "Retention opportunities",
       "items": [
         {
-          "id": "brief_item_rec_1783575493630_6",
+          "id": "brief_item_rec_1783718935347_6",
           "summary": "Hygiene coordinator outreach for severely overdue recall — welcoming reactivation intake, not lecturing (EIE embarrassment principles).",
           "detail": "Recall overdue population drives long-term retention; caller embarrassment patterns require non-judgmental framing.",
           "confidence": 0.78,
           "actionRequired": false,
           "owner": "hygiene_coordinator",
-          "relatedRecommendationId": "rec_1783575493630_6"
+          "relatedRecommendationId": "rec_1783718935347_6"
         },
         {
-          "id": "brief_item_rec_1783575493630_8",
+          "id": "brief_item_rec_1783718935347_8",
           "summary": "Hygiene coordinator outreach for severely overdue recall — welcoming reactivation intake, not lecturing (EIE embarrassment principles).",
           "detail": "Recall overdue population drives long-term retention; caller embarrassment patterns require non-judgmental framing.",
           "confidence": 0.74,
           "actionRequired": false,
           "owner": "front_desk",
-          "relatedRecommendationId": "rec_1783575493630_8"
+          "relatedRecommendationId": "rec_1783718935347_8"
         }
       ],
       "owner": "hygiene_coordinator",
@@ -268,7 +268,7 @@
   ],
   "topRecommendations": [
     {
-      "id": "rec_1783575493630_11",
+      "id": "rec_1783718935347_11",
       "recommendation": "Overnight urgent call requires on-call callback within 30 min SLA",
       "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
       "priority": "critical",
@@ -278,7 +278,7 @@
       "expectedOutcome": "On-call SLA met; patient receives timely callback"
     },
     {
-      "id": "rec_1783575493630_1",
+      "id": "rec_1783718935347_1",
       "recommendation": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
       "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
       "priority": "critical",
@@ -288,7 +288,7 @@
       "expectedOutcome": "Same-day urgent care scheduled; on-call SLA met; patient safety preserved"
     },
     {
-      "id": "rec_1783575493630_3",
+      "id": "rec_1783718935347_3",
       "recommendation": "Verify insurance benefits before NPE arrival; note emotional flags for clinical prep.",
       "reason": "New patient first impression depends on honest insurance handling and anxiety-aware prep — Constitution truth before efficiency.",
       "priority": "medium",
@@ -298,7 +298,7 @@
       "expectedOutcome": "New patient visit prepared with verified insurance and emotional context flags"
     },
     {
-      "id": "rec_1783575493630_4",
+      "id": "rec_1783718935347_4",
       "recommendation": "Contact waitlist candidates for cancellation recovery — 11:00 hygiene — sequential offer per Office DNA waitlist policy.",
       "reason": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes.",
       "priority": "medium",
@@ -308,7 +308,7 @@
       "expectedOutcome": "Schedule value reclaimed from cancellation"
     },
     {
-      "id": "rec_1783575493630_5",
+      "id": "rec_1783718935347_5",
       "recommendation": "Contact waitlist candidates for waitlist match for cancelled hygiene slot — sequential offer per Office DNA waitlist policy.",
       "reason": "Cancellation recovery is highest-ROI operational loop for GP practices; practice memory shows 62% fill rate when waitlist offered within 15 minutes.",
       "priority": "medium",
@@ -318,7 +318,7 @@
       "expectedOutcome": "Cancelled slot filled within 72h; cancellation fill rate improved"
     },
     {
-      "id": "rec_1783575493630_7",
+      "id": "rec_1783718935347_7",
       "recommendation": "Unfilled hygiene capacity — waitlist or recall candidate may fit 60-min prophy/perio.",
       "reason": "Detected scheduling opportunity with evidence-backed confidence 75%.",
       "priority": "medium",
@@ -328,7 +328,7 @@
       "expectedOutcome": "Fill open chair time; reduce unfilled hygiene/doctor blocks"
     },
     {
-      "id": "rec_1783575493630_2",
+      "id": "rec_1783718935347_2",
       "recommendation": "Confirm lab case status before crown seat; assistant prep per Assistant Workflow DNA.",
       "reason": "Treatment-specific typing on call reduces assistant surprise and chairside delay.",
       "priority": "medium",
@@ -338,7 +338,7 @@
       "expectedOutcome": "Capture treatment production in open doctor column"
     },
     {
-      "id": "rec_1783575493630_6",
+      "id": "rec_1783718935347_6",
       "recommendation": "Hygiene coordinator outreach for severely overdue recall — welcoming reactivation intake, not lecturing (EIE embarrassment principles).",
       "reason": "Recall overdue population drives long-term retention; caller embarrassment patterns require non-judgmental framing.",
       "priority": "medium",
@@ -386,7 +386,7 @@
       "suggestedOwner": "front_desk"
     },
     {
-      "id": "opp_waitlist_2026-07-09",
+      "id": "opp_waitlist_2026-07-10",
       "type": "waitlist_fill",
       "title": "Waitlist match for cancelled hygiene slot",
       "description": "1 cancellation(s) today — offer to waitlist candidates within 15-minute POS target latency.",
@@ -440,8 +440,35 @@
       "suggestedOwner": "front_desk"
     }
   ],
+  "decisionCards": [
+    {
+      "id": "imp_1783718935349_oq70gf",
+      "kind": "recoverable_schedule_opportunity",
+      "situation": "A 60-minute opening became available tomorrow at 10:30 AM.",
+      "recommendation": "Offer it to Maria Lopez for her unscheduled crown because the procedure fits, benefits are verified, and she previously requested a morning appointment.",
+      "primaryAction": "Call Maria.",
+      "subject": "Maria Lopez",
+      "stake": "An open chair stays empty",
+      "whyText": "Offer it to Maria Lopez for her unscheduled crown because the procedure fits, benefits are verified, and she previously requested a morning appointment.",
+      "accent": "opportunity",
+      "group": "opportunity",
+      "recommendationId": "imp_1783718935349_oq70gf",
+      "practiceId": "practice_cascade_family_gr",
+      "evidence": [
+        {
+          "description": "60-minute doctor block opened tomorrow at 10:30 AM"
+        },
+        {
+          "description": "Unscheduled crown treatment pending for Maria Lopez; benefits verified"
+        },
+        {
+          "description": "Maria previously requested a morning appointment"
+        }
+      ]
+    }
+  ],
   "metrics": {
-    "asOf": "2026-07-09T05:38:13.629Z",
+    "asOf": "2026-07-10T21:28:55.347Z",
     "stewardshipHighlight": "Calls captured at 5calls — trending positively vs. baseline.",
     "departments": [
       {

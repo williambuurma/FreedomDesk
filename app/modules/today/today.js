@@ -9,6 +9,7 @@
   var PREVIEW_URL = "../data/my-day-preview.json";
   var STORAGE_KEY = "freedomdesk_today_role";
   var LEGACY_STORAGE_KEY = "freedomdesk_my_day_role";
+  var OUTCOME_STORAGE_KEY = "freedomdesk_today_decision_outcomes";
 
   var UI = window.FreedomDeskUI;
   var Labels = window.FreedomDeskLabels;
@@ -30,6 +31,111 @@
   /** Morning Brief opening state — before midday operating rhythm. */
   function isMorningPhase() {
     return new Date().getHours() < 11;
+  }
+
+  function loadOutcomeOverrides() {
+    try {
+      var raw = localStorage.getItem(OUTCOME_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (_e) {
+      return {};
+    }
+  }
+
+  function saveOutcomeOverrides(overrides) {
+    try {
+      localStorage.setItem(OUTCOME_STORAGE_KEY, JSON.stringify(overrides));
+    } catch (_e) {
+      /* ignore */
+    }
+  }
+
+  function setDecisionOutcome(recommendationId, status) {
+    var overrides = loadOutcomeOverrides();
+    overrides[recommendationId] = {
+      status: status,
+      recordedAt: new Date().toISOString(),
+    };
+    saveOutcomeOverrides(overrides);
+  }
+
+  function outcomeLabel(status) {
+    if (status === "accepted") return "Calling";
+    if (status === "snoozed") return "Later";
+    if (status === "dismissed") return "Not needed";
+    if (status === "completed") return "Done";
+    return status || "";
+  }
+
+  function renderDecisionCards(cards) {
+    if (!UI || !UI.renderDecisionCard || !cards || !cards.length) return "";
+    var overrides = loadOutcomeOverrides();
+
+    return cards
+      .map(function (card) {
+        var outcome = overrides[card.recommendationId || card.id];
+        var status = outcome && outcome.status;
+        // Terminal outcomes close the card. Accepted (Call) commits but still
+        // allows Done / Later / Not needed — same pattern as Intelligence Inbox.
+        var isTerminal =
+          status === "completed" ||
+          status === "dismissed" ||
+          status === "snoozed";
+        var isAccepted = status === "accepted";
+        var id = card.recommendationId || card.id;
+        var acceptDisabled = isAccepted ? " disabled" : "";
+
+        return UI.renderDecisionCard({
+          id: id,
+          situation: card.situation,
+          subject: card.subject || "",
+          guidance: card.recommendation || "",
+          stake: card.stake || "",
+          whyText: card.whyText || "",
+          evidence: card.evidence || [],
+          accent: card.accent || "opportunity",
+          prominence: "primary",
+          group: card.group || "opportunity",
+          resolvedLabel: isTerminal ? outcomeLabel(status) : "",
+          actionLabel: isTerminal
+            ? ""
+            : isAccepted
+              ? "Calling"
+              : card.primaryAction || "Act",
+          primaryAttrs:
+            ' data-decision-outcome="accepted" data-recommendation-id="' +
+            id +
+            '"' +
+            acceptDisabled,
+          secondaryActions: isTerminal
+            ? []
+            : [
+                {
+                  label: "Done",
+                  strong: true,
+                  attrs:
+                    ' data-decision-outcome="completed" data-recommendation-id="' +
+                    id +
+                    '"',
+                },
+                {
+                  label: "Later",
+                  attrs:
+                    ' data-decision-outcome="snoozed" data-recommendation-id="' +
+                    id +
+                    '"',
+                },
+                {
+                  label: "Not needed",
+                  attrs:
+                    ' data-decision-outcome="dismissed" data-recommendation-id="' +
+                    id +
+                    '"',
+                },
+              ],
+        });
+      })
+      .join("");
   }
 
   function getStoredRole() {
@@ -161,10 +267,20 @@
 
     var urgentEl = $("mdUrgent");
     if (urgentEl) {
-      // Morning Brief primary decisions replace the duplicate "Do first" task list.
+      var decisionCards = view.decisionCards || [];
+      // Morning Brief already surfaces the same PIE decision — avoid duplicate cards.
       if (useMorning) {
         urgentEl.innerHTML = "";
         urgentEl.hidden = true;
+      } else if (decisionCards.length) {
+        urgentEl.hidden = false;
+        urgentEl.innerHTML =
+          '<div class="td-decision-cards" aria-label="Recommended decisions">' +
+          renderDecisionCards(decisionCards) +
+          "</div>" +
+          (view.urgentTasks && view.urgentTasks.length
+            ? UI.renderUrgentSection(view.urgentTasks, "")
+            : "");
       } else {
         urgentEl.hidden = false;
         urgentEl.innerHTML = UI.renderUrgentSection(
@@ -305,6 +421,19 @@
         var taskId = panelBtn.getAttribute("data-task-id");
         var task = state.taskIndex[taskId] || {};
         UI.openWorkPanel(panelType, task);
+        return;
+      }
+
+      var outcomeBtn = event.target.closest("[data-decision-outcome]");
+      if (outcomeBtn && container.contains(outcomeBtn)) {
+        var recommendationId = outcomeBtn.getAttribute("data-recommendation-id");
+        var outcomeStatus = outcomeBtn.getAttribute("data-decision-outcome");
+        if (recommendationId && outcomeStatus) {
+          // Maps to Practice Improvement Engine OutcomeStatus:
+          // accepted | snoozed | dismissed | completed → learning pipeline.
+          setDecisionOutcome(recommendationId, outcomeStatus);
+          renderRole();
+        }
       }
     });
   }

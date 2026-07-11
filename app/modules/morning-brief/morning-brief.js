@@ -247,13 +247,44 @@
       note({ summary: opp.title || "", detail: opp.description || "" });
     });
 
+    if (
+      data.decisionCards &&
+      data.decisionCards.some(function (c) {
+        return c.kind === "recoverable_schedule_opportunity";
+      })
+    ) {
+      found.waitlist = true;
+    }
+
     return Object.keys(found);
   }
 
-  function buildDecisions(topics) {
+  function buildDecisions(topics, data) {
+    var pieWaitlist = null;
+    if (data && data.decisionCards && data.decisionCards.length) {
+      var rso = data.decisionCards.find(function (c) {
+        return c.kind === "recoverable_schedule_opportunity";
+      });
+      if (rso) {
+        pieWaitlist = {
+          priority: 75,
+          group: "opportunity",
+          accent: "opportunity",
+          problem: rso.situation,
+          patient: rso.subject || null,
+          recommendation: rso.recommendation,
+          action: rso.primaryAction,
+          actionHref: "#today",
+          why: rso.whyText || "",
+          consequence: rso.stake || "An open chair stays empty.",
+        };
+      }
+    }
+
     return topics
       .map(function (topic) {
-        var judgment = JUDGMENTS[topic];
+        var judgment =
+          topic === "waitlist" && pieWaitlist ? pieWaitlist : JUDGMENTS[topic];
         if (!judgment) return null;
         return {
           topic: topic,
@@ -365,7 +396,7 @@
     var generatedEl = $("mbGeneratedAt");
     if (generatedEl) generatedEl.textContent = formatDateTime(data.generatedAt);
 
-    var decisions = buildDecisions(detectTopics(data));
+    var decisions = buildDecisions(detectTopics(data), data);
     var primary = decisions[0] || null;
     var rest = decisions.slice(1);
     var secondary = rest.slice(0, SECONDARY_LIMIT);

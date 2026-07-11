@@ -1,8 +1,8 @@
 {
   "previewMode": true,
-  "generatedAt": "2026-07-09T05:38:13.498Z",
+  "generatedAt": "2026-07-10T21:28:55.278Z",
   "practiceName": "Cascade Family Dentistry",
-  "date": "2026-07-09",
+  "date": "2026-07-10",
   "staffSettings": {
     "defaultReceptionistId": "receptionist_sarah",
     "defaultDoctorId": "doctor_johnson",
@@ -42,7 +42,7 @@
       "recipientName": "Dr. Johnson",
       "label": "Dr. Johnson",
       "welcome": {
-        "greeting": "Good morning, Dr. Johnson.",
+        "greeting": "Good evening, Dr. Johnson.",
         "subline": "Full clinical day. 4 patients deserve extra attention."
       },
       "schedule": [
@@ -156,7 +156,7 @@
       "recipientName": "Sarah",
       "label": "Sarah",
       "welcome": {
-        "greeting": "Good morning, Sarah.",
+        "greeting": "Good evening, Sarah.",
         "subline": "Start with what can't wait."
       },
       "attentionCards": [
@@ -317,12 +317,11 @@
       ],
       "scheduleGaps": [
         {
-          "id": "gap-doc-1100",
-          "label": "Open chair",
-          "time": "11:00 AM",
-          "provider": "Dr. Johnson",
-          "duration": "60 min available",
-          "status": "available"
+          "id": "gap-rso-1030",
+          "label": "Doctor opening",
+          "time": "10:30 AM",
+          "status": "available",
+          "detail": "Offer to Maria Lopez — unscheduled crown"
         }
       ],
       "headsUp": [
@@ -339,9 +338,45 @@
           "text": "Equipment maintenance in operatory 3"
         }
       ],
+      "decisionCards": [
+        {
+          "id": "imp_1783718935278_bo934a",
+          "kind": "recoverable_schedule_opportunity",
+          "situation": "A 60-minute opening became available tomorrow at 10:30 AM.",
+          "recommendation": "Offer it to Maria Lopez for her unscheduled crown because the procedure fits, benefits are verified, and she previously requested a morning appointment.",
+          "primaryAction": "Call Maria.",
+          "subject": "Maria Lopez",
+          "stake": "An open chair stays empty",
+          "whyText": "Offer it to Maria Lopez for her unscheduled crown because the procedure fits, benefits are verified, and she previously requested a morning appointment.",
+          "accent": "opportunity",
+          "group": "opportunity",
+          "recommendationId": "imp_1783718935278_bo934a",
+          "practiceId": "practice_cascade_family_gr",
+          "dedupeKey": "practice_cascade_family_gr|operating|recoverable_schedule_opportunity|pat_ref_maria_lopez|opportunity",
+          "priority": "high",
+          "evidence": [
+            {
+              "description": "60-minute doctor block opened tomorrow at 10:30 AM"
+            },
+            {
+              "description": "Unscheduled crown treatment pending for Maria Lopez; benefits verified"
+            },
+            {
+              "description": "Maria previously requested a morning appointment"
+            }
+          ],
+          "disposition": "recommend",
+          "outcomeStatuses": [
+            "accepted",
+            "snoozed",
+            "dismissed",
+            "completed"
+          ]
+        }
+      ],
       "priorities": [
         {
-          "id": "rec_1783575493496_11",
+          "id": "rec_1783718935276_11",
           "action": "Overnight urgent call requires on-call callback within 30 min SLA",
           "reason": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
           "priority": "critical",
@@ -349,7 +384,7 @@
           "category": "emergency"
         },
         {
-          "id": "rec_1783575493496_1",
+          "id": "rec_1783718935275_1",
           "action": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
           "reason": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",
           "priority": "critical",
@@ -357,7 +392,7 @@
           "category": "emergency"
         },
         {
-          "id": "rec_1783575493496_3",
+          "id": "rec_1783718935275_3",
           "action": "Verify insurance benefits before NPE arrival; note emotional flags for clinical prep.",
           "reason": "New patient first impression depends on honest insurance handling and anxiety-aware prep — Constitution truth before efficiency.",
           "priority": "medium",
@@ -367,7 +402,7 @@
       ],
       "patientsAttention": [
         {
-          "id": "brief_item_rec_1783575493496_11",
+          "id": "brief_item_rec_1783718935276_11",
           "name": "Overnight caller",
           "issue": "Overnight urgent call requires on-call callback within 30 min SLA",
           "action": "Risk flag detected in daily awareness — emergency follow up requires front_desk attention before patient care disruptions.",
@@ -375,7 +410,7 @@
           "priority": "critical"
         },
         {
-          "id": "brief_item_rec_1783575493496_1",
+          "id": "brief_item_rec_1783718935275_1",
           "name": "Overnight caller",
           "issue": "Callback and schedule same-day emergency eval for overnight urgent call — offer open doctor block if DNA enables squeeze-in.",
           "action": "Overnight urgent intake is complete; on-call callback SLA is 30 minutes. Safety and routing take precedence over schedule efficiency.",

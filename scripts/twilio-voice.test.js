@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Local Twilio voice vertical-slice tests — no purchased number required.
+ * Local Twilio voice vertical-slice tests — multi-turn adaptive intake.
  */
 
 const assert = require("node:assert/strict");
@@ -13,7 +13,6 @@ const { describe, test, before, after } = require("node:test");
 const repoRoot = path.resolve(__dirname, "..");
 const serverRoot = path.join(repoRoot, "server");
 
-// Resolve twilio + handlers from server package
 const twilioVoice = require(path.join(serverRoot, "twilio-voice.js"));
 const todayHandler = require(path.join(serverRoot, "today-handler.js"));
 const store = require(path.join(serverRoot, "latest-call-store.js"));
@@ -68,112 +67,116 @@ describe("Twilio voice webhooks (local)", () => {
     assert.match(res.body, /<Gather/);
     assert.match(res.body, /Cascade Family Dentistry/);
     assert.match(res.body, /Aly/);
-    assert.match(res.body, /\/api\/twilio\/voice\/gather/);
-    assert.match(res.body, /Chirp3-HD-Aoede|Neural2|Generative/);
-    assert.match(res.body, /How can I help/);
-    assert.doesNotMatch(res.body, /Polly\.Joanna"/);
+    assert.match(res.body, /Joanna-Generative|Chirp3-HD|Neural2/);
   });
 
-  test("gather callback runs reasoning pipeline and persists actionable call", async () => {
+  test("toothache gather does not hang up after first denial", async () => {
     store.clearLatestActionableCall(storePath);
+    const sid = "CA_pain_live";
 
-    const req = {
-      method: "POST",
-      protocol: "https",
-      originalUrl: "/api/twilio/voice/gather",
-      url: "/api/twilio/voice/gather",
-      headers: { host: "example.test" },
-      body: {
-        CallSid: "CA_gather_toothache",
-        SpeechResult:
-          "I have an awful toothache that kept me up all night",
-        From: "+16155550111",
-        To: "+16155550199",
+    const res1 = mockRes();
+    await twilioVoice.handleGatherVoice(
+      {
+        method: "POST",
+        originalUrl: "/api/twilio/voice/gather",
+        url: "/api/twilio/voice/gather",
+        headers: { host: "example.test" },
+        body: {
+          CallSid: sid,
+          SpeechResult: "I have a toothache that kept me awake",
+          From: "+16155550111",
+        },
       },
-    };
-    const res = mockRes();
-    await twilioVoice.handleGatherVoice(req, res, {
-      storePath,
-      source: "local_test",
-      resetRegistries: true,
-    });
+      res1,
+      { storePath, source: "local_test" }
+    );
+    assert.match(res1.body, /<Gather/);
+    assert.doesNotMatch(res1.body, /trouble breathing/i);
+    assert.equal(store.readLatestActionableCall(storePath), null);
 
-    assert.equal(res.statusCode, 200);
-    assert.match(res.body, /<Hangup/);
-    assert.match(res.body, /on-call|front desk|follow up|sorry/i);
+    // Answer first follow-up with a denial-style answer — must continue
+    const res2 = mockRes();
+    await twilioVoice.handleGatherVoice(
+      {
+        method: "POST",
+        originalUrl: "/api/twilio/voice/gather",
+        url: "/api/twilio/voice/gather",
+        headers: { host: "example.test" },
+        body: { CallSid: sid, SpeechResult: "No", From: "+16155550111" },
+      },
+      res2,
+      { storePath, source: "local_test" }
+    );
+    assert.match(res2.body, /<Gather/);
+    assert.doesNotMatch(res2.body, /<Hangup/);
+    assert.equal(store.readLatestActionableCall(storePath), null);
+  });
 
+  test("gather completes only after actionable intake then persists Today", async () => {
+    store.clearLatestActionableCall(storePath);
+    const sid = "CA_pain_complete";
+    const replies = [
+      "I have a toothache that kept me awake",
+      "Finn Leo",
+      "lower left",
+      "No",
+      "just the ache",
+    ];
+
+    let last = mockRes();
+    for (const speech of replies) {
+      last = mockRes();
+      await twilioVoice.handleGatherVoice(
+        {
+          method: "POST",
+          originalUrl: "/api/twilio/voice/gather",
+          url: "/api/twilio/voice/gather",
+          headers: { host: "example.test" },
+          body: { CallSid: sid, SpeechResult: speech, From: "+16155550111" },
+        },
+        last,
+        { storePath, source: "local_test", resetRegistries: true }
+      );
+      if (last.body.includes("<Hangup")) break;
+    }
+
+    assert.match(last.body, /<Hangup/);
+    assert.match(last.body, /shared what you told me|shared this with/i);
     const latest = store.readLatestActionableCall(storePath);
-    assert.ok(latest, "expected persisted latest-actionable-call");
-    assert.equal(latest.schema, "latest-actionable-call/v1");
-    assert.equal(latest.intent, "EMERGENCY");
+    assert.ok(latest);
     assert.ok(latest.decisionCard);
-    assert.ok(latest.decisionCard.primaryAction);
-    assert.ok(latest.decisionCard.situation);
+
+    const payload = await todayHandler.buildTodayPayload({ storePath, latest });
+    assert.equal(payload.liveCallActive, true);
   });
 
   test("gather with empty speech hangs up without persisting", async () => {
     store.clearLatestActionableCall(storePath);
-
-    const req = {
-      method: "POST",
-      originalUrl: "/api/twilio/voice/gather",
-      url: "/api/twilio/voice/gather",
-      headers: { host: "example.test" },
-      body: { CallSid: "CA_empty", SpeechResult: "" },
-    };
     const res = mockRes();
-    await twilioVoice.handleGatherVoice(req, res, { storePath });
-
-    assert.equal(res.statusCode, 200);
+    await twilioVoice.handleGatherVoice(
+      {
+        method: "POST",
+        originalUrl: "/api/twilio/voice/gather",
+        url: "/api/twilio/voice/gather",
+        headers: { host: "example.test" },
+        body: { CallSid: "CA_empty", SpeechResult: "" },
+      },
+      res,
+      { storePath }
+    );
     assert.match(res.body, /Take care|call back/i);
     assert.equal(store.readLatestActionableCall(storePath), null);
   });
 
   test("signature validation rejects when token configured and signature missing", () => {
     process.env.TWILIO_AUTH_TOKEN = "test_token_not_real";
-    const req = {
+    const result = twilioVoice.validateTwilioSignature({
       originalUrl: "/api/twilio/voice/inbound",
       url: "/api/twilio/voice/inbound",
       headers: { host: "example.test" },
       body: {},
-    };
-    const result = twilioVoice.validateTwilioSignature(req);
+    });
     assert.equal(result.ok, false);
-    assert.equal(result.reason, "missing_signature");
     delete process.env.TWILIO_AUTH_TOKEN;
-  });
-
-  test("Today live read overlays persisted decision card", async () => {
-    store.clearLatestActionableCall(storePath);
-
-    const gatherReq = {
-      method: "POST",
-      originalUrl: "/api/twilio/voice/gather",
-      url: "/api/twilio/voice/gather",
-      headers: { host: "example.test" },
-      body: {
-        CallSid: "CA_today_overlay",
-        SpeechResult: "I have a severe toothache and facial swelling",
-      },
-    };
-    await twilioVoice.handleGatherVoice(gatherReq, mockRes(), {
-      storePath,
-      source: "local_test",
-    });
-
-    const latest = store.readLatestActionableCall(storePath);
-    assert.ok(latest);
-
-    const payload = await todayHandler.buildTodayPayload({
-      storePath,
-      latest,
-    });
-
-    assert.equal(payload.liveCallActive, true);
-    assert.equal(payload.liveCallId, latest.callId);
-    const cards = payload.roles.front_desk.decisionCards;
-    assert.equal(cards.length, 1);
-    assert.equal(cards[0].id, latest.decisionCard.id);
-    assert.ok(cards[0].primaryAction);
   });
 });

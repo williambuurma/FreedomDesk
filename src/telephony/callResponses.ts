@@ -17,7 +17,7 @@ export function composeEmptyHangup(): string {
 
 /**
  * Intent-aware closing after the pipeline runs — empathy + clear next step.
- * Keeps the single-Gather architecture; improves what the caller hears before hangup.
+ * Keeps Gather architecture; improves what the caller hears before hangup.
  */
 export function composeClosing(input: {
   intent: string;
@@ -26,7 +26,23 @@ export function composeClosing(input: {
   sameDayEmergency?: boolean;
   chiefConcern?: string | null;
   practiceName?: string;
+  /** Stronger ER guidance when life-threatening language or fever+swelling. */
+  lifeThreatening?: boolean;
+  routingAction?: string;
 }): string {
+  const lifeThreat =
+    input.lifeThreatening ||
+    input.routingAction === "er_or_on_call_immediate";
+
+  if (lifeThreat) {
+    return (
+      "Thank you for telling me that. " +
+      "Please go to the nearest emergency room or call 911 now if you are having trouble breathing, " +
+      "swallowing, or bleeding that will not stop. " +
+      "I am also alerting our on-call team. Take care."
+    );
+  }
+
   const urgent =
     input.urgency === "emergency" ||
     input.urgency === "urgent" ||
@@ -36,14 +52,13 @@ export function composeClosing(input: {
     if (input.afterHours) {
       return (
         "I'm sorry you're dealing with that. " +
-        "I've flagged this for our on-call team, and someone will call you back as soon as they can. " +
-        "If your symptoms get much worse, or you have trouble breathing or swelling that affects your breathing, " +
-        "please go to the emergency room. Take care."
+        "I've shared what you told me with our on-call team, and someone will call you back as soon as they can. " +
+        "If things get much worse — especially trouble breathing or swallowing — please go to the emergency room. Take care."
       );
     }
     return (
       "I'm sorry you're dealing with that. " +
-      "I've shared this with our front desk so we can get you help today. " +
+      "I've shared what you told me with our front desk so we can help you today. " +
       "Someone will follow up with you shortly. Take care."
     );
   }
@@ -51,7 +66,7 @@ export function composeClosing(input: {
   if (input.intent === "NEW_PATIENT") {
     return (
       "Wonderful — thanks for reaching out. " +
-      "I've passed this to our front desk, and someone will follow up to get you scheduled. " +
+      "I've shared this with our front desk, and someone will follow up to get you scheduled. " +
       "We look forward to meeting you. Take care."
     );
   }
@@ -69,7 +84,7 @@ export function composeClosing(input: {
 
   if (input.intent === "INSURANCE" || input.intent === "BILLING") {
     return (
-      "Thanks for calling about that. I've passed the details to our team, " +
+      "Thanks for calling about that. I've shared the details with our team, " +
       "and someone will follow up with clear next steps. Take care."
     );
   }
@@ -77,6 +92,14 @@ export function composeClosing(input: {
   return (
     "Thanks for calling. I've shared this with our front desk, " +
     "and someone will follow up with you. Take care."
+  );
+}
+
+/** Closing when persist failed — do not claim the office received the call. */
+export function composePersistFailureClosing(): string {
+  return (
+    "Thank you for the details. I'm having a little trouble saving this right now — " +
+    "please call us back if you don't hear from someone shortly. Take care."
   );
 }
 

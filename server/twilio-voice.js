@@ -1,9 +1,9 @@
 "use strict";
 
 /**
- * Twilio Voice webhooks — inbound answer + Gather callback.
- * Phone Experience V1: generative Aly voice, natural greeting, intent-aware close.
- * Completed speech lands in the existing processCallTranscript spine.
+ * Twilio Voice webhooks — inbound answer + adaptive multi-turn Gather loop.
+ * Completes only when the call is actionable (or emergency escalation).
+ * Closing claims "shared with the team" only after Today persist succeeds.
  */
 
 const twilio = require("twilio");
@@ -30,10 +30,6 @@ function twilioAuthToken() {
   return (process.env.TWILIO_AUTH_TOKEN || "").trim();
 }
 
-/**
- * Validate Twilio signature when TWILIO_AUTH_TOKEN is configured.
- * Skips validation in local/dev when token is absent (enables curl tests).
- */
 function validateTwilioSignature(req) {
   const authToken = twilioAuthToken();
   if (!authToken) {
@@ -63,6 +59,30 @@ function sendTwiml(res, twiml) {
   res.end(twiml.toString());
 }
 
+function logTwilioWebhook(route, req, turnHint, extra) {
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const callSid = body.CallSid || "(none)";
+  const speech =
+    body.SpeechResult !== undefined && body.SpeechResult !== ""
+      ? String(body.SpeechResult)
+      : "(none)";
+  const turn =
+    turnHint !== undefined && turnHint !== null
+      ? String(turnHint)
+      : body.SpeechResult
+        ? "gather"
+        : "inbound";
+  const suffix = extra ? ` ${extra}` : "";
+  console.log(
+    `[twilio-webhook] ${new Date().toISOString()} route=${route} CallSid=${callSid} SpeechResult=${JSON.stringify(speech)} turn=${turn}${suffix}`
+  );
+}
+
+function msSince(startHr) {
+  const [s, n] = process.hrtime(startHr);
+  return Math.round(s * 1000 + n / 1e6);
+}
+
 async function loadVoiceHelpers() {
   const telephony = await import("../src/telephony/index.ts");
   return telephony;
@@ -72,13 +92,37 @@ function sayOpts(helpers) {
   return helpers.alySayOptions();
 }
 
-/**
- * POST /api/twilio/voice/inbound
- * Aly greets and Gathers the caller's reason for calling.
- */
+function say(twimlOrGather, helpers, text) {
+  const opts = sayOpts(helpers);
+  const speech = helpers.wrapAlySpeech(text);
+  twimlOrGather.say(opts, speech);
+}
+
+function gatherAttrs(helpers, gatherUrl) {
+  return {
+    input: ["speech", "dtmf"],
+    action: gatherUrl,
+    method: "POST",
+    language: "en-US",
+    // Slightly snappier end-of-speech without cutting off dental phrases.
+    speechTimeout: "1",
+    timeout: 5,
+    numDigits: 1,
+    actionOnEmptyResult: true,
+    bargeIn: true,
+    hints: helpers.DENTAL_SPEECH_HINTS,
+  };
+}
+
 async function handleInboundVoice(req, res) {
+  const t0 = process.hrtime();
+  logTwilioWebhook("/api/twilio/voice/inbound", req, "inbound", "event=received");
+
   const auth = validateTwilioSignature(req);
   if (!auth.ok) {
+    console.log(
+      `[twilio-webhook] ${new Date().toISOString()} route=/api/twilio/voice/inbound REJECTED reason=${auth.reason}`
+    );
     rejectUnauthorized(res, auth.reason);
     return;
   }
@@ -87,94 +131,154 @@ async function handleInboundVoice(req, res) {
   const config = helpers.loadPracticeVoiceConfig();
   const greeting = helpers.selectGreeting(config);
   const gatherUrl = absoluteUrl(req, "/api/twilio/voice/gather");
-  const voice = sayOpts(helpers);
 
   const twiml = new VoiceResponse();
-  const gather = twiml.gather({
-    input: ["speech", "dtmf"],
-    action: gatherUrl,
-    method: "POST",
-    language: "en-US",
-    speechTimeout: "auto",
-    timeout: 8,
-    numDigits: 1,
-    actionOnEmptyResult: true,
-    hints: helpers.DENTAL_SPEECH_HINTS,
-  });
-  gather.say(voice, greeting);
+  const gather = twiml.gather(gatherAttrs(helpers, gatherUrl));
+  say(gather, helpers, greeting);
 
-  // Soft retry once — then polite hangup (no robotic "call back" loop).
-  const retry = twiml.gather({
-    input: ["speech", "dtmf"],
-    action: gatherUrl,
-    method: "POST",
-    language: "en-US",
-    speechTimeout: "auto",
-    timeout: 7,
-    numDigits: 1,
-    actionOnEmptyResult: true,
-    hints: helpers.DENTAL_SPEECH_HINTS,
-  });
-  retry.say(voice, helpers.composeMissedInputPrompt(config));
-  twiml.say(voice, helpers.composeEmptyHangup());
+  const retry = twiml.gather(gatherAttrs(helpers, gatherUrl));
+  say(retry, helpers, helpers.composeMissedInputPrompt(config));
+  say(twiml, helpers, helpers.composeEmptyHangup());
 
   sendTwiml(res, twiml);
+  console.log(
+    `[twilio-timing] route=/api/twilio/voice/inbound twiml_ms=${msSince(t0)}`
+  );
 }
 
-/**
- * POST /api/twilio/voice/gather
- * Build transcript → processCallTranscript → persist latest actionable call.
- */
 async function handleGatherVoice(req, res, options = {}) {
+  const t0 = process.hrtime();
+  const body = req.body || {};
+  const callSid = String(body.CallSid || options.callSid || `local_${Date.now()}`);
+
+  let helpers;
+  try {
+    helpers = await loadVoiceHelpers();
+  } catch (err) {
+    console.error("Failed to load voice helpers:", err && err.message);
+    const twiml = new VoiceResponse();
+    twiml.say(
+      { voice: "Polly.Joanna-Generative", language: "en-US" },
+      "Thanks for calling. Please try us again in a moment."
+    );
+    twiml.hangup();
+    sendTwiml(res, twiml);
+    return;
+  }
+
+  const existing = helpers.getCallSession(callSid);
+  const turn = existing ? existing.followUpsAsked + 1 : 1;
+  logTwilioWebhook(
+    "/api/twilio/voice/gather",
+    req,
+    turn,
+    `event=speech_received`
+  );
+
   const auth = validateTwilioSignature(req);
   if (!auth.ok) {
+    console.log(
+      `[twilio-webhook] ${new Date().toISOString()} route=/api/twilio/voice/gather REJECTED reason=${auth.reason}`
+    );
     rejectUnauthorized(res, auth.reason);
     return;
   }
 
-  const body = req.body || {};
-  const callSid = String(body.CallSid || options.callSid || `local_${Date.now()}`);
   const speechResult = String(body.SpeechResult || options.speechResult || "").trim();
   const digits = String(body.Digits || options.digits || "").trim();
   const from = String(body.From || options.from || "").trim();
-
-  const helpers = await loadVoiceHelpers();
-  const voice = sayOpts(helpers);
+  const gatherUrl = absoluteUrl(req, "/api/twilio/voice/gather");
   const twiml = new VoiceResponse();
 
   if (!speechResult && !digits) {
-    twiml.say(voice, helpers.composeEmptyHangup());
+    helpers.clearCallSession(callSid);
+    say(twiml, helpers, helpers.composeEmptyHangup());
     twiml.hangup();
     sendTwiml(res, twiml);
     return;
   }
 
   try {
-    const transcript = helpers.buildTranscriptFromGather({
+    const session = helpers.createOrUpdateSession({
       callSid,
       speechResult,
       digits,
       from,
     });
 
-    if (!transcript) {
-      twiml.say(voice, helpers.composeEmptyHangup());
+    if (!session) {
+      say(twiml, helpers, helpers.composeEmptyHangup());
       twiml.hangup();
       sendTwiml(res, twiml);
       return;
     }
 
-    const artifact = helpers.completeCallFromTranscript(transcript, {
-      source: options.source || "twilio_inbound_gather",
-      resetRegistries: options.resetRegistries !== false,
-    });
+    const transcript = helpers.sessionToTranscript(session);
 
-    writeLatestActionableCall(artifact, options.storePath);
-
-    // Log call SID only — never auth tokens or full caller numbers.
-    console.log(
-      `Inbound call completed: callSid=${callSid} callId=${artifact.callId} intent=${artifact.intent}`
+    // Mid-turn: light analysis only (no Practice Brain / PIE) — major latency win.
+    const tAnalyze = process.hrtime();
+    const analysis = helpers.analyzeTranscriptTurns(
+      transcript.turns,
+      session.afterHours
     );
+    console.log(
+      `[twilio-timing] CallSid=${callSid} analysis_ms=${msSince(tAnalyze)} turn=${turn}`
+    );
+
+    const nextAsk = helpers.selectNextAsk(session, analysis);
+
+    if (nextAsk) {
+      helpers.appendAlyAsk(session, nextAsk);
+      const gather = twiml.gather(gatherAttrs(helpers, gatherUrl));
+      say(gather, helpers, nextAsk.question);
+      sendTwiml(res, twiml);
+      console.log(
+        `[twilio-timing] CallSid=${callSid} twiml_ms=${msSince(t0)} phase=ask field=${nextAsk.field}`
+      );
+      return;
+    }
+
+    // Complete only when actionable (or emergency). Persist BEFORE claiming handoff.
+    const tComplete = process.hrtime();
+    let artifact;
+    try {
+      artifact = helpers.completeCallFromTranscript(transcript, {
+        source: options.source || "twilio_inbound_gather",
+        resetRegistries: options.resetRegistries !== false,
+      });
+      writeLatestActionableCall(artifact, options.storePath);
+    } catch (persistErr) {
+      console.error(
+        "Call persist failed:",
+        persistErr && persistErr.message ? persistErr.message : persistErr
+      );
+      say(twiml, helpers, helpers.composePersistFailureClosing());
+      twiml.hangup();
+      sendTwiml(res, twiml);
+      helpers.clearCallSession(callSid);
+      console.log(
+        `[twilio-timing] CallSid=${callSid} twiml_ms=${msSince(t0)} phase=persist_failed`
+      );
+      return;
+    }
+
+    console.log(
+      `[twilio-timing] CallSid=${callSid} complete_ms=${msSince(tComplete)}`
+    );
+
+    helpers.clearCallSession(callSid);
+
+    console.log(
+      `Inbound call completed: callSid=${callSid} callId=${artifact.callId} intent=${artifact.intent} turns=${session.turns.length}`
+    );
+
+    const lifeThreatening =
+      helpers.hasLifeThreateningLanguage(
+        session.turns
+          .filter((t) => t.speaker === "patient" || t.speaker === "caller")
+          .map((t) => t.text)
+          .join(" ")
+      ) || session.slots.breathingOk === false;
 
     const closing = helpers.composeClosing({
       intent: artifact.intent,
@@ -186,18 +290,24 @@ async function handleGatherVoice(req, res, options = {}) {
       chiefConcern:
         artifact.operatingIntelligence &&
         artifact.operatingIntelligence.chiefConcern,
+      lifeThreatening,
+      routingAction: analysis.triage.routingAction,
     });
-    twiml.say(voice, closing);
+    say(twiml, helpers, closing);
     twiml.hangup();
     sendTwiml(res, twiml);
+    console.log(
+      `[twilio-timing] CallSid=${callSid} twiml_ms=${msSince(t0)} phase=complete`
+    );
   } catch (err) {
     console.error(
       "Gather callback failed:",
       err && err.message ? err.message : "unknown_error"
     );
-    twiml.say(
-      voice,
-      "Thanks for calling. Someone from our office will follow up with you. Take care."
+    say(
+      twiml,
+      helpers,
+      "Thanks for calling. Please try us again if you need help. Take care."
     );
     twiml.hangup();
     sendTwiml(res, twiml);

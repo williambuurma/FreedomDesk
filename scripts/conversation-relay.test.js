@@ -40,6 +40,18 @@ function mockRes() {
   };
 }
 
+/** Join all ConversationRelay text tokens from a mock ws.sent buffer. */
+function spokenFromSent(sent) {
+  return (sent || [])
+    .filter((m) => m.type === "text")
+    .map((m) => m.token)
+    .join(" ");
+}
+
+function textTokensFromSent(sent) {
+  return (sent || []).filter((m) => m.type === "text");
+}
+
 function inboundReq() {
   return {
     method: "POST",
@@ -182,10 +194,11 @@ describe("ConversationRelay transport", () => {
     );
     assert.match(res.body, /welcomeGreetingInterruptible="speech"/);
     assert.match(res.body, /interruptible="speech"/);
-    assert.match(res.body, /interruptSensitivity="medium"/);
+    assert.match(res.body, /interruptSensitivity="high"/);
     assert.match(res.body, /reportInputDuringAgentSpeech="speech"/);
+    assert.match(res.body, /preemptible="true"/);
     assert.match(res.body, /ignoreBackchannel="true"/);
-    assert.match(res.body, /speechTimeout="1200"/);
+    assert.match(res.body, /speechTimeout="900"/);
     assert.doesNotMatch(res.body, /TWILIO_AUTH_TOKEN|AuthToken|api[_-]?key/i);
     assert.doesNotMatch(res.body, /<Gather/);
   });
@@ -230,11 +243,15 @@ describe("ConversationRelay transport", () => {
       helpers,
       { storePath, source: "local_test", resetRegistries: true }
     );
-    const textMsg = ws.sent.find((m) => m.type === "text");
-    assert.ok(textMsg);
-    assert.equal(textMsg.last, true);
-    assert.doesNotMatch(textMsg.token, /<speak>|<prosody>|<\/speak>|\[warmly\]|\[concerned\]/);
-    assert.match(textMsg.token, /[.?!—]/);
+    const texts = textTokensFromSent(ws.sent);
+    assert.ok(texts.length >= 1);
+    assert.equal(texts[texts.length - 1].last, true);
+    const spoken = spokenFromSent(ws.sent);
+    assert.doesNotMatch(spoken, /<speak>|<prosody>|<\/speak>|\[warmly\]|\[concerned\]/);
+    assert.match(spoken, /[.?!—]/);
+    for (const t of texts) {
+      assert.equal(t.interruptible, true);
+    }
   });
   test("invalid WebSocket signatures are rejected", () => {
     process.env.TWILIO_AUTH_TOKEN = "test_token_not_real";
@@ -461,12 +478,13 @@ describe("ConversationRelay transport", () => {
       { storePath, source: "local_test", resetRegistries: true }
     );
     assert.ok(ws.sent.length >= 1);
-    const textMsg = ws.sent.find((m) => m.type === "text");
-    assert.ok(textMsg);
-    assert.equal(textMsg.last, true);
-    assert.equal(typeof textMsg.token, "string");
-    assert.ok(textMsg.token.length > 0);
-    assert.doesNotMatch(textMsg.token, /<speak>|<prosody>|<\/speak>/);
+    const texts = textTokensFromSent(ws.sent);
+    assert.ok(texts.length >= 1);
+    assert.equal(texts[texts.length - 1].last, true);
+    assert.equal(typeof texts[0].token, "string");
+    assert.ok(texts[0].token.length > 0);
+    assert.equal(texts[0].interruptible, true);
+    assert.doesNotMatch(spokenFromSent(ws.sent), /<speak>|<prosody>|<\/speak>/);
     const session = helpers.getCallSession("CA_prompt_1");
     assert.ok(session);
     assert.ok(session.slots.name === undefined || session.turns.length >= 2);
@@ -490,8 +508,9 @@ describe("ConversationRelay transport", () => {
     const nameBefore = session.slots.name;
     assert.ok(nameBefore);
 
+    const wsInterrupt = { callSid: "CA_interrupt_1", send() {} };
     conversationRelay.handleInterrupt(
-      { callSid: "CA_interrupt_1" },
+      wsInterrupt,
       {
         type: "interrupt",
         utteranceUntilInterrupt: "Where in your mouth is the pain",
@@ -499,6 +518,10 @@ describe("ConversationRelay transport", () => {
       },
       helpers
     );
+    if (wsInterrupt.interruptRecoveryTimer) {
+      clearTimeout(wsInterrupt.interruptRecoveryTimer);
+      wsInterrupt.interruptRecoveryTimer = null;
+    }
 
     const after = helpers.getCallSession("CA_interrupt_1");
     assert.ok(after);
@@ -549,14 +572,14 @@ describe("ConversationRelay transport", () => {
     }
 
     const endMsg = ws.sent.find((m) => m.type === "end");
-    const textMsg = ws.sent.find((m) => m.type === "text");
+    const spoken = spokenFromSent(ws.sent);
     assert.ok(endMsg);
-    assert.ok(textMsg);
+    assert.ok(spoken.length > 0);
     assert.match(
-      textMsg.token,
+      spoken,
       /glad you called|earliest available|saved clearly for the team/i
     );
-    assert.doesNotMatch(textMsg.token, /you'll be fine|appointment is booked/i);
+    assert.doesNotMatch(spoken, /you'll be fine|appointment is booked/i);
     const handoff = JSON.parse(endMsg.handoffData);
     assert.equal(handoff.persisted, true);
     const latest = store.readLatestActionableCall(storePath);
@@ -601,9 +624,9 @@ describe("ConversationRelay transport", () => {
         helpers,
         { storePath, source: "local_test", resetRegistries: true }
       );
-      const textMsg = ws.sent.find((m) => m.type === "text");
+      const textMsg = spokenFromSent(ws.sent);
       assert.ok(textMsg, `expected spoken reply after: ${speech.slice(0, 40)}`);
-      spoken.push(textMsg.token);
+      spoken.push(textMsg);
       const session = helpers.getCallSession("CA_william_cr");
       if (session && session.askedFields.length) {
         fields.push(session.askedFields[session.askedFields.length - 1]);
@@ -612,7 +635,10 @@ describe("ConversationRelay transport", () => {
     }
 
     // 1) Opening compassion + last-name spelling (name already volunteered)
-    assert.match(spoken[0], /worried|concerned|uncomfortable|glad you|spell your last name/i);
+    assert.match(
+      spoken[0],
+      /worried|concerned|uncomfortable|difficult night|glad you|spell your last name/i
+    );
     assert.match(spoken[0], /spell your last name/i);
     assert.doesNotMatch(spoken[0], /breathing|swallowing|fever|date of birth|insurance/i);
 
@@ -641,18 +667,18 @@ describe("ConversationRelay transport", () => {
 
     // Closing after persist
     const endMsg = ws.sent.find((m) => m.type === "end");
-    const closing = ws.sent.find((m) => m.type === "text");
+    const closing = spokenFromSent(ws.sent);
     assert.ok(endMsg);
-    assert.ok(closing);
-    assert.match(closing.token, /William/);
-    assert.match(closing.token, /lower-right back/i);
-    assert.match(closing.token, /kept you awake/i);
-    assert.match(closing.token, /not noticed swelling/i);
-    assert.match(closing.token, /earliest available help/i);
-    assert.match(closing.token, /short notice/i);
-    assert.match(closing.token, /saved clearly for the team/i);
+    assert.ok(closing.length > 0);
+    assert.match(closing, /William/);
+    assert.match(closing, /lower-right back/i);
+    assert.match(closing, /kept you awake/i);
+    assert.match(closing, /not noticed swelling/i);
+    assert.match(closing, /earliest available help/i);
+    assert.match(closing, /short notice/i);
+    assert.match(closing, /saved clearly for the team/i);
     assert.doesNotMatch(
-      closing.token,
+      closing,
       /you'll be fine|appointment is booked|dentist will call immediately/i
     );
     const handoff = JSON.parse(endMsg.handoffData);
@@ -707,9 +733,9 @@ describe("ConversationRelay transport", () => {
       { storePath, source: "local_test", resetRegistries: true }
     );
     assert.ok(ws.sent.some((m) => m.type === "end"));
-    const textMsg = ws.sent.find((m) => m.type === "text");
-    assert.ok(textMsg);
-    assert.match(textMsg.token, /saved clearly|glad you called/i);
+    const spoken = spokenFromSent(ws.sent);
+    assert.ok(spoken.length > 0);
+    assert.match(spoken, /saved clearly|glad you called/i);
   });
 
   test("Amber King ConversationRelay voice settings remain unchanged", () => {
@@ -791,5 +817,296 @@ describe("ConversationRelay transport", () => {
     assert.doesNotMatch(xml, /TWILIO_AUTH_TOKEN/);
     assert.doesNotMatch(xml, /AuthToken/);
     delete process.env.TWILIO_AUTH_TOKEN;
+  });
+});
+
+describe("ConversationRelay barge-in and corrections", () => {
+  beforeEach(() => {
+    conversationRelay.resetRelayMetaForTests();
+  });
+
+  test("outbound ordinary speech includes interruptible=true", async () => {
+    const helpers = await import("../src/telephony/index.ts");
+    helpers.resetCallSessionsForTests();
+    const ws = {
+      callSid: "CA_barge_token",
+      sent: [],
+      send(s) {
+        this.sent.push(JSON.parse(s));
+      },
+    };
+    helpers.ensureLiveCallSession({
+      callSid: "CA_barge_token",
+      from: "+16155550111",
+    });
+    conversationRelay.relayCallMeta.set("CA_barge_token", {
+      persisted: false,
+      ended: false,
+      from: "+16155550111",
+    });
+    await conversationRelay.handleFinalPrompt(
+      ws,
+      {
+        type: "prompt",
+        voicePrompt:
+          "I'm William Buurma. Lower-right back tooth hurts and kept me awake.",
+        last: true,
+      },
+      helpers,
+      { storePath: null, source: "local_test", resetRegistries: false }
+    );
+    const texts = ws.sent.filter((m) => m.type === "text");
+    assert.ok(texts.length >= 1);
+    for (const t of texts) {
+      assert.equal(t.interruptible, true);
+      assert.equal(t.preemptible, true);
+      assert.doesNotMatch(t.token, /<speak>|\[warmly\]|\btruly\b/i);
+    }
+  });
+
+  test("interrupt cancels remaining tokens and preserves facts", async () => {
+    const helpers = await import("../src/telephony/index.ts");
+    helpers.resetCallSessionsForTests();
+    const session = helpers.ensureLiveCallSession({
+      callSid: "CA_barge_cancel",
+      from: "+16155550111",
+    });
+    helpers.createOrUpdateSession({
+      callSid: "CA_barge_cancel",
+      speechResult: "William Buurma, lower-right back tooth pain.",
+      from: "+16155550111",
+    });
+    helpers.appendAlyAsk(session, {
+      field: "pain.swelling",
+      question:
+        "That sounds like a difficult night. I understand why you're concerned. Have you noticed any swelling?",
+    });
+    const nameBefore = session.slots.name;
+    const locBefore = session.slots.locationParts?.side;
+
+    const ws = {
+      callSid: "CA_barge_cancel",
+      activeSpeech: {
+        responseId: "r_test1",
+        interruptible: true,
+        startedAt: Date.now(),
+        cancelled: false,
+        chunksSent: 1,
+        chunksPlanned: 3,
+      },
+      sent: [],
+      send(s) {
+        this.sent.push(JSON.parse(s));
+      },
+    };
+
+    conversationRelay.handleInterrupt(
+      ws,
+      {
+        type: "interrupt",
+        utteranceUntilInterrupt: "That sounds like a difficult night",
+        durationUntilInterruptMs: 900,
+      },
+      helpers
+    );
+
+    assert.equal(ws.activeSpeech.cancelled, true);
+    assert.equal(ws.awaitingPostInterruptPrompt, true);
+    assert.equal(ws.lastInterruptedResponseId, "r_test1");
+
+    // Remaining tokens must be suppressed.
+    const ok = conversationRelay.sendTextToken(ws, "Have you noticed any swelling?", {
+      last: true,
+      interruptible: true,
+      responseId: "r_test1",
+    });
+    assert.equal(ok, false);
+    assert.equal(ws.sent.length, 0);
+
+    const after = helpers.getCallSession("CA_barge_cancel");
+    assert.ok(after);
+    assert.equal(after.slots.name, nameBefore);
+    assert.equal(after.slots.locationParts?.side, locBefore);
+    assert.equal(after.lastResponseInterrupted, true);
+    const lastAly = [...after.turns].reverse().find((t) => t.speaker === "aly");
+    assert.ok(lastAly?.interrupted);
+    assert.match(lastAly.text, /difficult night/i);
+    assert.doesNotMatch(lastAly.text, /swelling/i);
+
+    // Cleanup timer so the test process can exit.
+    if (ws.interruptRecoveryTimer) {
+      clearTimeout(ws.interruptRecoveryTimer);
+      ws.interruptRecoveryTimer = null;
+    }
+  });
+
+  test("final prompt after interrupt corrects lower-right to lower-left", async () => {
+    const helpers = await import("../src/telephony/index.ts");
+    helpers.resetCallSessionsForTests();
+    const sid = "CA_barge_correct";
+    helpers.ensureLiveCallSession({ callSid: sid, from: "+16155550111" });
+    conversationRelay.relayCallMeta.set(sid, {
+      persisted: false,
+      ended: false,
+      from: "+16155550111",
+    });
+
+    const ws = {
+      callSid: sid,
+      sent: [],
+      send(s) {
+        this.sent.push(JSON.parse(s));
+      },
+    };
+
+    await conversationRelay.handleFinalPrompt(
+      ws,
+      {
+        type: "prompt",
+        voicePrompt:
+          "I've had pain in the bottom-right back area, and it kept me awake. I'm William Buurma.",
+        last: true,
+      },
+      helpers,
+      { storePath: null, source: "local_test", resetRegistries: false }
+    );
+
+    const session = helpers.getCallSession(sid);
+    assert.ok(session);
+    assert.equal(session.slots.locationParts?.side, "right");
+
+    // Simulate Aly mid-response + barge-in.
+    helpers.appendAlyAsk(session, {
+      field: "pain.swelling",
+      question:
+        "That sounds like a difficult night. I understand why— Have you noticed any swelling?",
+    });
+    ws.activeSpeech = {
+      responseId: "r_corr",
+      interruptible: true,
+      startedAt: Date.now(),
+      cancelled: false,
+      chunksSent: 1,
+      chunksPlanned: 2,
+    };
+    conversationRelay.handleInterrupt(
+      ws,
+      {
+        type: "interrupt",
+        utteranceUntilInterrupt: "That sounds like a difficult night",
+        durationUntilInterruptMs: 700,
+      },
+      helpers
+    );
+    if (ws.interruptRecoveryTimer) {
+      clearTimeout(ws.interruptRecoveryTimer);
+      ws.interruptRecoveryTimer = null;
+    }
+
+    ws.sent = [];
+    await conversationRelay.handleFinalPrompt(
+      ws,
+      {
+        type: "prompt",
+        voicePrompt: "Actually, wait—it's the bottom left.",
+        last: true,
+      },
+      helpers,
+      { storePath: null, source: "local_test", resetRegistries: false }
+    );
+
+    const after = helpers.getCallSession(sid);
+    assert.ok(after);
+    assert.equal(after.slots.locationParts?.side, "left");
+    assert.equal(after.slots.locationParts?.vertical, "lower");
+    assert.equal(after.awaitingPostInterruptPrompt, false);
+
+    const texts = ws.sent.filter((m) => m.type === "text");
+    assert.ok(texts.length >= 1);
+    const spoken = texts.map((t) => t.token).join(" ");
+    assert.match(spoken, /Thanks for correcting me/i);
+    assert.match(spoken, /lower-left/i);
+    assert.doesNotMatch(spoken, /difficult night\. I understand why—/i);
+    assert.doesNotMatch(spoken, /left or right|which side/i);
+    for (const t of texts) {
+      assert.equal(t.interruptible, true);
+    }
+  });
+
+  test("rapid interrupt events do not corrupt session state", async () => {
+    const helpers = await import("../src/telephony/index.ts");
+    helpers.resetCallSessionsForTests();
+    const sid = "CA_barge_rapid";
+    const session = helpers.ensureLiveCallSession({
+      callSid: sid,
+      from: "+16155550111",
+    });
+    helpers.createOrUpdateSession({
+      callSid: sid,
+      speechResult: "I'm William Buurma. Lower right back tooth hurts.",
+      from: "+16155550111",
+    });
+    helpers.appendAlyAsk(session, {
+      field: "pain.swelling",
+      question: "Have you noticed any swelling around that tooth?",
+    });
+    const ws = {
+      callSid: sid,
+      activeSpeech: {
+        responseId: "r_rapid",
+        interruptible: true,
+        startedAt: Date.now(),
+        cancelled: false,
+        chunksSent: 0,
+        chunksPlanned: 1,
+      },
+    };
+    for (let i = 0; i < 5; i += 1) {
+      conversationRelay.handleInterrupt(
+        ws,
+        {
+          type: "interrupt",
+          utteranceUntilInterrupt: "Have you noticed",
+          durationUntilInterruptMs: 100 + i,
+        },
+        helpers
+      );
+    }
+    if (ws.interruptRecoveryTimer) {
+      clearTimeout(ws.interruptRecoveryTimer);
+      ws.interruptRecoveryTimer = null;
+    }
+    const after = helpers.getCallSession(sid);
+    assert.ok(after);
+    assert.ok(after.slots.name || after.slots.nameCaptured || after.slots.lastName);
+    assert.equal(after.slots.locationParts?.side, "right");
+    assert.equal(after.lastResponseInterrupted, true);
+  });
+
+  test("emergency escalation speech may be non-interruptible", () => {
+    const ws = {
+      callSid: "CA_emerg_ni",
+      sent: [],
+      send(s) {
+        this.sent.push(JSON.parse(s));
+      },
+    };
+    conversationRelay.speakAlyResponse(
+      ws,
+      "If you are having trouble breathing, please call 911 now.",
+      { interruptible: false }
+    );
+    const text = ws.sent.find((m) => m.type === "text");
+    assert.ok(text);
+    assert.equal(text.interruptible, false);
+  });
+
+  test("splitSpeechChunks yields sentence-sized phrases", () => {
+    const chunks = conversationRelay.splitSpeechChunks(
+      "That sounds like a difficult night. I understand why you're concerned. Have you noticed any swelling?"
+    );
+    assert.ok(chunks.length >= 2);
+    assert.match(chunks[0], /difficult night/i);
+    assert.ok(chunks.every((c) => c.length > 8));
   });
 });

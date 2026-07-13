@@ -20,12 +20,49 @@ const DEFAULT_VOICE_SPEED = "0.97";
 const DEFAULT_VOICE_STABILITY = "0.40";
 const DEFAULT_VOICE_SIMILARITY = "0.88";
 /** Conservative low-latency EOT (ms); within Twilio's 600–5000 range. */
-const DEFAULT_SPEECH_TIMEOUT_MS = "1200";
+const DEFAULT_SPEECH_TIMEOUT_MS = "900";
+/** Wait for final prompt after interrupt before a short listening recovery. */
+const INTERRUPT_PROMPT_WAIT_MS = 2500;
 const WS_PATH = "/api/twilio/voice/conversation";
 const STATUS_PATH = "/api/twilio/voice/conversation-status";
 
 /** @type {Map<string, { persisted: boolean, ended: boolean, from: string }>} */
 const relayCallMeta = new Map();
+
+let responseIdSeq = 0;
+function nextResponseId() {
+  responseIdSeq += 1;
+  return `r${Date.now().toString(36)}_${responseIdSeq}`;
+}
+
+/**
+ * Sentence-sized chunks for natural TTS pauses — never word-by-word fragments.
+ * @param {string} text
+ * @returns {string[]}
+ */
+function splitSpeechChunks(text) {
+  const cleaned = String(text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned) return [];
+  const parts = cleaned
+    .split(/(?<=[.!?])\s+|(?<=—)\s+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (parts.length <= 1) return [cleaned];
+  const merged = [];
+  for (const part of parts) {
+    if (
+      merged.length &&
+      (part.length < 12 || /^(and|but|so|then)\b/i.test(part))
+    ) {
+      merged[merged.length - 1] = `${merged[merged.length - 1]} ${part}`.trim();
+    } else {
+      merged.push(part);
+    }
+  }
+  return merged;
+}
 
 function useConversationRelay() {
   return (
@@ -271,8 +308,10 @@ function buildConversationRelayTwiml(req, helpers) {
     welcomeGreeting: greeting,
     welcomeGreetingInterruptible: "speech",
     interruptible: "speech",
-    interruptSensitivity: "medium",
+    interruptSensitivity: "high",
     reportInputDuringAgentSpeech: "speech",
+    // Allow a new talk-cycle to replace in-flight TTS after we replan.
+    preemptible: "true",
     ignoreBackchannel: "true",
     speechTimeout: DEFAULT_SPEECH_TIMEOUT_MS,
     hints: helpers.DENTAL_SPEECH_HINTS,
@@ -281,16 +320,92 @@ function buildConversationRelayTwiml(req, helpers) {
   return twiml;
 }
 
+/**
+ * Outbound ConversationRelay text token.
+ * Ordinary speech MUST set interruptible=true — TwiML alone is not enough;
+ * token-level interruptible overrides TwiML when present.
+ *
+ * @returns {boolean} false when suppressed after interrupt cancel
+ */
 function sendTextToken(ws, token, options = {}) {
+  if (ws.activeSpeech && ws.activeSpeech.cancelled) {
+    safeRelayLog(
+      "token_suppressed",
+      ws.callSid || "(none)",
+      `responseId=${ws.activeSpeech.responseId || "(none)"} reason=interrupted`
+    );
+    return false;
+  }
+
   const last = options.last !== false;
-  // One complete utterance per message — never word-stream fragments.
+  const interruptible = options.interruptible !== false;
+  const preemptible = options.preemptible !== false;
+  const responseId =
+    options.responseId ||
+    (ws.activeSpeech && ws.activeSpeech.responseId) ||
+    nextResponseId();
+
   ws.send(
     JSON.stringify({
       type: "text",
       token: sanitizeRelaySpeech(token),
       last,
+      interruptible,
+      preemptible,
     })
   );
+
+  safeRelayLog(
+    "outbound_token",
+    ws.callSid || "(none)",
+    `responseId=${responseId} interruptible=${interruptible} preemptible=${preemptible} last=${last} chars=${sanitizeRelaySpeech(token).length}`
+  );
+  return true;
+}
+
+/**
+ * Speak Aly text as sentence chunks. Stops immediately if interrupted.
+ * Emergency escalation may set interruptible=false.
+ */
+function speakAlyResponse(ws, text, options = {}) {
+  const interruptible = options.interruptible !== false;
+  const responseId = options.responseId || nextResponseId();
+  const chunks = splitSpeechChunks(text);
+  ws.activeSpeech = {
+    responseId,
+    interruptible,
+    startedAt: Date.now(),
+    cancelled: false,
+    chunksSent: 0,
+    chunksPlanned: chunks.length,
+  };
+
+  safeRelayLog(
+    "outbound_speech_start",
+    ws.callSid || "(none)",
+    `responseId=${responseId} interruptible=${interruptible} chunks=${chunks.length}`
+  );
+
+  for (let i = 0; i < chunks.length; i += 1) {
+    if (ws.activeSpeech.cancelled) {
+      safeRelayLog(
+        "outbound_speech_aborted",
+        ws.callSid || "(none)",
+        `responseId=${responseId} chunksSent=${ws.activeSpeech.chunksSent} chunksPlanned=${chunks.length}`
+      );
+      break;
+    }
+    const ok = sendTextToken(ws, chunks[i], {
+      last: i === chunks.length - 1,
+      interruptible,
+      preemptible: true,
+      responseId,
+    });
+    if (!ok) break;
+    ws.activeSpeech.chunksSent += 1;
+  }
+
+  return responseId;
 }
 
 function sendEnd(ws, handoffData) {
@@ -334,6 +449,26 @@ async function handleFinalPrompt(ws, msg, helpers, options = {}) {
     return;
   }
 
+  // Final prompt after barge-in — cancel listening recovery; do not treat interrupt as the answer.
+  if (ws.awaitingPostInterruptPrompt) {
+    ws.awaitingPostInterruptPrompt = false;
+    if (ws.interruptRecoveryTimer) {
+      clearTimeout(ws.interruptRecoveryTimer);
+      ws.interruptRecoveryTimer = null;
+    }
+    safeRelayLog(
+      "prompt_after_interrupt",
+      callSid,
+      `hadInterruptedResponse=${Boolean(ws.lastInterruptedResponseId)} interruptedResponseId=${ws.lastInterruptedResponseId || "(none)"}`
+    );
+  }
+  // Allow a new talk-cycle after a prior cancel.
+  if (ws.activeSpeech) {
+    ws.activeSpeech.cancelled = false;
+  }
+  ws.activeSpeech = null;
+
+  const turnReceivedAt = Date.now();
   const meta = relayCallMeta.get(callSid) || {
     persisted: false,
     ended: false,
@@ -341,50 +476,93 @@ async function handleFinalPrompt(ws, msg, helpers, options = {}) {
   };
   const from = meta.from || "";
 
-  const session = helpers.createOrUpdateSession({
-    callSid,
-    speechResult: voicePrompt,
-    from,
-  });
+  // Shared decision path with the replay harness (executeLiveTurn → planNextTurn).
+  let session;
+  let analysis;
+  let decision = null;
+
+  if (helpers.executeLiveTurn) {
+    const turn = await helpers.executeLiveTurn({
+      callSid,
+      speechResult: voicePrompt,
+      from,
+      afterInterrupt: Boolean(ws.lastInterruptedResponseId),
+    });
+    session = turn.session;
+    analysis = turn.analysis;
+    decision = turn.decision;
+    if (turn.latency) {
+      safeRelayLog(
+        "latency",
+        callSid,
+        `extractMs=${turn.latency.factExtractionCompleteMs} semanticMs=${turn.latency.semanticInterpretationMs ?? "(n/a)"} mergeMs=${turn.latency.stateMergeCompleteMs ?? "(n/a)"} allowMs=${turn.latency.allowedActionsCompleteMs ?? "(n/a)"} plannerStartMs=${turn.latency.plannerRequestStartedMs ?? "(n/a)"} plannerDoneMs=${turn.latency.plannerResponseReceivedMs ?? "(n/a)"} guardMs=${turn.latency.guardrailValidationCompleteMs ?? "(n/a)"} firstTokenMs=${turn.latency.firstSpeechTokenReadyMs} wallMs=${Date.now() - turnReceivedAt} stage=${turn.callStage || "(n/a)"}`
+      );
+    }
+  } else {
+    session = helpers.createOrUpdateSession({
+      callSid,
+      speechResult: voicePrompt,
+      from,
+    });
+  }
+
+  ws.lastInterruptedResponseId = null;
 
   if (!session) {
-    sendTextToken(ws, helpers.composeEmptyHangup(), { last: true });
+    speakAlyResponse(ws, helpers.composeEmptyHangup(), {
+      interruptible: true,
+    });
     sendEnd(ws, { reason: "empty_session", persisted: false });
     meta.ended = true;
     relayCallMeta.set(callSid, meta);
     return;
   }
 
-  const transcript = helpers.sessionToTranscript(session);
-  const analysis = helpers.analyzeTranscriptTurns(
-    transcript.turns,
-    session.afterHours
-  );
-
-  // Hybrid Aly — planner selects among deterministic allowed actions.
-  let decision = null;
-  if (helpers.planNextTurn) {
-    decision = await helpers.planNextTurn({ session, analysis });
-  } else {
-    const nextAskRaw = helpers.selectNextAsk(session, analysis);
-    decision = nextAskRaw
-      ? { kind: "ask", nextAsk: nextAskRaw, selectedAction: nextAskRaw.field }
-      : {
-          kind: "complete",
-          selectedAction: "persist_and_close",
-          reason: session.lastPolicyReason,
-        };
+  if (!decision) {
+    const transcript = helpers.sessionToTranscript(session);
+    analysis = helpers.analyzeTranscriptTurns(
+      transcript.turns,
+      session.afterHours
+    );
+    if (helpers.planNextTurn) {
+      decision = await helpers.planNextTurn({ session, analysis });
+    } else {
+      const nextAskRaw = helpers.selectNextAsk(session, analysis);
+      decision = nextAskRaw
+        ? { kind: "ask", nextAsk: nextAskRaw, selectedAction: nextAskRaw.field }
+        : {
+            kind: "complete",
+            selectedAction: "persist_and_close",
+            reason: session.lastPolicyReason,
+          };
+    }
   }
 
   if (decision.kind === "ask" && decision.nextAsk) {
     helpers.appendAlyAsk(session, decision.nextAsk);
-    sendTextToken(ws, decision.nextAsk.question, { last: true });
+    const polish =
+      helpers.polishSpokenDelivery ||
+      ((t) => String(t || "").replace(/\s+/g, " ").trim());
+    const spoken = polish(decision.nextAsk.question);
+    const emergency =
+      decision.selectedAction === "emergency_escalation" ||
+      (helpers.isNonInterruptibleAction &&
+        helpers.isNonInterruptibleAction(decision.selectedAction));
+    speakAlyResponse(ws, spoken, { interruptible: !emergency });
     safeRelayLog(
       "ask",
       callSid,
-      `field=${decision.nextAsk.field} action=${decision.selectedAction || "(none)"} source=${decision.source || "deterministic"} tone=${session.tone} postIdentity=${session.postIdentityAsks} reason=${session.lastPolicyReason || "(none)"}`
+      `field=${decision.nextAsk.field} action=${decision.selectedAction || "(none)"} source=${decision.source || "deterministic"} tone=${session.tone} postIdentity=${session.postIdentityAsks} reason=${session.lastPolicyReason || "(none)"} responseId=${(ws.activeSpeech && ws.activeSpeech.responseId) || "(none)"} interruptible=${!emergency}`
     );
     return;
+  }
+
+  if (!analysis) {
+    const transcript = helpers.sessionToTranscript(session);
+    analysis = helpers.analyzeTranscriptTurns(
+      transcript.turns,
+      session.afterHours
+    );
   }
 
   safeRelayLog(
@@ -394,6 +572,7 @@ async function handleFinalPrompt(ws, msg, helpers, options = {}) {
   );
   let artifact = null;
   try {
+    const transcript = helpers.sessionToTranscript(session);
     artifact = helpers.completeCallFromTranscript(transcript, {
       source: options.source || "twilio_conversation_relay",
       resetRegistries: options.resetRegistries !== false,
@@ -407,7 +586,9 @@ async function handleFinalPrompt(ws, msg, helpers, options = {}) {
       callSid,
       `error=${persistErr && persistErr.message ? persistErr.message : "unknown"}`
     );
-    sendTextToken(ws, helpers.composePersistFailureClosing(), { last: true });
+    speakAlyResponse(ws, helpers.composePersistFailureClosing(), {
+      interruptible: true,
+    });
     sendEnd(ws, { reason: "persist_failed", persisted: false });
     meta.ended = true;
     relayCallMeta.set(callSid, meta);
@@ -457,7 +638,13 @@ async function handleFinalPrompt(ws, msg, helpers, options = {}) {
       })
     : closingDraft;
 
-  sendTextToken(ws, closing, { last: true });
+  const polish =
+    helpers.polishSpokenDelivery ||
+    ((t) => String(t || "").replace(/\s+/g, " ").trim());
+  // Closing / emergency guidance: keep non-interruptible only for life-threat routing.
+  speakAlyResponse(ws, polish(closing), {
+    interruptible: !lifeThreatening,
+  });
   sendEnd(ws, {
     reason: "completed",
     persisted: true,
@@ -480,14 +667,48 @@ function handleInterrupt(ws, msg, helpers) {
     msg.durationUntilInterruptMs != null
       ? String(msg.durationUntilInterruptMs)
       : "(none)";
-  safeRelayLog("interrupt", callSid, `durationMs=${duration}`);
+  const responseId =
+    (ws.activeSpeech && ws.activeSpeech.responseId) ||
+    ws.lastInterruptedResponseId ||
+    "(none)";
+
+  // Stop any remaining outbound tokens for this response.
+  if (ws.activeSpeech) {
+    ws.activeSpeech.cancelled = true;
+    ws.lastInterruptedResponseId = ws.activeSpeech.responseId;
+  }
+
+  safeRelayLog(
+    "interrupt",
+    callSid,
+    `responseId=${responseId} interruptible=${ws.activeSpeech ? ws.activeSpeech.interruptible : "(n/a)"} durationMs=${duration} awaitingPrompt=true`
+  );
 
   const session = helpers.getCallSession(callSid);
-  if (!session) return;
+  if (session) {
+    const until = String(msg.utteranceUntilInterrupt || "");
+    helpers.applyInterruptToSession(session, until || undefined);
+    // Slots / facts intentionally retained — do not clear or restart intake.
+  }
 
-  const until = String(msg.utteranceUntilInterrupt || "");
-  helpers.applyInterruptToSession(session, until || undefined);
-  // Slots / facts intentionally retained — do not clear or restart intake.
+  // Interrupt event is not the semantic answer — wait for the final prompt.
+  ws.awaitingPostInterruptPrompt = true;
+  if (ws.interruptRecoveryTimer) {
+    clearTimeout(ws.interruptRecoveryTimer);
+  }
+  ws.interruptRecoveryTimer = setTimeout(() => {
+    if (!ws.awaitingPostInterruptPrompt) return;
+    ws.awaitingPostInterruptPrompt = false;
+    ws.interruptRecoveryTimer = null;
+    safeRelayLog(
+      "interrupt_recovery_listen",
+      callSid,
+      `responseId=${responseId} reason=no_final_prompt`
+    );
+    speakAlyResponse(ws, "Go ahead—I'm listening.", {
+      interruptible: true,
+    });
+  }, INTERRUPT_PROMPT_WAIT_MS);
 }
 
 function handleErrorMessage(ws, msg) {
@@ -531,6 +752,12 @@ async function handleRelayMessage(ws, raw, helpers, options = {}) {
 
 function cleanupSocket(ws, helpers) {
   const callSid = ws.callSid;
+  if (ws.interruptRecoveryTimer) {
+    clearTimeout(ws.interruptRecoveryTimer);
+    ws.interruptRecoveryTimer = null;
+  }
+  ws.awaitingPostInterruptPrompt = false;
+  if (ws.activeSpeech) ws.activeSpeech.cancelled = true;
   if (!callSid) return;
   const meta = relayCallMeta.get(callSid);
   if (meta && !meta.persisted) {
@@ -682,8 +909,11 @@ module.exports = {
   handleFinalPrompt,
   handleInterrupt,
   sendTextToken,
+  speakAlyResponse,
+  splitSpeechChunks,
   sendEnd,
   resetRelayMetaForTests,
   getRelayMetaForTests,
   relayCallMeta,
+  INTERRUPT_PROMPT_WAIT_MS,
 };

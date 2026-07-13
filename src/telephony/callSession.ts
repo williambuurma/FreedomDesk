@@ -38,6 +38,9 @@ import {
   parseSpellingCorrection,
   spellingToDisplayName,
 } from "./spellingNormalize.ts";
+import type { ConversationLoopState } from "./conversationLoopDetector.ts";
+import type { FactProvenanceMap } from "./factProvenance.ts";
+import type { SemanticTurnInterpretation } from "./semanticTurnTypes.ts";
 
 /** Soft ceiling only — prevents infinite loops; does not define "enough info". */
 export const MAX_FOLLOW_UPS = 10;
@@ -81,6 +84,8 @@ export interface IntakeSlots {
   spellingAbandoned?: boolean;
   /** Speak one uncertainty line, then clear. */
   spellingAbandonNeedsAnnounce?: boolean;
+  /** Letters heard before a usable name existed — applied once name is captured. */
+  pendingLastNameSpelling?: string;
 }
 
 export interface LiveCallSession {
@@ -103,6 +108,26 @@ export interface LiveCallSession {
   routineSoftCapReached?: boolean;
   /** Last selectNextAsk continue/complete reason (dev logs). */
   lastPolicyReason?: string;
+  /** Provenance-aware fact map from semantic merge. */
+  factProvenance?: FactProvenanceMap;
+  /** Loop detector state — prevents re-ask traps. */
+  loopState?: ConversationLoopState;
+  /** Latest semantic interpretation for planner / emotion. */
+  lastSemanticInterpretation?: SemanticTurnInterpretation;
+  /** Last emotional lead line — avoid repeating the same acknowledgment. */
+  lastEmotionalLead?: string | null;
+  /** Last Aly action selected (for semantic context). */
+  lastSelectedAction?: string | null;
+  /** Last Aly spoken question (for yes/no targeting). */
+  lastAlyQuestion?: string | null;
+  /** Meta-question was answered this call. */
+  metaQuestionAnswered?: boolean;
+  /** Most recent Aly response was barge-in interrupted. */
+  lastResponseInterrupted?: boolean;
+  /** Waiting for final caller prompt after interrupt (not the interrupt event). */
+  awaitingPostInterruptPrompt?: boolean;
+  /** Text of the interrupted Aly utterance (for correction context). */
+  lastInterruptedAlyText?: string | null;
   startedAt: string;
 }
 
@@ -239,14 +264,29 @@ function extractPersonName(
   // Never treat emotion words as a name ("I'm worried").
   const emotionFirst =
     /^(worried|nervous|scared|anxious|afraid|concerned|hurting|calling|sorry|fine|okay|ok|here|back)\b/i;
-  const iamIntro = text.match(
-    /(?:^|hi[,!\s]+|hello[,!\s]+|[.!?]\s*)(?:i'm|i am)\s+([A-Za-z]+)\s+([A-Za-z]+)\b/i
-  );
-  if (iamIntro && !emotionFirst.test(iamIntro[1])) {
-    return `${iamIntro[1]} ${iamIntro[2]}`.trim();
+  // Broad "I'm First Last" mid-utterance (ramble prefixes).
+  const iamAnywhere = text.match(/(?:i'm|i am)\s+([A-Za-z]+)\s+([A-Za-z]+)\b/i);
+  if (iamAnywhere && !emotionFirst.test(iamAnywhere[1])) {
+    return `${iamAnywhere[1]} ${iamAnywhere[2]}`.trim();
   }
 
-  // Only treat bare "I'm First Last" or bare full name when we just asked for it.
+  // "Hello, William Buurma…" / "Hi William Buurma…"
+  const greeted = text.match(
+    /(?:hello|hi|hey)[,!\s]+([A-Za-z]+)\s+([A-Za-z]+)\b/i
+  );
+  if (greeted && !emotionFirst.test(greeted[1])) {
+    return `${greeted[1]} ${greeted[2]}`.trim();
+  }
+
+  // "William Buurma, lower-right…" / "William Buurma here." / "Wait—William Buurma—"
+  const leading = text.match(
+    /(?:^|wait\s*[\u2014\-–,]?\s*)([A-Za-z]+)\s+([A-Za-z]+)\s*(?:,|\.|here\b|speaking\b|[\u2014\-–])/i
+  );
+  if (leading && !emotionFirst.test(leading[1])) {
+    return `${leading[1]} ${leading[2]}`.trim();
+  }
+
+  // Only treat bare full name when we just asked for it.
   if (lastAskedField === "caller.name") {
     if (/^[A-Za-z]+(?:\s+[A-Za-z]+)+$/.test(text.trim())) return text.trim();
     const iam = text.match(/(?:i'm|i am)\s+([A-Za-z]+(?:\s+[A-Za-z]+)+)/i);
@@ -418,21 +458,39 @@ export function applyUtteranceToSlots(
       /(?:^|hi[,!\s]+|hello[,!\s]+)(?:i'm|i am)\s+[A-Za-z]+\s+[A-Za-z]+/i.test(
         text
       ) ||
-      /(?:i'm|i am)\s+[A-Za-z]+\s+[A-Za-z]+\s*[.,]/i.test(text))
+      /(?:i'm|i am)\s+[A-Za-z]+\s+[A-Za-z]+\s*[.,]/i.test(text) ||
+      /^[A-Za-z]+\s+[A-Za-z]+\s*(?:,|\.|here\b|speaking\b)/i.test(text) ||
+      /(?:^|wait\s*[\u2014\-–,]?\s*)[A-Za-z]+\s+[A-Za-z]+\s*[\u2014\-–]/i.test(
+        text
+      ) ||
+      /(?:hello|hi|hey)[,!\s]+[A-Za-z]+\s+[A-Za-z]+\b/i.test(text))
   ) {
     captureName(session, maybeName);
   }
 
   if (lastAskedField === "caller.last_name_spell") {
     const normalized = normalizeSpokenSpelling(text);
-    if (normalized.letters.length >= 2) {
-      applySpellingCapture(session, normalized);
-      // Second (final) attempt still low-confidence → abandon; do not loop.
-      if (
-        (session.slots.spellingAttemptCount || 0) >= MAX_SPELLING_ATTEMPTS &&
-        session.slots.spellingLowConfidence === true
-      ) {
-        abandonSpelling(session);
+    if (normalized.letters.length >= 2 && normalized.confidence !== "none") {
+      // Never accept ordinary-word fabrications as spelling.
+      const ordinary =
+        /^(what|huh|hmm|maybe|yes|yeah|no|nope|ok|okay|sure|right)\??$/i.test(
+          text.trim()
+        );
+      if (!ordinary) {
+        if (!session.slots.nameCaptured && !session.slots.name) {
+          session.slots.pendingLastNameSpelling = normalized.letters;
+          session.slots.lastName =
+            spellingToDisplayName(normalized.letters) || session.slots.lastName;
+        } else {
+          applySpellingCapture(session, normalized);
+          // Second (final) attempt still low-confidence → abandon; do not loop.
+          if (
+            (session.slots.spellingAttemptCount || 0) >= MAX_SPELLING_ATTEMPTS &&
+            session.slots.spellingLowConfidence === true
+          ) {
+            abandonSpelling(session);
+          }
+        }
       }
     } else {
       logSpellingProgress(session, {
@@ -447,8 +505,25 @@ export function applyUtteranceToSlots(
   }
 
   if (lastAskedField === "caller.last_name_confirm") {
-    // Natural correction: "No, the fourth letter is R"
-    if (isNegative(text) || /\bletter\b/i.test(text)) {
+    // Natural correction: "No, actually it's B-U-U-R-M-A" / "No, the fourth letter is R"
+    const hasSpellingEvidence =
+      /(?:[A-Za-z]\s*[-–]\s*){2,}[A-Za-z]/.test(text) ||
+      /\bas in\b/i.test(text) ||
+      /\b[A-Za-z]\s*,\s*[A-Za-z]\s*,/.test(text);
+
+    if (isNegative(text) || /\bletter\b/i.test(text) || hasSpellingEvidence) {
+      if (hasSpellingEvidence) {
+        const normalized = normalizeSpokenSpelling(text);
+        if (normalized.letters.length >= 2) {
+          applySpellingCapture(session, normalized);
+          session.slots.lastNameConfirmed = false;
+          logSpellingProgress(session, {
+            spellingConfidence: normalized.confidence,
+            correctionApplied: true,
+          });
+          return;
+        }
+      }
       const corrected = parseSpellingCorrection(
         text,
         session.slots.lastNameSpelling || ""
@@ -472,14 +547,14 @@ export function applyUtteranceToSlots(
     }
 
     // Affirmative confirmation — lock identity spelling and advance.
-    if (isAffirmative(text)) {
+    if (isAffirmative(text) && !hasSpellingEvidence) {
       session.slots.lastNameConfirmed = true;
       session.slots.spellingLowConfidence = false;
       session.slots.spellingAbandoned = false;
       logSpellingProgress(session, {
         selectedAction: "spelling_confirmed",
       });
-    } else if (isNegative(text)) {
+    } else if (isNegative(text) && !hasSpellingEvidence) {
       session.slots.lastNameConfirmed = false;
       // Retry budget is driven by spelling asks (appendAlyAsk), not confirm rejects.
       if ((session.slots.spellingAttemptCount || 0) >= MAX_SPELLING_ATTEMPTS) {
@@ -741,23 +816,35 @@ export function ensureLiveCallSession(input: {
 }
 
 /**
- * Truncate the last Aly turn after a ConversationRelay interrupt.
- * Preserves all intake slots and earlier turns.
+ * Truncate / mark the last Aly turn after a ConversationRelay interrupt.
+ * Preserves all intake slots and earlier turns. Does not restart intake.
+ * The interrupt event itself is not a semantic answer.
  */
 export function applyInterruptToSession(
   session: LiveCallSession,
   utteranceUntilInterrupt?: string
 ): void {
-  if (!utteranceUntilInterrupt) return;
+  session.lastResponseInterrupted = true;
+  session.awaitingPostInterruptPrompt = true;
   for (let i = session.turns.length - 1; i >= 0; i -= 1) {
     const turn = session.turns[i];
     if (turn.speaker !== "aly") continue;
-    const idx = turn.text.indexOf(utteranceUntilInterrupt);
-    if (idx >= 0) {
-      turn.text = turn.text.slice(0, idx + utteranceUntilInterrupt.length);
+    session.lastInterruptedAlyText = turn.text;
+    turn.interrupted = true;
+    if (utteranceUntilInterrupt) {
+      const idx = turn.text.indexOf(utteranceUntilInterrupt);
+      if (idx >= 0) {
+        turn.text = turn.text.slice(0, idx + utteranceUntilInterrupt.length);
+      }
     }
     break;
   }
+}
+
+/** Clear interrupt-awaiting flags once a final caller prompt arrives. */
+export function clearPostInterruptAwait(session: LiveCallSession): void {
+  session.awaitingPostInterruptPrompt = false;
+  session.lastResponseInterrupted = false;
 }
 
 export function createOrUpdateSession(input: {

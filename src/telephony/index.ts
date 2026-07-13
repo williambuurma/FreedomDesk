@@ -60,12 +60,15 @@ export {
   selectNextAsk,
   appendAlyAsk,
   applyInterruptToSession,
+  clearPostInterruptAwait,
   hasLifeThreateningLanguage,
   isCallActionable,
   isDentalPainCall,
   applyUtteranceToSlots,
   getIdentityState,
   logPolicyDebug,
+  SPELLING_ABANDON_ANNOUNCE,
+  consumeSpellingAbandonAnnounce,
   type LiveCallSession,
   type NextAsk,
   type IntakeSlots,
@@ -104,13 +107,111 @@ export {
 } from "./spellingNormalize.ts";
 
 export {
+  inferCallStage,
+  shouldIncludeProgressLanguage,
+  progressBridgeForAction,
+  emotionalCuesFromSession,
+  PROGRESS_CLINICAL_BRIDGE,
+  PROGRESS_SCHEDULING_BRIDGE,
+  PROGRESS_URGENCY_CLARIFIED,
+  PROGRESS_FEW_DETAILS,
+  type CallStage,
+} from "./conversationStages.ts";
+
+export {
+  EXPECTED_LATENCY_MS,
+  isCallTraceEnabled,
+  sanitizeCallSid,
+  sanitizePhone,
+  sanitizeSpokenForTrace,
+  createCallTraceSession,
+  appendTurnTrace,
+  buildTurnTrace,
+  type CallTurnTrace,
+  type CallTraceSession,
+  type TurnLatencyBreakdown,
+} from "./callTrace.ts";
+
+export {
+  executeLiveTurn,
+  type LiveTurnResult,
+  type LiveTurnInput,
+} from "./liveTurn.ts";
+
+export {
+  interpretSemanticTurn,
+  interpretSemanticTurnHeuristic,
+  heuristicIsStrong,
+  resolveSemanticModel,
+  isSemanticInterpreterEnabled,
+  type SemanticInterpreterInput,
+  type SemanticInterpreterOptions,
+} from "./semanticTurnInterpreter.ts";
+
+export {
+  emptySemanticInterpretation,
+  SEMANTIC_TURN_JSON_SCHEMA,
+  type SemanticTurnInterpretation,
+  type SemanticFacts,
+} from "./semanticTurnTypes.ts";
+
+export {
+  mergeSemanticInterpretation,
+  type FactProvenanceEntry,
+  type FactProvenanceMap,
+} from "./factProvenance.ts";
+
+export {
+  LOOP_RECOVERY_SPEECH,
+  ALREADY_ANSWERED_SPEECH,
+  noteStateAfterCallerTurn,
+  recordSelectedAction,
+  applyLoopSuppression,
+  factFingerprint,
+  actionFactSnapshot,
+  isNonSafetyAction,
+  type ConversationLoopState,
+} from "./conversationLoopDetector.ts";
+
+export {
+  classifyPhoneIntentCategory,
+  phoneIntentForTrace,
+  hasLifeThreateningEmergencySignal,
+  type PhoneIntentCategory,
+} from "./phoneIntent.ts";
+
+export {
+  splitSpeechChunks,
+  polishSpokenDelivery,
+  isNonInterruptibleAction,
+} from "./alyDelivery.ts";
+
+export { applyEmotionalJudgment, composeEmotionalLead } from "./emotionalJudgment.ts";
+
+export {
+  GOLDEN_ROUTINE_PAIN_CALL_SID,
+  GOLDEN_ROUTINE_PAIN_FROM,
+  GOLDEN_ROUTINE_PAIN_OPENING,
+  GOLDEN_ROUTINE_PAIN_TURNS,
+  ROUTINE_PAIN_MINIMUM_OUTCOME,
+} from "./fixtures/routinePainGolden.ts";
+
+export {
+  ROUTINE_PAIN_VARIATIONS,
+  type VariationScenario,
+  type VariationScorecard,
+} from "./fixtures/routinePainVariations.ts";
+
+export {
   buildPlannerContext,
   buildPlannerUserPayload,
+  buildPlannerSystemPrompt,
   isHybridConversationalEnabled,
   parsePlannerProposal,
   planConversationalResponse,
   proposalChoosing,
   fallbackProposalForOptions,
+  resolvePlannerModel,
   type PlannerContext,
   type PlannerProposal,
   type PlanConversationalOptions,

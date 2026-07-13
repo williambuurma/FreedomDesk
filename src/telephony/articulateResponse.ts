@@ -26,7 +26,6 @@ import {
   type PlanConversationalOptions,
   type PlannerProposal,
 } from "./conversationalPlanner.ts";
-
 export type TurnDecisionKind = "ask" | "complete";
 
 export interface TurnDecision {
@@ -41,6 +40,13 @@ export interface TurnDecision {
   allowedActionCount: number;
   options: ConversationOptions;
   proposal: PlannerProposal | null;
+  /** Relative phase timers inside planNextTurn (ms from function entry). */
+  phaseMs?: {
+    optionsBuilt: number;
+    plannerDone: number | null;
+    validated: number;
+    firstTokenReady: number;
+  };
 }
 
 let injectedPlanOptions: PlanConversationalOptions | null = null;
@@ -101,19 +107,22 @@ export async function planNextTurn(input: {
   analysis: ConversationAnalysis;
   planOptions?: PlanConversationalOptions;
 }): Promise<TurnDecision> {
+  const turnT0 = process.hrtime();
   const { session, analysis } = input;
   const options = buildConversationOptions(session, analysis);
+  const optionsBuiltMs = hrMs(turnT0);
   const allowedActionCount = options.allowedActions.length;
 
   // Deterministic hard exits — planner cannot override.
   if (options.hardRequiredAction === "emergency_escalation") {
     session.lastPolicyReason = "emergency_escalate";
+    const firstTokenReady = hrMs(turnT0);
     logHybridMetric("first_token_ready", session.callSid, {
       source: "fallback",
       selectedAction: "emergency_escalation",
       allowedActionCount,
       validation: "ok",
-      ms: 0,
+      ms: firstTokenReady,
     });
     return {
       kind: "complete",
@@ -124,6 +133,12 @@ export async function planNextTurn(input: {
       allowedActionCount,
       options,
       proposal: null,
+      phaseMs: {
+        optionsBuilt: optionsBuiltMs,
+        plannerDone: null,
+        validated: firstTokenReady,
+        firstTokenReady,
+      },
     };
   }
 
@@ -141,10 +156,30 @@ export async function planNextTurn(input: {
   let fallbackReason: string | undefined;
   let plannerLatencyMs: number | null = null;
   let validationReason = "ok";
+  let plannerDoneMs: number | null = null;
+  let validatedMs = optionsBuiltMs;
 
   if (!enabled) {
     proposal = fallbackProposalForOptions(session, options);
     fallbackReason = "hybrid_disabled";
+    validatedMs = hrMs(turnT0);
+  } else if (
+    options.allowedActions.length === 1 &&
+    !planOpts.planFn &&
+    options.hardRequiredAction !== "emergency_escalation"
+  ) {
+    // Single allow-list member — skip OpenAI planner RTT (~0.5–2s).
+    // Still honor injected planFn (tests / overrides).
+    proposal = fallbackProposalForOptions(session, options);
+    fallbackReason = "single_allowed_action";
+    source = "fallback";
+    validatedMs = hrMs(turnT0);
+    logHybridMetric("planner_done", session.callSid, {
+      ms: 0,
+      ok: true,
+      selectedAction: String(proposal.selectedAction),
+      reason: "single_allowed_action",
+    });
   } else {
     const context = buildPlannerContext(session, analysis, options);
     const t0 = process.hrtime();
@@ -152,10 +187,12 @@ export async function planNextTurn(input: {
       allowedActionCount,
       hardRequired: options.hardRequiredAction || "(none)",
       actionable: options.actionable,
+      stage: context.callStage,
     });
     try {
       proposal = await planConversationalResponse(context, planOpts);
       plannerLatencyMs = hrMs(t0);
+      plannerDoneMs = hrMs(turnT0);
       logHybridMetric("planner_done", session.callSid, {
         ms: plannerLatencyMs,
         ok: true,
@@ -163,6 +200,7 @@ export async function planNextTurn(input: {
       });
     } catch (err) {
       plannerLatencyMs = hrMs(t0);
+      plannerDoneMs = hrMs(turnT0);
       const name =
         err && typeof err === "object" && "name" in err
           ? String((err as { name?: string }).name)
@@ -190,6 +228,7 @@ export async function planNextTurn(input: {
         persisted: false,
       });
       validationReason = validation.reason;
+      validatedMs = hrMs(turnT0);
       logHybridMetric("validation_done", session.callSid, {
         ok: validation.ok,
         reason: validation.reason,
@@ -203,7 +242,6 @@ export async function planNextTurn(input: {
         proposal = fallbackProposalForOptions(session, options);
       } else {
         source = "planner";
-        // Prefer validated spoken text from planner.
         proposal = {
           ...proposal,
           spokenResponse: validation.spoken || proposal.spokenResponse,
@@ -213,6 +251,7 @@ export async function planNextTurn(input: {
     } else {
       source = "fallback";
       validationReason = fallbackReason;
+      validatedMs = hrMs(turnT0);
     }
   }
 
@@ -225,6 +264,9 @@ export async function planNextTurn(input: {
   if (!spoken && selectedAction !== "persist_and_close" && selectedAction !== "emergency_escalation") {
     spoken = deterministicSpeechForAction(selectedAction, session, options);
   }
+  if (/\btruly\b/i.test(spoken)) {
+    spoken = spoken.replace(/\btruly\b/gi, "").replace(/\s+/g, " ").trim();
+  }
 
   const abandonLine = consumeSpellingAbandonAnnounce(session);
   if (abandonLine && spoken) {
@@ -235,6 +277,13 @@ export async function planNextTurn(input: {
 
   logSpellingProgress(session, { selectedAction });
 
+  const phaseMs = {
+    optionsBuilt: optionsBuiltMs,
+    plannerDone: plannerDoneMs,
+    validated: validatedMs,
+    firstTokenReady: 0,
+  };
+
   if (
     selectedAction === "persist_and_close" ||
     selectedAction === "emergency_escalation"
@@ -243,13 +292,15 @@ export async function planNextTurn(input: {
       selectedAction === "emergency_escalation"
         ? "emergency_escalate"
         : "actionable";
+    phaseMs.firstTokenReady = hrMs(turnT0);
     logHybridMetric("first_token_ready", session.callSid, {
       source,
       selectedAction,
       allowedActionCount,
       validation: validationReason,
       fallbackReason,
-      ms: plannerLatencyMs ?? 0,
+      ms: phaseMs.firstTokenReady,
+      plannerMs: plannerLatencyMs ?? 0,
     });
     return {
       kind: "complete",
@@ -261,6 +312,7 @@ export async function planNextTurn(input: {
       allowedActionCount,
       options,
       proposal,
+      phaseMs,
     };
   }
 
@@ -269,12 +321,13 @@ export async function planNextTurn(input: {
     const forced = "ask_breathing" as ConversationalAction;
     spoken = deterministicSpeechForAction(forced, session, options);
     const nextAsk = actionToNextAsk(forced, spoken, session)!;
+    phaseMs.firstTokenReady = hrMs(turnT0);
     logHybridMetric("first_token_ready", session.callSid, {
       source: "fallback",
       selectedAction: forced,
       allowedActionCount,
       validation: "hard_required_forced",
-      ms: plannerLatencyMs ?? 0,
+      ms: phaseMs.firstTokenReady,
     });
     return {
       kind: "ask",
@@ -287,13 +340,14 @@ export async function planNextTurn(input: {
       allowedActionCount,
       options,
       proposal,
+      phaseMs,
     };
   }
 
   const nextAsk = actionToNextAsk(selectedAction, spoken, session);
   if (!nextAsk) {
-    // Shouldn't happen — treat as complete fallback.
     session.lastPolicyReason = "no_further_asks";
+    phaseMs.firstTokenReady = hrMs(turnT0);
     return {
       kind: "complete",
       selectedAction: "persist_and_close",
@@ -304,16 +358,19 @@ export async function planNextTurn(input: {
       allowedActionCount,
       options,
       proposal,
+      phaseMs,
     };
   }
 
+  phaseMs.firstTokenReady = hrMs(turnT0);
   logHybridMetric("first_token_ready", session.callSid, {
     source,
     selectedAction,
     allowedActionCount,
     validation: validationReason,
     fallbackReason,
-    ms: plannerLatencyMs ?? 0,
+    ms: phaseMs.firstTokenReady,
+    plannerMs: plannerLatencyMs ?? 0,
   });
 
   return {
@@ -327,6 +384,7 @@ export async function planNextTurn(input: {
     allowedActionCount,
     options,
     proposal,
+    phaseMs,
   };
 }
 
@@ -360,17 +418,33 @@ export async function articulateClosing(input: {
   callActionable?: boolean;
   planOptions?: PlanConversationalOptions;
 }): Promise<string> {
-  const { session, analysis, deterministicClosing } = input;
+  const { deterministicClosing } = input;
 
   if (input.lifeThreatening) return deterministicClosing;
   if (!input.persisted) return deterministicClosing;
+
+  // Latency: skip a second OpenAI round-trip on close by default.
+  // Deterministic compassionate closing already recaps material pain facts.
+  // Opt in with HYBRID_ALY_CLOSE_PLANNER=1 only for experiments.
+  const closePlanner =
+    (process.env.HYBRID_ALY_CLOSE_PLANNER || "").trim().toLowerCase() === "1" ||
+    (process.env.HYBRID_ALY_CLOSE_PLANNER || "").trim().toLowerCase() === "true";
+  if (!closePlanner) {
+    logHybridMetric("first_token_ready", input.session.callSid, {
+      source: "fallback",
+      field: "closing",
+      reason: "deterministic_close_no_second_planner",
+      ms: 0,
+    });
+    return deterministicClosing;
+  }
 
   const enabled =
     isHybridConversationalEnabled() ||
     Boolean(input.planOptions?.planFn || injectedPlanOptions?.planFn);
   if (!enabled) return deterministicClosing;
 
-  const options = buildConversationOptions(session, analysis);
+  const options = buildConversationOptions(input.session, input.analysis);
   const closeOptions: ConversationOptions = {
     ...options,
     actionable: true,
@@ -383,10 +457,10 @@ export async function articulateClosing(input: {
     ...injectedPlanOptions,
     ...input.planOptions,
   };
-  const context = buildPlannerContext(session, analysis, closeOptions);
+  const context = buildPlannerContext(input.session, input.analysis, closeOptions);
   const t0 = process.hrtime();
   try {
-    logHybridMetric("planner_start", session.callSid, {
+    logHybridMetric("planner_start", input.session.callSid, {
       mode: "close",
       allowedActionCount: 1,
     });
@@ -400,18 +474,18 @@ export async function articulateClosing(input: {
     const validation = validatePlannerProposal(normalized, closeOptions, {
       persisted: true,
     });
-    logHybridMetric("planner_done", session.callSid, {
+    logHybridMetric("planner_done", input.session.callSid, {
       ms,
       ok: true,
       selectedAction: "acknowledge_and_recap",
     });
-    logHybridMetric("validation_done", session.callSid, {
+    logHybridMetric("validation_done", input.session.callSid, {
       ok: validation.ok,
       reason: validation.reason,
       ms,
     });
     if (!validation.ok || !validation.spoken) {
-      logHybridMetric("first_token_ready", session.callSid, {
+      logHybridMetric("first_token_ready", input.session.callSid, {
         source: "fallback",
         reason: validation.reason,
         field: "closing",
@@ -419,24 +493,24 @@ export async function articulateClosing(input: {
       });
       return deterministicClosing;
     }
-    logHybridMetric("first_token_ready", session.callSid, {
+    logHybridMetric("first_token_ready", input.session.callSid, {
       source: "planner",
       field: "closing",
       ms,
     });
-    return validation.spoken;
+    return validation.spoken.replace(/\btruly\b/gi, "").replace(/\s+/g, " ").trim();
   } catch (err) {
     const ms = hrMs(t0);
     const message =
       err && typeof err === "object" && "message" in err
         ? String((err as { message?: string }).message)
         : "planner_error";
-    logHybridMetric("planner_done", session.callSid, {
+    logHybridMetric("planner_done", input.session.callSid, {
       ms,
       ok: false,
       reason: message,
     });
-    logHybridMetric("first_token_ready", session.callSid, {
+    logHybridMetric("first_token_ready", input.session.callSid, {
       source: "fallback",
       reason: message,
       field: "closing",

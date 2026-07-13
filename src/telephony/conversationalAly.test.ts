@@ -67,9 +67,11 @@ describe("hybrid conversational Aly — authority correction", () => {
       from: "+16155550111",
     })!;
     const opts = buildConversationOptions(session, analyze(session));
-    assert.ok(opts.allowedActions.length >= 2);
+    assert.ok(opts.allowedActions.length >= 1);
     assert.ok(opts.allowedActions.includes("ask_last_name_spelling"));
-    assert.ok(opts.allowedActions.includes("acknowledge_and_recap"));
+    // Understand stage: clinical asks gated until spelling confirmed/abandoned.
+    assert.ok(!opts.allowedActions.includes("ask_swelling"));
+    assert.ok(!opts.allowedActions.includes("acknowledge_and_recap"));
     assert.ok(!opts.allowedActions.includes("ask_combined_tooth_location"));
     assert.ok(!opts.actionable);
   });
@@ -87,7 +89,7 @@ describe("hybrid conversational Aly — authority correction", () => {
       planOptions: {
         planFn: async (ctx) => {
           assert.ok(ctx.options.allowedActions.includes("ask_last_name_spelling"));
-          assert.ok(ctx.options.allowedActions.length >= 2);
+          assert.equal(ctx.callStage, "understand");
           return proposalChoosing(
             "ask_last_name_spelling",
             "That sounds like a very uncomfortable night, and I understand why you're worried. Could you spell your last name for me?",
@@ -434,7 +436,7 @@ describe("hybrid conversational Aly — authority correction", () => {
         planFn: async () =>
           proposalChoosing(
             "ask_combined_scheduling_preference",
-            "Thanks — I have the important details. Are you looking for the earliest available appointment, and would you be able to come in on short notice?"
+            "Thank you—that helps clarify how urgently the team should look at this. I just need one scheduling detail so the team knows how flexible you are. Are you looking for the earliest available appointment, and would you be able to come in on short notice?"
           ),
       },
     });
@@ -442,6 +444,8 @@ describe("hybrid conversational Aly — authority correction", () => {
       decision.selectedAction,
       "ask_combined_scheduling_preference"
     );
+    assert.match(decision.nextAsk!.question, /scheduling detail|flexible/i);
+    assert.doesNotMatch(decision.nextAsk!.question, /\btruly\b/i);
     appendAlyAsk(session, decision.nextAsk!);
 
     session = createOrUpdateSession({
@@ -467,17 +471,20 @@ describe("hybrid conversational Aly — authority correction", () => {
     assert.equal(decision.selectedAction, "persist_and_close");
   });
 
-  test("parsePlannerProposal accepts new schema", () => {
+  test("parsePlannerProposal accepts judgment schema", () => {
     const p = parsePlannerProposal({
+      understanding: "Caller has lower-right pain and is worried.",
+      emotionalResponseNeeded: true,
       selectedAction: "ask_swelling",
-      acknowledgment: "Thanks.",
-      spokenResponse: "Thanks. Have you noticed any swelling?",
-      factsUnderstood: ["name"],
-      tone: "warm_concerned",
-      reason: "need swelling",
+      spokenResponse: "Have you noticed any swelling?",
+      whyThisAction: "Swelling changes urgency routing.",
+      shouldRecapProgress: false,
+      shouldClose: false,
     });
     assert.ok(p);
     assert.equal(p!.selectedAction, "ask_swelling");
+    assert.equal(p!.emotionalResponseNeeded, true);
+    assert.match(p!.understanding, /worried/i);
   });
 
   test("ConversationRelay Amber King defaults remain unchanged", async () => {

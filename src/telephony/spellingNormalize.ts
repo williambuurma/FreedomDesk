@@ -134,6 +134,74 @@ const IGNORE_WORDS = new Set([
   "thanks",
   "thank",
   "you",
+  // Ordinary speech — never fabricate letter sequences from these.
+  "what",
+  "huh",
+  "hmm",
+  "maybe",
+  "guess",
+  "know",
+  "dont",
+  "don't",
+  "already",
+  "told",
+  "said",
+  "gave",
+  "move",
+  "can",
+  "we",
+  "on",
+  "hello",
+  "hi",
+  "hey",
+  "sorry",
+  "wait",
+  "actually",
+  "think",
+  "not",
+  "sure",
+  "fine",
+  "okay",
+  "right",
+  "left",
+  "pain",
+  "tooth",
+  "hurt",
+  "hurts",
+]);
+
+/** Entire-utterance reject list for compact runs (Huh / What / maybe). */
+const REJECT_COMPACT_WORDS = new Set([
+  "what",
+  "huh",
+  "hmm",
+  "maybe",
+  "yes",
+  "yeah",
+  "yep",
+  "no",
+  "nope",
+  "nah",
+  "ok",
+  "okay",
+  "sure",
+  "right",
+  "correct",
+  "fine",
+  "wait",
+  "sorry",
+  "hello",
+  "help",
+  "pain",
+  "hurt",
+  "hurts",
+  "tooth",
+  "know",
+  "dont",
+  "move",
+  "told",
+  "said",
+  "already",
 ]);
 
 const PREFIX_PATTERNS: RegExp[] = [
@@ -265,6 +333,7 @@ export function normalizeSpokenSpelling(raw: string): SpellingNormalizeResult {
   let usedAsIn = false;
   let usedNato = false;
   let usedHyphenRun = false;
+  let usedCompactRun = false;
 
   while (i < tokens.length) {
     const tok = tokens[i];
@@ -355,19 +424,21 @@ export function normalizeSpokenSpelling(raw: string): SpellingNormalizeResult {
       continue;
     }
 
-    // Compact letter-only run as ONE token (BUURMA) — only when the whole
-    // remaining body is that compact run (no conversational fluff left).
+    // Compact letter-only run as ONE token (BUURMA) — never ordinary words.
     if (
-      letterOnly.length >= 2 &&
+      letterOnly.length >= 4 &&
       letterOnly.length <= 16 &&
       /^[A-Za-z]+$/.test(letterOnly) &&
       tokens.length === 1 &&
-      !EXAMPLE_WORDS[lower]
+      !EXAMPLE_WORDS[lower] &&
+      !REJECT_COMPACT_WORDS.has(lower) &&
+      !IGNORE_WORDS.has(lower)
     ) {
       for (const ch of letterOnly.toUpperCase()) {
         letters.push(ch);
-        evidenceTokens.push(ch);
+        evidenceTokens.push(`compact:${ch}`);
       }
+      usedCompactRun = true;
       i += 1;
       continue;
     }
@@ -381,20 +452,31 @@ export function normalizeSpokenSpelling(raw: string): SpellingNormalizeResult {
     return emptyResult(ignoredPrefix);
   }
 
-  let confidenceScore = 0.5;
-  if (usedHyphenRun) confidenceScore += 0.35;
-  if (usedAsIn) confidenceScore += 0.25;
-  if (usedNato) confidenceScore += 0.2;
+  // Reject compact-only results that look like ordinary speech (≤3 letters).
+  if (usedCompactRun && !usedHyphenRun && !usedAsIn && !usedNato && spelling.length < 4) {
+    return emptyResult(ignoredPrefix);
+  }
+
+  let confidenceScore = 0.4;
+  if (usedHyphenRun) confidenceScore += 0.4;
+  if (usedAsIn) confidenceScore += 0.3;
+  if (usedNato) confidenceScore += 0.25;
   const allExplicitSingles = evidenceTokens.every(
     (t) =>
       /^[A-Z]$/.test(t) ||
       t.includes("-") ||
       /\bas in\b|\blike\b|\bfor\b|double-/i.test(t)
   );
-  if (evidenceTokens.length >= 3 && allExplicitSingles) {
+  if (evidenceTokens.length >= 3 && allExplicitSingles && !usedCompactRun) {
     confidenceScore += 0.35;
   }
-  if (spelling.length >= 4) confidenceScore += 0.05;
+  // Compact runs without hyphen/phonetic evidence stay at most medium-low.
+  if (usedCompactRun && !usedHyphenRun && !usedAsIn && !usedNato) {
+    confidenceScore = Math.min(confidenceScore, 0.55);
+  }
+  if (spelling.length >= 4 && (usedHyphenRun || usedAsIn || allExplicitSingles)) {
+    confidenceScore += 0.05;
+  }
   confidenceScore = Math.min(1, confidenceScore);
 
   let confidence: SpellingConfidenceLabel = "low";

@@ -12,6 +12,14 @@ import {
   patientText,
   type LiveCallSession,
 } from "./callSession.ts";
+import {
+  applyLoopSuppression,
+  ensureLoopState,
+} from "./conversationLoopDetector.ts";
+import {
+  progressBridgeForAction,
+  shouldIncludeProgressLanguage,
+} from "./conversationStages.ts";
 import { MAX_SPELLING_ATTEMPTS } from "./spellingNormalize.ts";
 import { isLocationComplete } from "./toothLocation.ts";
 
@@ -26,6 +34,7 @@ export type ConversationalAction =
   | "ask_fever"
   | "ask_breathing"
   | "ask_combined_scheduling_preference"
+  | "answer_process_question"
   | "acknowledge_and_recap"
   | "persist_and_close"
   | "emergency_escalation";
@@ -60,6 +69,7 @@ export const ACTION_TO_FIELD: Record<ConversationalAction, string | null> = {
   ask_fever: "pain.fever",
   ask_breathing: "safety.breathing",
   ask_combined_scheduling_preference: "schedule.combined",
+  answer_process_question: "conversation.process",
   acknowledge_and_recap: "conversation.recap",
   persist_and_close: null,
   emergency_escalation: null,
@@ -147,7 +157,9 @@ export function buildConversationOptions(
   ) {
     missing.push("callback_phone");
   }
-  if (!hasCallerReason(session, analysis)) missing.push("reason_for_calling");
+  if (!hasCallerReason(session, analysis) && !dentalPain) {
+    missing.push("reason_for_calling");
+  }
   if (dentalPain && !isLocationComplete(session.slots.locationParts)) {
     missing.push("tooth_location");
   }
@@ -229,47 +241,77 @@ export function buildConversationOptions(
       fallback.push("ask_callback_phone");
     }
 
-    if (!hasCallerReason(session, analysis)) {
+    if (!hasCallerReason(session, analysis) && !dentalPain) {
       allowed.push("ask_reason_for_calling");
       fallback.push("ask_reason_for_calling");
     }
 
-    if (dentalPain) {
-      if (!isLocationComplete(session.slots.locationParts)) {
-        allowed.push("ask_combined_tooth_location");
-        fallback.push("ask_combined_tooth_location");
-      }
-      if (typeof session.slots.swelling !== "boolean") {
-        allowed.push("ask_swelling");
-        fallback.push("ask_swelling");
-      }
-      if (
-        session.slots.swelling === true &&
-        typeof session.slots.fever !== "boolean" &&
-        !session.askedFields.includes("pain.fever")
-      ) {
-        allowed.push("ask_fever");
-        fallback.push("ask_fever");
-      }
-      if (
-        typeof session.slots.wantsEarliest !== "boolean" ||
-        (session.slots.wantsEarliest === true &&
-          typeof session.slots.shortNoticeOk !== "boolean")
-      ) {
-        allowed.push("ask_combined_scheduling_preference");
-        fallback.push("ask_combined_scheduling_preference");
-      }
-    } else if (!hasRequestedOutcome(session, analysis)) {
-      // Non-pain: need a usable outcome without inventing a full NP workflow.
-      allowed.push("ask_reason_for_calling");
-      if (!fallback.includes("ask_reason_for_calling")) {
-        fallback.push("ask_reason_for_calling");
+    // Meta-questions — answer before continuing the checklist.
+    const sem = session.lastSemanticInterpretation;
+    if (
+      !session.metaQuestionAnswered &&
+      (sem?.conversationSignals.callerAsksWhatHappensNext ||
+        sem?.conversationSignals.callerAsksIfHasAppointment)
+    ) {
+      allowed.unshift("answer_process_question");
+      fallback.unshift("answer_process_question");
+    }
+
+    // Clarify clinical/scheduling only after identity spelling is done (or abandoned).
+    // Prevents mid-understand jumps that skip usable identity.
+    if (spellingDone) {
+      if (dentalPain) {
+        if (!isLocationComplete(session.slots.locationParts)) {
+          allowed.push("ask_combined_tooth_location");
+          fallback.push("ask_combined_tooth_location");
+        }
+        if (typeof session.slots.swelling !== "boolean") {
+          allowed.push("ask_swelling");
+          fallback.push("ask_swelling");
+        }
+        if (
+          session.slots.swelling === true &&
+          typeof session.slots.fever !== "boolean" &&
+          !session.askedFields.includes("pain.fever")
+        ) {
+          allowed.push("ask_fever");
+          fallback.push("ask_fever");
+        }
+        const schedulingComplete =
+          typeof session.slots.wantsEarliest === "boolean" &&
+          (session.slots.wantsEarliest === false ||
+            typeof session.slots.shortNoticeOk === "boolean");
+        if (!schedulingComplete) {
+          allowed.push("ask_combined_scheduling_preference");
+          fallback.push("ask_combined_scheduling_preference");
+        }
+      } else if (!hasRequestedOutcome(session, analysis)) {
+        // Non-pain: need a usable outcome without inventing a full NP workflow.
+        allowed.push("ask_reason_for_calling");
+        if (!fallback.includes("ask_reason_for_calling")) {
+          fallback.push("ask_reason_for_calling");
+        }
       }
     }
 
-    // Recap is available once we have something meaningful to reflect.
+    // Recap only in resolve — not as a mid-clarify distraction.
+    // Available once actionable, or when material clinical/scheduling gaps are closed.
+    const materialGaps = missing.filter((f) =>
+      [
+        "name",
+        "last_name_spelling",
+        "last_name_confirm",
+        "callback_phone",
+        "swelling",
+        "scheduling_preference",
+        "tooth_location",
+        "reason_for_calling",
+        "requested_outcome",
+      ].includes(f)
+    );
     if (
       id.nameCaptured &&
+      materialGaps.length === 0 &&
       (dentalPain
         ? isLocationComplete(session.slots.locationParts) ||
           session.slots.keptAwake === true
@@ -280,6 +322,9 @@ export function buildConversationOptions(
 
     if (actionable) {
       allowed.push("persist_and_close");
+      if (!allowed.includes("acknowledge_and_recap")) {
+        allowed.push("acknowledge_and_recap");
+      }
       // Prefer close once actionable — still allow planner to ask one more material fact if listed.
       if (!fallback.includes("persist_and_close")) {
         fallback.push("persist_and_close");
@@ -298,6 +343,16 @@ export function buildConversationOptions(
     }
     return out;
   };
+
+  ensureLoopState(session);
+  const semSignals = session.lastSemanticInterpretation;
+  const allowedDeduped = applyLoopSuppression(session, uniq(allowed), {
+    callerSaysAlreadyAnswered:
+      semSignals?.conversationSignals.callerSaysAlreadyAnswered === true,
+    unclearSafetyAnswer:
+      semSignals?.uncertainty.some((u) => /breath|swallow|safety/i.test(u)) ===
+      true,
+  });
 
   return {
     factsCaptured: {
@@ -329,8 +384,10 @@ export function buildConversationOptions(
     dentalPain,
     afterHours: session.afterHours,
     hardRequiredAction: hardRequired,
-    allowedActions: uniq(allowed),
-    fallbackPriority: uniq(fallback),
+    allowedActions: allowedDeduped,
+    fallbackPriority: uniq(fallback).filter(
+      (a) => allowedDeduped.includes(a) || a === hardRequired
+    ),
     firstNameHint: firstName(session),
     lastNameSpellingHint: session.slots.lastNameSpelling
       ? String(session.slots.lastNameSpelling).replace(/[^A-Za-z]/g, "").slice(0, 24)
@@ -362,7 +419,7 @@ export function deterministicSpeechForAction(
         session.usedOpening = true;
         return (
           "I'm sorry—you sound really uncomfortable. I'm glad you called. " +
-          "Let me get just a few important details so the team knows how quickly you need help. " +
+          "I only need a few important details so the team knows how to help. " +
           q
         );
       }
@@ -375,10 +432,14 @@ export function deterministicSpeechForAction(
       if (needsOpening) {
         session.usedOpening = true;
         return (
-          "I'm sorry you're dealing with that — I understand why you'd be worried. " +
-          "I'll make sure the team has what they need. " +
+          "I'm sorry that kept you up — I understand why you'd be worried. " +
+          "I only need a few important details so the team knows how to help. " +
           q
         );
+      }
+      if (shouldIncludeProgressLanguage(session, options, action)) {
+        const bridge = progressBridgeForAction(action, session);
+        return bridge ? `${bridge} ${q}` : q;
       }
       return q;
     }
@@ -410,14 +471,30 @@ export function deterministicSpeechForAction(
       return "Have you had a fever?";
     case "ask_breathing":
       return "Are you having any trouble breathing or swallowing?";
-    case "ask_combined_scheduling_preference":
-      return "Are you looking for the earliest available appointment, and would you be able to come in on short notice?";
+    case "ask_combined_scheduling_preference": {
+      const q =
+        "Are you looking for the earliest available appointment, and would you be able to come in on short notice?";
+      if (shouldIncludeProgressLanguage(session, options, action)) {
+        const bridge = progressBridgeForAction(action, session);
+        return bridge ? `${bridge} ${q}` : q;
+      }
+      return q;
+    }
+    case "answer_process_question": {
+      const sig = session.lastSemanticInterpretation?.conversationSignals;
+      if (sig?.callerAsksIfHasAppointment) {
+        return "Not yet. I'm recording your request so the team can review availability and follow up. I just have one more question for the team.";
+      }
+      return "I'm collecting the few details the team needs to understand your concern and contact you about the next available option. I just have one more question.";
+    }
     case "acknowledge_and_recap": {
       const bits: string[] = [];
       if (options.locationHint) bits.push(`the pain is in the ${options.locationHint}`);
       if (session.slots.keptAwake) bits.push("it kept you awake");
       if (session.slots.swelling === false) bits.push("no swelling noted");
       if (session.slots.swelling === true) bits.push("some swelling");
+      if (session.slots.wantsEarliest === true) bits.push("you want the earliest help");
+      if (session.slots.shortNoticeOk === true) bits.push("you can come on short notice");
       const body = bits.length
         ? `I have that ${bits.join(", and ")}.`
         : "I have the details you shared.";

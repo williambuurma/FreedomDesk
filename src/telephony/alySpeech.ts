@@ -148,6 +148,7 @@ export function composePainFactSummary(input: {
   locationRaw?: string;
   swelling?: boolean | null;
   keptAwake?: boolean;
+  worried?: boolean;
   wantsEarliest?: boolean | null;
   shortNoticeOk?: boolean | null;
 }): string {
@@ -160,6 +161,7 @@ export function composePainFactSummary(input: {
     bits.push(`the pain is ${input.locationRaw}`);
   }
   if (input.keptAwake) bits.push("it kept you awake");
+  if (input.worried) bits.push("you're worried");
   if (input.swelling === false) bits.push("you have not noticed swelling");
   else if (input.swelling === true) bits.push("you have noticed some swelling");
 
@@ -246,6 +248,7 @@ export function composeCompassionateClosing(input: {
       locationRaw: input.locationRaw,
       swelling: input.swelling,
       keptAwake: input.keptAwake,
+      worried: input.tone === "worried_anxious",
       wantsEarliest: input.wantsEarliest,
       shortNoticeOk: input.shortNoticeOk,
     });

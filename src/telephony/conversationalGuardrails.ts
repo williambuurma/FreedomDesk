@@ -102,6 +102,10 @@ export function validatePlannerProposal(
     return { ok: false, reason: "empty_speech", spoken: "", selectedAction };
   }
 
+  if (/\btruly\b/i.test(spoken)) {
+    return { ok: false, reason: "forbidden_truly", spoken, selectedAction };
+  }
+
   if (wordCount(spoken) > 95) {
     return { ok: false, reason: "too_long", spoken, selectedAction };
   }
@@ -134,6 +138,15 @@ export function validatePlannerProposal(
   }
 
   const qCount = countQuestions(spoken);
+
+  // Meta answer is a spoken turn that may still continue intake.
+  if (selectedAction === "answer_process_question") {
+    if (qCount > 1) {
+      return { ok: false, reason: "not_one_question", spoken, selectedAction };
+    }
+    return { ok: true, reason: "ok", spoken, selectedAction };
+  }
+
   const combined = COMBINED_QUESTION_ACTIONS.has(selectedAction);
   if (selectedAction === "acknowledge_and_recap") {
     if (qCount > 0) {

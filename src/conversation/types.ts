@@ -10,6 +10,8 @@ export interface TranscriptTurn {
   text: string;
   /** Optional media offset seconds — not used in V1 proof logic */
   start?: number;
+  /** True when Aly TTS was barge-in interrupted mid-utterance. */
+  interrupted?: boolean;
 }
 
 /** Mock call input for V1 proof loop (no telephony). */

@@ -17,6 +17,10 @@ const crypto = require("crypto");
 const {
   writeLatestActionableCall,
 } = require("./latest-call-store");
+const {
+  getCallLatencyCoord,
+  clearAllCallLatencyCoords,
+} = require("./speech-engine-turn-latency");
 
 const MEDIA_STREAM_PATH = "/api/twilio/voice/media-stream";
 const BRAIN_WS_PATH = "/api/speech-engine/ws";
@@ -198,6 +202,18 @@ function classifyElevenLabsInbound(raw, isBinary) {
         meta.errorReason = e.reason || null;
       } else if (type === "user_transcript" || type === "tentative_user_transcript") {
         meta.isTranscriptEvent = true;
+        meta.transcriptKind =
+          type === "tentative_user_transcript" ? "interim" : "final";
+        const te =
+          event.user_transcription_event ||
+          event.tentative_user_transcription_event ||
+          {};
+        meta.elEventId =
+          te.event_id != null
+            ? te.event_id
+            : event.event_id != null
+              ? event.event_id
+              : null;
       }
       return meta;
     }
@@ -313,11 +329,23 @@ async function openElevenLabsConversation(twilioWs, getStreamSid, meta) {
   let outboundAudioFrames = 0;
   let transcriptEventCount = 0;
   let inboundElMessageCount = 0;
+  const callSidKey = (meta && meta.callSid) || "";
+  const latencyCoord = callSidKey
+    ? getCallLatencyCoord(callSidKey, { log: safeLog })
+    : null;
+  if (latencyCoord) latencyCoord.armCallerAudio();
+
   elWs.on("message", (raw, isBinary) => {
     const classified = classifyElevenLabsInbound(raw, isBinary);
     inboundElMessageCount += 1;
     if (classified.isTranscriptEvent) {
       transcriptEventCount += 1;
+      if (latencyCoord) {
+        latencyCoord.onElTranscript({
+          isFinal: classified.transcriptKind === "final",
+          eventId: classified.elEventId,
+        });
+      }
     }
     if (
       inboundElMessageCount <= 8 ||
@@ -333,9 +361,12 @@ async function openElevenLabsConversation(twilioWs, getStreamSid, meta) {
         classified.type === "error"
           ? ` errorCode=${classified.errorCode ?? "(none)"} errorType=${classified.errorType || "(none)"} errorReason=${classified.errorReason || "(none)"}`
           : "";
+      const transcriptBits = classified.isTranscriptEvent
+        ? ` transcriptKind=${classified.transcriptKind || "(none)"} elEventId=${classified.elEventId ?? "(none)"}`
+        : "";
       safeLog(
         "el_inbound_type",
-        `callSid=${(meta && meta.callSid) || "(none)"} type=${classified.type} opcode=${classified.opcode} byteLength=${classified.byteLength} transcriptEvents=${transcriptEventCount}${formatBits}${errorBits}`
+        `callSid=${(meta && meta.callSid) || "(none)"} type=${classified.type} opcode=${classified.opcode} byteLength=${classified.byteLength} transcriptEvents=${transcriptEventCount}${formatBits}${errorBits}${transcriptBits}`
       );
     }
 
@@ -351,6 +382,9 @@ async function openElevenLabsConversation(twilioWs, getStreamSid, meta) {
         "";
       if (!payload) return;
       outboundAudioFrames += 1;
+      if (latencyCoord) {
+        latencyCoord.onOutboundElAudio();
+      }
       if (outboundAudioFrames === 1 || outboundAudioFrames % 50 === 0) {
         safeLog(
           "el_audio_to_twilio",
@@ -364,6 +398,9 @@ async function openElevenLabsConversation(twilioWs, getStreamSid, meta) {
           media: { payload },
         })
       );
+      if (latencyCoord) {
+        latencyCoord.onTwilioAudioForwarded();
+      }
     } else if (event.type === "interruption") {
       // Official barge-in: clear Twilio buffered audio immediately.
       twilioWs.send(JSON.stringify({ event: "clear", streamSid }));
@@ -371,6 +408,13 @@ async function openElevenLabsConversation(twilioWs, getStreamSid, meta) {
         "el_interruption",
         `callSid=${(meta && meta.callSid) || "(none)"}`
       );
+      if (latencyCoord) {
+        const active = latencyCoord.getActiveTurn();
+        if (active && !active.ended && active.marks.modelStartedAt != null) {
+          // Barge-in may cancel TTS; model abort is logged on brain signal.
+          latencyCoord.armCallerAudio();
+        }
+      }
     } else if (event.type === "ping") {
       const pong = serializeOutboundJson({
         type: "pong",
@@ -405,6 +449,8 @@ function handleMediaStream(twilioWs, req) {
   let from = "";
   let inboundAudioFrames = 0;
   let forwardedAudioFrames = 0;
+  /** @type {ReturnType<typeof getCallLatencyCoord>|null} */
+  let latencyCoord = null;
 
   safeLog("media_ws_open", "path=/api/twilio/voice/media-stream");
 
@@ -432,6 +478,11 @@ function handleMediaStream(twilioWs, req) {
       }
       const pending = callSid ? pendingCallsByStream.get(callSid) : null;
       if (pending && !from) from = pending.from;
+
+      if (callSid) {
+        latencyCoord = getCallLatencyCoord(callSid, { log: safeLog });
+        latencyCoord.armCallerAudio();
+      }
 
       let greeting = "";
       try {
@@ -472,6 +523,9 @@ function handleMediaStream(twilioWs, req) {
       );
     } else if (event.event === "media" && elReady) {
       inboundAudioFrames += 1;
+      if (latencyCoord) {
+        latencyCoord.onInboundCallerAudio();
+      }
       const elWs = await elReady;
       if (!elWs) return;
       const payload = event.media && event.media.payload;
@@ -514,6 +568,10 @@ function handleMediaStream(twilioWs, req) {
       }
     }
     if (callSid) pendingCallsByStream.delete(callSid);
+    if (latencyCoord) {
+      latencyCoord.clear();
+      latencyCoord = null;
+    }
     safeLog(
       "media_close",
       `callSid=${callSid || "(none)"} inboundFrames=${inboundAudioFrames} forwardedFrames=${forwardedAudioFrames}`
@@ -679,13 +737,45 @@ function wireBrainSession(session, brain) {
         }
 
         const turnCount = Array.isArray(transcript) ? transcript.length : 0;
+        const latencyCoord = getCallLatencyCoord(state.callSid, {
+          log: safeLog,
+        });
+        const turn = latencyCoord.onBrainTranscript(transcript);
+
         safeLog(
           "brain_transcript",
-          `callSid=${state.callSid} historyTurns=${turnCount} transcriptReceived=true`
+          `callSid=${state.callSid} turnId=${turn.turnId} historyTurns=${turnCount} transcriptReceived=true transcriptKind=final`
         );
 
+        const abortReasonFromSignal = () => {
+          if (!signal) return "signal_aborted";
+          const reason = signal.reason;
+          if (reason == null) return "signal_aborted";
+          if (typeof reason === "string") return reason || "signal_aborted";
+          if (reason instanceof Error) return reason.name || "AbortError";
+          return "signal_aborted";
+        };
+
+        if (signal && typeof signal.addEventListener === "function") {
+          signal.addEventListener(
+            "abort",
+            () => {
+              const active = latencyCoord.getActiveTurn();
+              if (active && active.turnId === turn.turnId && !active.ended) {
+                active.markAborted(abortReasonFromSignal());
+                latencyCoord.armCallerAudio();
+              }
+            },
+            { once: true }
+          );
+        }
+
         try {
-          safeLog("brain_model_start", `callSid=${state.callSid}`);
+          turn.markModelStarted();
+          safeLog(
+            "brain_model_start",
+            `callSid=${state.callSid} turnId=${turn.turnId}`
+          );
           let chunkCount = 0;
           await session.sendResponse(
             (async function* () {
@@ -697,6 +787,7 @@ function wireBrainSession(session, brain) {
               )) {
                 if (signal.aborted) return;
                 chunkCount += 1;
+                turn.noteResponseChunk();
                 yield chunk;
               }
               if (state.persisted && state.persistArtifact) {
@@ -712,21 +803,48 @@ function wireBrainSession(session, brain) {
               }
             })()
           );
+          if (!signal.aborted) {
+            turn.markModelCompleted();
+            turn.markResponseSentToEl();
+            // TTS may have started mid-stream; complete if audio already reached Twilio.
+            if (turn.marks.firstTwilioAudioAt != null && !turn.ended) {
+              turn.markCompleted();
+              latencyCoord.armCallerAudio();
+            }
+          }
           safeLog(
             "brain_model_complete",
-            `callSid=${state.callSid} responseChunks=${chunkCount} aborted=${Boolean(signal.aborted)}`
+            `callSid=${state.callSid} turnId=${turn.turnId} responseChunks=${chunkCount} aborted=${Boolean(signal.aborted)}`
           );
+          if (signal.aborted && !turn.ended) {
+            turn.markAborted(abortReasonFromSignal());
+            latencyCoord.armCallerAudio();
+          }
         } catch (err) {
           if (signal.aborted) {
-            safeLog("brain_aborted", `callSid=${state.callSid}`);
+            if (!turn.ended) {
+              turn.markAborted(abortReasonFromSignal());
+              latencyCoord.armCallerAudio();
+            }
+            safeLog(
+              "brain_aborted",
+              `callSid=${state.callSid} turnId=${turn.turnId} reason=${abortReasonFromSignal()}`
+            );
             return;
           }
           safeLog(
             "brain_error",
-            `error=${err && err.message ? err.message : "unknown"}`
+            `error=${err && err.message ? err.message : "unknown"} turnId=${turn.turnId}`
           );
           if (!signal.aborted) {
+            turn.markModelStarted();
             await session.sendResponse(brain.fallbackReply(state, ""));
+            turn.markModelCompleted();
+            turn.markResponseSentToEl();
+            if (turn.marks.firstTwilioAudioAt != null && !turn.ended) {
+              turn.markCompleted();
+              latencyCoord.armCallerAudio();
+            }
           }
         }
       })()
@@ -740,12 +858,22 @@ function wireBrainSession(session, brain) {
 
   session.on("close", () => {
     const id = session.conversationId;
+    const state = session._fdState;
+    if (state && state.callSid) {
+      const coord = getCallLatencyCoord(state.callSid, { log: safeLog });
+      coord.clear();
+    }
     if (id) brainSessions.delete(id);
     safeLog("brain_close", `conversationId=${id || "(none)"}`);
   });
 
   session.on("disconnected", () => {
     const id = session.conversationId;
+    const state = session._fdState;
+    if (state && state.callSid) {
+      const coord = getCallLatencyCoord(state.callSid, { log: safeLog });
+      coord.clear();
+    }
     if (id) brainSessions.delete(id);
     safeLog("brain_disconnect", `conversationId=${id || "(none)"}`);
   });
@@ -1485,4 +1613,6 @@ module.exports = {
   amberVoiceId,
   ttsModelId,
   speechEngineId,
+  getCallLatencyCoord,
+  clearAllCallLatencyCoords,
 };

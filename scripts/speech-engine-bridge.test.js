@@ -129,7 +129,22 @@ describe("Speech Engine conversation bridge protocol", () => {
     );
     assert.equal(classified.type, "user_transcript");
     assert.equal(classified.isTranscriptEvent, true);
+    assert.equal(classified.transcriptKind, "final");
+    assert.equal(classified.elEventId, 1);
     assert.equal(classified.opcode, "text");
+
+    const interim = speechEngine.classifyElevenLabsInbound(
+      JSON.stringify({
+        type: "tentative_user_transcript",
+        tentative_user_transcription_event: {
+          user_transcript: "y",
+          event_id: 2,
+        },
+      }),
+      false
+    );
+    assert.equal(interim.transcriptKind, "interim");
+    assert.equal(interim.elEventId, 2);
   });
 
   it("5. close/error events are logged safely (type/code/reason only)", () => {

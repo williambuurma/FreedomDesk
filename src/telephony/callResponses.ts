@@ -5,10 +5,13 @@
  */
 
 import type { PracticeVoiceConfig } from "./practiceConfig.ts";
+import type { ConversationTone } from "./conversationTone.ts";
+import type { ToothLocationParts } from "./toothLocation.ts";
+import { composeCompassionateClosing } from "./alySpeech.ts";
 
 export function composeMissedInputPrompt(config: PracticeVoiceConfig): string {
   const agent = (config.agentName || "Aly").trim();
-  return `Sorry about that — I didn't quite catch it. This is ${agent}. What can I help you with?`;
+  return `Sorry about that—I didn't quite catch it. This is ${agent}. What can I help you with?`;
 }
 
 export function composeEmptyHangup(): string {
@@ -17,7 +20,7 @@ export function composeEmptyHangup(): string {
 
 /**
  * Intent-aware closing after the pipeline runs — empathy + clear next step.
- * Keeps Gather architecture; improves what the caller hears before hangup.
+ * Claims the team has details only when persisted=true.
  */
 export function composeClosing(input: {
   intent: string;
@@ -26,79 +29,42 @@ export function composeClosing(input: {
   sameDayEmergency?: boolean;
   chiefConcern?: string | null;
   practiceName?: string;
-  /** Stronger ER guidance when life-threatening language or fever+swelling. */
   lifeThreatening?: boolean;
   routingAction?: string;
+  tone?: ConversationTone;
+  callerName?: string | null;
+  locationParts?: ToothLocationParts;
+  locationRaw?: string;
+  swelling?: boolean | null;
+  keptAwake?: boolean;
+  wantsEarliest?: boolean | null;
+  shortNoticeOk?: boolean | null;
+  /** Must be true before claiming the message was shared/captured. */
+  persisted?: boolean;
 }): string {
-  const lifeThreat =
-    input.lifeThreatening ||
-    input.routingAction === "er_or_on_call_immediate";
-
-  if (lifeThreat) {
-    return (
-      "Thank you for telling me that. " +
-      "Please go to the nearest emergency room or call 911 now if you are having trouble breathing, " +
-      "swallowing, or bleeding that will not stop. " +
-      "I am also alerting our on-call team. Take care."
-    );
-  }
-
-  const urgent =
-    input.urgency === "emergency" ||
-    input.urgency === "urgent" ||
-    input.sameDayEmergency;
-
-  if (urgent) {
-    if (input.afterHours) {
-      return (
-        "I'm sorry you're dealing with that. " +
-        "I've shared what you told me with our on-call team, and someone will call you back as soon as they can. " +
-        "If things get much worse — especially trouble breathing or swallowing — please go to the emergency room. Take care."
-      );
-    }
-    return (
-      "I'm sorry you're dealing with that. " +
-      "I've shared what you told me with our front desk so we can help you today. " +
-      "Someone will follow up with you shortly. Take care."
-    );
-  }
-
-  if (input.intent === "NEW_PATIENT") {
-    return (
-      "Wonderful — thanks for reaching out. " +
-      "I've shared this with our front desk, and someone will follow up to get you scheduled. " +
-      "We look forward to meeting you. Take care."
-    );
-  }
-
-  if (
-    input.intent === "SCHEDULE_EXISTING" ||
-    input.intent === "TREATMENT_SCHEDULE" ||
-    input.intent === "RESCHEDULE"
-  ) {
-    return (
-      "Got it. I've shared this with our front desk, and someone will follow up to get you on the schedule. " +
-      "Take care."
-    );
-  }
-
-  if (input.intent === "INSURANCE" || input.intent === "BILLING") {
-    return (
-      "Thanks for calling about that. I've shared the details with our team, " +
-      "and someone will follow up with clear next steps. Take care."
-    );
-  }
-
-  return (
-    "Thanks for calling. I've shared this with our front desk, " +
-    "and someone will follow up with you. Take care."
-  );
+  return composeCompassionateClosing({
+    tone: input.tone || "routine_friendly",
+    intent: input.intent,
+    urgency: input.urgency,
+    afterHours: input.afterHours,
+    sameDayEmergency: input.sameDayEmergency,
+    lifeThreatening: input.lifeThreatening,
+    routingAction: input.routingAction,
+    callerName: input.callerName,
+    locationParts: input.locationParts,
+    locationRaw: input.locationRaw,
+    swelling: input.swelling,
+    keptAwake: input.keptAwake,
+    wantsEarliest: input.wantsEarliest,
+    shortNoticeOk: input.shortNoticeOk,
+    persisted: input.persisted !== false,
+  });
 }
 
 /** Closing when persist failed — do not claim the office received the call. */
 export function composePersistFailureClosing(): string {
   return (
-    "Thank you for the details. I'm having a little trouble saving this right now — " +
+    "Thank you for the details. I'm having a little trouble saving this right now—" +
     "please call us back if you don't hear from someone shortly. Take care."
   );
 }
@@ -117,4 +83,8 @@ export const DENTAL_SPEECH_HINTS = [
   "emergency",
   "root canal",
   "extraction",
+  "upper",
+  "lower",
+  "left",
+  "right",
 ].join(",");

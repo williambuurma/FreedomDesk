@@ -4,12 +4,16 @@
  * Twilio Voice webhooks — inbound answer + adaptive multi-turn Gather loop.
  * Completes only when the call is actionable (or emergency escalation).
  * Closing claims "shared with the team" only after Today persist succeeds.
+ *
+ * When PHONE_VOICE_TRANSPORT=conversation_relay, inbound returns Connect/
+ * ConversationRelay TwiML instead of Gather/Say (Gather path retained).
  */
 
 const twilio = require("twilio");
 const {
   writeLatestActionableCall,
 } = require("./latest-call-store");
+const conversationRelay = require("./conversation-relay");
 
 const VoiceResponse = twilio.twiml.VoiceResponse;
 
@@ -128,6 +132,16 @@ async function handleInboundVoice(req, res) {
   }
 
   const helpers = await loadVoiceHelpers();
+
+  if (conversationRelay.useConversationRelay()) {
+    const twiml = conversationRelay.buildConversationRelayTwiml(req, helpers);
+    sendTwiml(res, twiml);
+    console.log(
+      `[twilio-timing] route=/api/twilio/voice/inbound twiml_ms=${msSince(t0)} transport=conversation_relay`
+    );
+    return;
+  }
+
   const config = helpers.loadPracticeVoiceConfig();
   const greeting = helpers.selectGreeting(config);
   const gatherUrl = absoluteUrl(req, "/api/twilio/voice/gather");
@@ -142,7 +156,7 @@ async function handleInboundVoice(req, res) {
 
   sendTwiml(res, twiml);
   console.log(
-    `[twilio-timing] route=/api/twilio/voice/inbound twiml_ms=${msSince(t0)}`
+    `[twilio-timing] route=/api/twilio/voice/inbound twiml_ms=${msSince(t0)} transport=gather_say`
   );
 }
 
@@ -292,6 +306,15 @@ async function handleGatherVoice(req, res, options = {}) {
         artifact.operatingIntelligence.chiefConcern,
       lifeThreatening,
       routingAction: analysis.triage.routingAction,
+      tone: session.tone,
+      callerName: session.slots.name,
+      locationParts: session.slots.locationParts,
+      locationRaw: session.slots.location,
+      swelling: session.slots.swelling,
+      keptAwake: session.slots.keptAwake,
+      wantsEarliest: session.slots.wantsEarliest,
+      shortNoticeOk: session.slots.shortNoticeOk,
+      persisted: true,
     });
     say(twiml, helpers, closing);
     twiml.hangup();

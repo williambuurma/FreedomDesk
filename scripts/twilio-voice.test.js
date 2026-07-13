@@ -92,6 +92,7 @@ describe("Twilio voice webhooks (local)", () => {
     );
     assert.match(res1.body, /<Gather/);
     assert.doesNotMatch(res1.body, /trouble breathing/i);
+    assert.match(res1.body, /glad you|uncomfortable|hurts/i);
     assert.equal(store.readLatestActionableCall(storePath), null);
 
     // Answer first follow-up with a denial-style answer — must continue
@@ -118,9 +119,14 @@ describe("Twilio voice webhooks (local)", () => {
     const replies = [
       "I have a toothache that kept me awake",
       "Finn Leo",
-      "lower left",
+      "L E O",
+      "Yes",
+      "lower",
+      "left",
+      "back",
       "No",
-      "just the ache",
+      "Yes",
+      "Yes",
     ];
 
     let last = mockRes();
@@ -141,7 +147,8 @@ describe("Twilio voice webhooks (local)", () => {
     }
 
     assert.match(last.body, /<Hangup/);
-    assert.match(last.body, /shared what you told me|shared this with/i);
+    assert.match(last.body, /glad you called|earliest available|saved clearly|shared this|team will have/i);
+    assert.doesNotMatch(last.body, /you'll be fine|appointment is booked/i);
     const latest = store.readLatestActionableCall(storePath);
     assert.ok(latest);
     assert.ok(latest.decisionCard);

@@ -50,6 +50,8 @@ export {
 
 export {
   MAX_FOLLOW_UPS,
+  ROUTINE_PAIN_MAX_POST_IDENTITY_ASKS,
+  ensureLiveCallSession,
   createOrUpdateSession,
   getCallSession,
   clearCallSession,
@@ -57,14 +59,35 @@ export {
   sessionToTranscript,
   selectNextAsk,
   appendAlyAsk,
+  applyInterruptToSession,
   hasLifeThreateningLanguage,
   isCallActionable,
   isDentalPainCall,
   applyUtteranceToSlots,
+  getIdentityState,
+  logPolicyDebug,
   type LiveCallSession,
   type NextAsk,
   type IntakeSlots,
 } from "./callSession.ts";
+
+export {
+  classifyConversationTone,
+  type ConversationTone,
+} from "./conversationTone.ts";
+
+export {
+  parseToothLocationParts,
+  isLocationComplete,
+  formatLocationForSpeech,
+  type ToothLocationParts,
+} from "./toothLocation.ts";
+
+export {
+  composeToneOpening,
+  composeCompassionateClosing,
+  composePainFactSummary,
+} from "./alySpeech.ts";
 
 export { processCallTranscript } from "../conversation/processCall.ts";
 export { analyzeTranscriptTurns } from "../conversation/engine.ts";

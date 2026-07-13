@@ -1,10 +1,16 @@
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
 
+const http = require("http");
 const express = require("express");
 const path = require("path");
 const { handleLeadRequest } = require("./leads-handler");
 const { handleInboundVoice, handleGatherVoice } = require("./twilio-voice");
 const { handleTodayRequest } = require("./today-handler");
+const {
+  attachConversationRelayWebSocket,
+  handleConversationStatus,
+  useConversationRelay,
+} = require("./conversation-relay");
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -36,6 +42,18 @@ app.post("/api/twilio/voice/gather", (req, res) => {
   });
 });
 
+app.post("/api/twilio/voice/conversation-status", (req, res) => {
+  handleConversationStatus(req, res).catch((err) => {
+    console.error(
+      "Conversation status error:",
+      err && err.message ? err.message : err
+    );
+    res.statusCode = 500;
+    res.setHeader("Content-Type", "text/plain");
+    res.end("Status handler error");
+  });
+});
+
 app.use(express.static(root));
 
 app.get("*", (req, res) => {
@@ -46,15 +64,23 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(root, "index.html"));
 });
 
+const server = http.createServer(app);
+attachConversationRelayWebSocket(server);
+
 if (require.main === module) {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`FreedomDesk running at http://127.0.0.1:${PORT}`);
     console.log("Lead API: POST /api/leads");
     console.log("Today API: GET /api/today");
     console.log("Twilio inbound: POST /api/twilio/voice/inbound");
     console.log("Twilio gather:  POST /api/twilio/voice/gather");
+    console.log(
+      `Twilio ConversationRelay WS: wss://…/api/twilio/voice/conversation (flag=${
+        useConversationRelay() ? "on" : "off"
+      })`
+    );
     console.log(`Companion UI: http://127.0.0.1:${PORT}/app/#today`);
   });
 }
 
-module.exports = { app };
+module.exports = { app, server };

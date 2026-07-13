@@ -90,13 +90,27 @@ export {
 } from "./alySpeech.ts";
 
 export {
+  buildConversationOptions,
+  deterministicSpeechForAction,
+  ACTION_TO_FIELD,
+  type ConversationalAction,
+  type ConversationOptions,
+} from "./allowedActions.ts";
+
+export {
+  normalizeSpokenSpelling,
+  spellingLettersForSpeech,
+  spellingToDisplayName,
+} from "./spellingNormalize.ts";
+
+export {
   buildPlannerContext,
-  buildMissingMaterialFacts,
+  buildPlannerUserPayload,
   isHybridConversationalEnabled,
   parsePlannerProposal,
   planConversationalResponse,
-  proposalForField,
-  renderPlannerSpeech,
+  proposalChoosing,
+  fallbackProposalForOptions,
   type PlannerContext,
   type PlannerProposal,
   type PlanConversationalOptions,
@@ -108,11 +122,13 @@ export {
 } from "./conversationalGuardrails.ts";
 
 export {
+  planNextTurn,
   articulateNextAsk,
   articulateClosing,
   articulateNextAskDetailed,
   setArticulatePlanOptions,
   getArticulatePlanOptions,
+  type TurnDecision,
 } from "./articulateResponse.ts";
 
 export { processCallTranscript } from "../conversation/processCall.ts";

@@ -32,6 +32,12 @@ import {
   maybeAcknowledge,
   spellingToLastName,
 } from "./alySpeech.ts";
+import {
+  MAX_SPELLING_ATTEMPTS,
+  normalizeSpokenSpelling,
+  parseSpellingCorrection,
+  spellingToDisplayName,
+} from "./spellingNormalize.ts";
 
 /** Soft ceiling only — prevents infinite loops; does not define "enough info". */
 export const MAX_FOLLOW_UPS = 10;
@@ -64,6 +70,17 @@ export interface IntakeSlots {
   keptAwake?: boolean;
   /** Noncritical gaps flagged for the team when soft-capped. */
   teamFlags?: string[];
+  /** Reason / outcome captured for non-pain completion gate. */
+  reasonCaptured?: boolean;
+  outcomeCaptured?: boolean;
+  /** Spelling normalizer flagged low confidence — re-ask slowly. */
+  spellingLowConfidence?: boolean;
+  /** Count of spelling asks attempted (initial + retries). */
+  spellingAttemptCount?: number;
+  /** Exhausted spelling retries — do not ask again. */
+  spellingAbandoned?: boolean;
+  /** Speak one uncertainty line, then clear. */
+  spellingAbandonNeedsAnnounce?: boolean;
 }
 
 export interface LiveCallSession {
@@ -243,14 +260,6 @@ function lastNameFromFullName(full: string): string {
   return parts.length >= 2 ? parts[parts.length - 1] : parts[0] || "";
 }
 
-function normalizeSpelling(text: string): string {
-  return text
-    .toUpperCase()
-    .replace(/[^A-Z\s-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 function captureName(session: LiveCallSession, name: string): void {
   session.slots.name = name;
   session.slots.lastName = lastNameFromFullName(name);
@@ -297,6 +306,100 @@ function flagForTeam(session: LiveCallSession, flag: string): void {
   }
 }
 
+function abandonSpelling(session: LiveCallSession): void {
+  session.slots.spellingAbandoned = true;
+  session.slots.spellingLowConfidence = false;
+  session.slots.lastNameConfirmed = false;
+  if (session.slots.lastNameSpelling) {
+    session.slots.lastNameSpellingCaptured = true;
+  }
+  session.slots.spellingAbandonNeedsAnnounce = true;
+  flagForTeam(session, "last_name_spelling_needs_confirmation");
+  logSpellingProgress(session, { selectedAction: "spelling_abandoned" });
+}
+
+export const SPELLING_ABANDON_ANNOUNCE =
+  "I may not have every letter exactly right, but I've noted that for the team to confirm with you.";
+
+/** Consume one-shot abandon line for speech (planner or deterministic path). */
+export function consumeSpellingAbandonAnnounce(
+  session: LiveCallSession
+): string | null {
+  if (!session.slots.spellingAbandonNeedsAnnounce) return null;
+  session.slots.spellingAbandonNeedsAnnounce = false;
+  return SPELLING_ABANDON_ANNOUNCE;
+}
+
+/** Identity ready to leave the spelling loop (confirmed or abandoned after retries). */
+export function identityReadyForIntake(session: LiveCallSession): boolean {
+  if (identityConfirmed(session)) return true;
+  const id = getIdentityState(session);
+  // After retry budget: continue the call even if letters never parsed cleanly.
+  return Boolean(id.nameCaptured && session.slots.spellingAbandoned === true);
+}
+
+/** Safe spelling-progress log — counts and booleans only; no letters/PHI. */
+export function logSpellingProgress(
+  session: LiveCallSession,
+  extra?: Record<string, string | number | boolean | null | undefined>
+): void {
+  if (process.env.PHONE_POLICY_DEBUG === "0") return;
+  const enabled =
+    process.env.PHONE_POLICY_DEBUG === "1" ||
+    process.env.NODE_ENV !== "production";
+  if (!enabled) return;
+
+  const id = getIdentityState(session);
+  const parts = [
+    `[spelling]`,
+    new Date().toISOString(),
+    `CallSid=${session.callSid}`,
+    `spellingAttemptCount=${session.slots.spellingAttemptCount || 0}`,
+    `spellingConfidence=${
+      session.slots.spellingLowConfidence === true
+        ? "low"
+        : session.slots.lastNameSpellingCaptured
+          ? "high_or_medium"
+          : "none"
+    }`,
+    `parsedLetterCount=${
+      session.slots.lastNameSpelling
+        ? String(session.slots.lastNameSpelling).replace(/[^A-Za-z]/g, "").length
+        : 0
+    }`,
+    `lastNameConfirmed=${id.lastNameConfirmed}`,
+    `spellingAbandoned=${Boolean(session.slots.spellingAbandoned)}`,
+  ];
+  if (extra) {
+    for (const [k, v] of Object.entries(extra)) {
+      if (v === undefined) continue;
+      parts.push(`${k}=${v}`);
+    }
+  }
+  console.log(parts.join(" "));
+}
+
+function applySpellingCapture(
+  session: LiveCallSession,
+  normalized: ReturnType<typeof normalizeSpokenSpelling>
+): void {
+  if (normalized.letters.length < 2) return;
+  session.slots.lastNameSpelling = normalized.letters;
+  session.slots.lastNameSpellingCaptured = true;
+  session.slots.spellingLowConfidence =
+    normalized.confidence === "low" || normalized.confidence === "none";
+  session.slots.lastName =
+    spellingToDisplayName(normalized.letters) ||
+    spellingToLastName(normalized.letters) ||
+    session.slots.lastName;
+  session.slots.lastNameConfirmed = false;
+  logSpellingProgress(session, {
+    spellingConfidence: normalized.confidence,
+    ignoredPrefix: Boolean(normalized.ignoredPrefix),
+  });
+}
+
+
 /** Apply the latest patient utterance to intake slots based on what was just asked. */
 export function applyUtteranceToSlots(
   session: LiveCallSession,
@@ -321,34 +424,84 @@ export function applyUtteranceToSlots(
   }
 
   if (lastAskedField === "caller.last_name_spell") {
-    const spelling = normalizeSpelling(text);
-    if (spelling.replace(/[^A-Z]/g, "").length >= 2) {
-      session.slots.lastNameSpelling = spelling;
-      session.slots.lastNameSpellingCaptured = true;
-      session.slots.lastName =
-        spellingToLastName(spelling) || session.slots.lastName;
-      // Spelling captured ≠ confirmed.
-      session.slots.lastNameConfirmed = false;
+    const normalized = normalizeSpokenSpelling(text);
+    if (normalized.letters.length >= 2) {
+      applySpellingCapture(session, normalized);
+      // Second (final) attempt still low-confidence → abandon; do not loop.
+      if (
+        (session.slots.spellingAttemptCount || 0) >= MAX_SPELLING_ATTEMPTS &&
+        session.slots.spellingLowConfidence === true
+      ) {
+        abandonSpelling(session);
+      }
+    } else {
+      logSpellingProgress(session, {
+        spellingConfidence: "none",
+        parseFailed: true,
+        parsedLetterCount: 0,
+      });
+      if ((session.slots.spellingAttemptCount || 0) >= MAX_SPELLING_ATTEMPTS) {
+        abandonSpelling(session);
+      }
     }
   }
 
   if (lastAskedField === "caller.last_name_confirm") {
-    session.slots.lastNameConfirmed = isAffirmative(text)
-      ? true
-      : isNegative(text)
-        ? false
-        : session.slots.lastNameConfirmed;
-    if (session.slots.lastNameConfirmed === false) {
-      session.slots.lastNameSpelling = undefined;
-      session.slots.lastNameSpellingCaptured = false;
-      session.askedFields = session.askedFields.filter(
-        (f) => f !== "caller.last_name_spell" && f !== "caller.last_name_confirm"
+    // Natural correction: "No, the fourth letter is R"
+    if (isNegative(text) || /\bletter\b/i.test(text)) {
+      const corrected = parseSpellingCorrection(
+        text,
+        session.slots.lastNameSpelling || ""
       );
+      if (corrected && corrected.length >= 2) {
+        session.slots.lastNameSpelling = corrected;
+        session.slots.lastNameSpellingCaptured = true;
+        session.slots.spellingLowConfidence = false;
+        session.slots.lastName =
+          spellingToDisplayName(corrected) ||
+          spellingToLastName(corrected) ||
+          session.slots.lastName;
+        session.slots.lastNameConfirmed = false;
+        logSpellingProgress(session, {
+          spellingConfidence: "high",
+          correctionApplied: true,
+        });
+        // Stay on confirm path — next ask should re-confirm once.
+        return;
+      }
+    }
+
+    // Affirmative confirmation — lock identity spelling and advance.
+    if (isAffirmative(text)) {
+      session.slots.lastNameConfirmed = true;
+      session.slots.spellingLowConfidence = false;
+      session.slots.spellingAbandoned = false;
+      logSpellingProgress(session, {
+        selectedAction: "spelling_confirmed",
+      });
+    } else if (isNegative(text)) {
+      session.slots.lastNameConfirmed = false;
+      // Retry budget is driven by spelling asks (appendAlyAsk), not confirm rejects.
+      if ((session.slots.spellingAttemptCount || 0) >= MAX_SPELLING_ATTEMPTS) {
+        abandonSpelling(session);
+      } else {
+        session.slots.lastNameSpelling = undefined;
+        session.slots.lastNameSpellingCaptured = false;
+        session.slots.spellingLowConfidence = undefined;
+        session.askedFields = session.askedFields.filter(
+          (f) =>
+            f !== "caller.last_name_spell" && f !== "caller.last_name_confirm"
+        );
+      }
+      logSpellingProgress(session, {
+        selectedAction: "spelling_rejected",
+      });
     }
   }
 
   if (
     lastAskedField === "pain.location" ||
+    lastAskedField === "pain.location.combined" ||
     lastAskedField === "pain.location.vertical" ||
     lastAskedField === "pain.location.side" ||
     lastAskedField === "pain.location.depth"
@@ -424,20 +577,59 @@ export function applyUtteranceToSlots(
     }
   }
 
-  if (lastAskedField === "schedule.earliest") {
-    session.slots.wantsEarliest = isAffirmative(text)
-      ? true
-      : isNegative(text)
-        ? false
-        : /earliest|asap|soon|today|as soon/i.test(text)
-          ? true
-          : session.slots.wantsEarliest;
-    // Only capture short-notice when the caller explicitly mentions it here.
-    if (/short notice/i.test(text)) {
-      session.slots.shortNoticeOk = isNegative(text) ? false : true;
+  if (
+    lastAskedField === "schedule.combined" ||
+    lastAskedField === "schedule.earliest"
+  ) {
+    const mentionsEarliest =
+      /earliest|asap|as soon|soon as|today|whenever you can|as soon as possible/i.test(
+        text
+      );
+    const mentionsShort = /short notice/i.test(text);
+    const canCome =
+      /come (right )?in|come today|flexible|i can come|able to come/i.test(text);
+
+    if (
+      mentionsEarliest ||
+      (isAffirmative(text) && lastAskedField === "schedule.earliest") ||
+      (lastAskedField === "schedule.combined" &&
+        /yes|yeah|yep|sure|asap/i.test(text))
+    ) {
+      session.slots.wantsEarliest = !(
+        isNegative(text) &&
+        /earliest|asap/i.test(text) &&
+        !/short notice/i.test(text)
+      );
+      if (mentionsEarliest || /asap|yes|yeah|yep|sure/i.test(text)) {
+        session.slots.wantsEarliest = true;
+      }
+    }
+
+    if (mentionsShort) {
+      // "short notice no" / "no short notice" / "yes short notice"
+      if (
+        /\b(no|not|can't|cannot)\b.{0,20}short notice|short notice.{0,12}\b(no|not)\b/i.test(
+          text
+        )
+      ) {
+        session.slots.shortNoticeOk = false;
+      } else {
+        session.slots.shortNoticeOk = true;
+      }
+    } else if (
+      lastAskedField === "schedule.combined" &&
+      session.slots.wantsEarliest === true &&
+      (canCome || /yes|yeah|yep|sure|i can|able/i.test(text))
+    ) {
+      session.slots.shortNoticeOk = true;
+    }
+
+    if (typeof session.slots.wantsEarliest === "boolean") {
+      session.slots.outcomeCaptured = true;
     }
   } else if (/earliest|asap|as soon as possible|soon as you can/i.test(text)) {
     session.slots.wantsEarliest = true;
+    session.slots.outcomeCaptured = true;
   }
 
   if (lastAskedField === "schedule.short_notice") {
@@ -446,6 +638,16 @@ export function applyUtteranceToSlots(
       : isNegative(text)
         ? false
         : session.slots.shortNoticeOk;
+    if (typeof session.slots.shortNoticeOk === "boolean") {
+      session.slots.outcomeCaptured = true;
+    }
+  }
+
+  if (lastAskedField === "caller.reason") {
+    if (text.length >= 3) {
+      session.slots.reasonCaptured = true;
+      session.slots.outcomeCaptured = true;
+    }
   }
 
   if (lastAskedField === "safety.breathing") {
@@ -717,12 +919,30 @@ export function isCallActionable(
     analysis.understanding.phone || (session.from ? session.from : null);
 
   if (!isDentalPainCall(analysis, session)) {
+    const reasonOk =
+      session.slots.reasonCaptured === true ||
+      (analysis.understanding?.intent &&
+        analysis.understanding.intent !== "OTHER") ||
+      String(analysis.understanding?.chiefConcern || "").trim().length >= 4 ||
+      /cleaning|checkup|check-up|new patient|appointment|reschedule|cancel|insurance|crown|consult|hurt|pain|toothache/i.test(
+        allPatient
+      );
+    const outcomeOk =
+      session.slots.outcomeCaptured === true ||
+      typeof session.slots.wantsEarliest === "boolean" ||
+      /schedule|appoint|come in|earliest|asap|reschedule|cancel|confirm/i.test(
+        allPatient
+      ) ||
+      String(analysis.frontDesk?.recommendedNextStep || "").trim().length >= 4;
     return Boolean(
-      name && (phone || session.askedFields.includes("caller.phone"))
+      name &&
+        (phone || session.askedFields.includes("caller.phone")) &&
+        reasonOk &&
+        outcomeOk
     );
   }
 
-  if (!identityConfirmed(session)) return false;
+  if (!identityReadyForIntake(session)) return false;
   if (!phone && !session.askedFields.includes("caller.phone")) return false;
 
   // Soft-capped: identity + callback is enough; missing clinical bits are flagged.
@@ -771,6 +991,9 @@ function baseQuestion(field: string, session: LiveCallSession): string {
         : "Could you spell your last name for me?";
     }
     case "caller.last_name_confirm": {
+      if (session.slots.spellingLowConfidence) {
+        return "I may have missed one letter. Could you spell that once more, a little slowly?";
+      }
       const spelling = formatSpellingForSpeech(
         session.slots.lastNameSpelling || ""
       );
@@ -779,6 +1002,8 @@ function baseQuestion(field: string, session: LiveCallSession): string {
         spellingToLastName(session.slots.lastNameSpelling || "");
       return `${spelling}, ${spokenLast}. Did I get that right?`;
     }
+    case "pain.location.combined":
+      return "Can you tell me where it is—upper or lower, left or right, and more toward the front or the back?";
     case "pain.location.vertical":
       return locationQuestionForMissing("vertical");
     case "pain.location.side":
@@ -793,6 +1018,8 @@ function baseQuestion(field: string, session: LiveCallSession): string {
     }
     case "pain.swelling":
       return "Have you noticed any swelling on your face or gums?";
+    case "schedule.combined":
+      return "Are you looking for the earliest available appointment, and would you be able to come in on short notice?";
     case "schedule.earliest":
       return (
         `${composeScheduleBridge()} ` +
@@ -806,6 +1033,10 @@ function baseQuestion(field: string, session: LiveCallSession): string {
       return "Have you had a fever?";
     case "caller.phone":
       return "What's the best number to reach you back on?";
+    case "caller.reason":
+      return "How can I help you today?";
+    case "conversation.recap":
+      return "I have the important details you shared.";
     default:
       return "Could you tell me a little more?";
   }
@@ -829,12 +1060,17 @@ function wrapAsk(
       dentalPain);
 
   let ack = "";
-  if (!needsOpening && dentalPain) {
+  const abandonLine = consumeSpellingAbandonAnnounce(session);
+  if (abandonLine) {
+    ack = abandonLine;
+  } else if (!needsOpening && dentalPain) {
     const forceUnderstanding =
       !session.demonstratedUnderstanding &&
-      identityConfirmed(session) &&
+      identityReadyForIntake(session) &&
       (field === "pain.swelling" ||
         field === "schedule.earliest" ||
+        field === "schedule.combined" ||
+        field === "pain.location.combined" ||
         session.postIdentityAsks >= 1);
     ack = maybeAcknowledge({
       tone: session.tone,
@@ -935,22 +1171,46 @@ export function selectNextAsk(
     return wrapAsk(session, "caller.name", analysis, "need_name");
   }
 
-  if (!id.lastNameSpellingCaptured) {
-    return wrapAsk(
-      session,
-      "caller.last_name_spell",
-      analysis,
-      "need_last_name_spelling"
-    );
-  }
+  // Spelling loop — max initial + one retry, then abandon and continue.
+  if (!session.slots.spellingAbandoned) {
+    if (!id.lastNameSpellingCaptured) {
+      return wrapAsk(
+        session,
+        "caller.last_name_spell",
+        analysis,
+        "need_last_name_spelling"
+      );
+    }
 
-  if (!id.lastNameConfirmed) {
-    return wrapAsk(
-      session,
-      "caller.last_name_confirm",
-      analysis,
-      "need_last_name_confirm"
-    );
+    if (
+      !id.lastNameConfirmed &&
+      session.slots.spellingLowConfidence === true &&
+      (session.slots.spellingAttemptCount || 0) < MAX_SPELLING_ATTEMPTS
+    ) {
+      return wrapAsk(
+        session,
+        "caller.last_name_spell",
+        analysis,
+        "need_last_name_spelling_retry"
+      );
+    }
+
+    if (
+      !id.lastNameConfirmed &&
+      session.slots.spellingLowConfidence === true &&
+      (session.slots.spellingAttemptCount || 0) >= MAX_SPELLING_ATTEMPTS
+    ) {
+      abandonSpelling(session);
+    }
+
+    if (!id.lastNameConfirmed && !session.slots.spellingAbandoned) {
+      return wrapAsk(
+        session,
+        "caller.last_name_confirm",
+        analysis,
+        "need_last_name_confirm"
+      );
+    }
   }
 
   if (
@@ -965,7 +1225,7 @@ export function selectNextAsk(
     // Soft cap — stop noncritical interrogation; flag gaps for the team.
     if (
       !elevated &&
-      identityConfirmed(session) &&
+      identityReadyForIntake(session) &&
       session.postIdentityAsks >= ROUTINE_PAIN_MAX_POST_IDENTITY_ASKS
     ) {
       session.routineSoftCapReached = true;
@@ -984,6 +1244,7 @@ export function selectNextAsk(
         typeof session.slots.shortNoticeOk !== "boolean"
       ) {
         flagForTeam(session, "short_notice_unknown");
+        session.slots.shortNoticeOk = true;
       }
       session.lastPolicyReason = "routine_soft_cap";
       logPolicyDebug("complete", session, {
@@ -993,7 +1254,20 @@ export function selectNextAsk(
       return null;
     }
 
-    // Location — only missing dimensions; complete volunteered location is already confirmed.
+    // Location — one combined ask; complete volunteered location is already confirmed.
+    if (
+      !isLocationComplete(session.slots.locationParts) &&
+      !session.askedFields.includes("pain.location.combined")
+    ) {
+      return wrapAsk(
+        session,
+        "pain.location.combined",
+        analysis,
+        "need_location_combined"
+      );
+    }
+
+    // If combined was asked but still incomplete, fall back to missing dimension once.
     if (!isLocationComplete(session.slots.locationParts)) {
       const missing = missingLocationDimension(session.slots.locationParts);
       if (missing) {
@@ -1045,28 +1319,29 @@ export function selectNextAsk(
     }
 
     if (
-      typeof session.slots.wantsEarliest !== "boolean" &&
-      !session.askedFields.includes("schedule.earliest")
+      (typeof session.slots.wantsEarliest !== "boolean" ||
+        (session.slots.wantsEarliest === true &&
+          typeof session.slots.shortNoticeOk !== "boolean")) &&
+      !session.askedFields.includes("schedule.combined")
     ) {
       return wrapAsk(
         session,
-        "schedule.earliest",
+        "schedule.combined",
         analysis,
-        "need_earliest_preference"
+        "need_scheduling_preference"
       );
     }
-
+  } else {
+    // Non-pain: do not close without reason / outcome.
     if (
-      session.slots.wantsEarliest === true &&
-      typeof session.slots.shortNoticeOk !== "boolean" &&
-      !session.askedFields.includes("schedule.short_notice")
+      !session.slots.reasonCaptured &&
+      !(
+        understanding.intent &&
+        understanding.intent !== "OTHER"
+      ) &&
+      !session.askedFields.includes("caller.reason")
     ) {
-      return wrapAsk(
-        session,
-        "schedule.short_notice",
-        analysis,
-        "need_short_notice"
-      );
+      return wrapAsk(session, "caller.reason", analysis, "need_reason");
     }
   }
 
@@ -1091,15 +1366,28 @@ export function appendAlyAsk(session: LiveCallSession, ask: NextAsk): void {
   }
   session.followUpsAsked += 1;
 
+  if (ask.field === "caller.last_name_spell") {
+    session.slots.spellingAttemptCount =
+      (session.slots.spellingAttemptCount || 0) + 1;
+    logSpellingProgress(session, { selectedAction: "ask_last_name_spelling" });
+  }
+  if (ask.field === "caller.last_name_confirm") {
+    logSpellingProgress(session, {
+      selectedAction: "confirm_last_name_spelling",
+    });
+  }
+
   // Soft-cap counts preferred post-identity topics only.
-  // Location dimension fragments are part of "complete location" and do not burn the cap.
+  // Combined location is one clinical ask; combined schedule is one preference ask.
   const softCapFields = new Set([
     "pain.swelling",
+    "pain.location.combined",
+    "schedule.combined",
     "schedule.earliest",
     "schedule.short_notice",
     "pain.fever",
   ]);
-  if (identityConfirmed(session) && softCapFields.has(ask.field)) {
+  if (identityReadyForIntake(session) && softCapFields.has(ask.field)) {
     session.postIdentityAsks += 1;
   }
 }

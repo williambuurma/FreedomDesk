@@ -1,21 +1,20 @@
 /**
- * Deterministic guardrails for Hybrid Conversational Aly proposals.
- * Reject unsafe / untruthful / multi-ask speech; caller falls back to draft.
+ * Guardrails for Hybrid Aly — allow-list membership + safety/truth.
+ * Does not require equality to a previously forced field.
  */
 
-import type {
-  PlannerContext,
-  PlannerProposal,
-} from "./conversationalPlanner.ts";
 import {
-  expectedActionForField,
-  renderPlannerSpeech,
-} from "./conversationalPlanner.ts";
+  COMBINED_QUESTION_ACTIONS,
+  type ConversationalAction,
+  type ConversationOptions,
+} from "./allowedActions.ts";
+import type { PlannerProposal } from "./conversationalPlanner.ts";
 
 export interface GuardrailResult {
   ok: boolean;
   reason: string;
   spoken: string;
+  selectedAction: ConversationalAction | null;
 }
 
 const DIAGNOSIS_RE =
@@ -36,39 +35,6 @@ const INSURANCE_VERIFIED_RE =
 const MESSAGE_SAVED_RE =
   /\b(I('ve| have) (saved|shared|sent|logged)|message (is|was) (saved|shared)|team (already )?has (your |the )?(details|message))\b/i;
 
-const CONFIRMED_REASK: Array<{
-  when: (ctx: PlannerContext) => boolean;
-  pattern: RegExp;
-  reason: string;
-}> = [
-  {
-    when: (ctx) => ctx.factsConfirmed.lastName,
-    pattern: /\bspell(ing)? (your )?last name\b|\blast name\b.*\bspell/i,
-    reason: "reask_confirmed_last_name",
-  },
-  {
-    when: (ctx) => ctx.factsConfirmed.location || ctx.factsCaptured.locationComplete,
-    pattern:
-      /\b(which|what) (tooth|side|area)|upper or lower|left or right|front or back\b/i,
-    reason: "reask_confirmed_location",
-  },
-  {
-    when: (ctx) => ctx.factsCaptured.swellingKnown,
-    pattern: /\b(any |noticed )?swelling\b/i,
-    reason: "reask_known_swelling",
-  },
-  {
-    when: (ctx) => ctx.factsCaptured.keptAwake,
-    pattern: /\b(kept you awake|sleep|awake last night)\b/i,
-    reason: "reask_kept_awake",
-  },
-  {
-    when: (ctx) => ctx.factsCaptured.worried,
-    pattern: /\bare you worried\b|\bhow worried\b/i,
-    reason: "reask_worry",
-  },
-];
-
 function countQuestions(text: string): number {
   return (text.match(/\?/g) || []).length;
 }
@@ -77,118 +43,138 @@ function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function isAllowedAction(
+  action: string,
+  options: ConversationOptions
+): action is ConversationalAction {
+  return options.allowedActions.includes(action as ConversationalAction);
+}
+
 export function validatePlannerProposal(
   proposal: PlannerProposal,
-  context: PlannerContext
+  options: ConversationOptions,
+  meta: { persisted?: boolean } = {}
 ): GuardrailResult {
-  const spoken = renderPlannerSpeech(proposal, context.mode);
+  const spoken = String(proposal.spokenResponse || "").trim();
+  const actionRaw = String(proposal.selectedAction || "").trim();
 
-  if (!spoken) {
-    return { ok: false, reason: "empty_speech", spoken: "" };
+  if (!isAllowedAction(actionRaw, options)) {
+    return {
+      ok: false,
+      reason: "action_not_allowed",
+      spoken,
+      selectedAction: null,
+    };
+  }
+  const selectedAction = actionRaw;
+
+  // Hard-required must be obeyed.
+  if (
+    options.hardRequiredAction &&
+    selectedAction !== options.hardRequiredAction
+  ) {
+    return {
+      ok: false,
+      reason: "hard_required_bypass",
+      spoken,
+      selectedAction,
+    };
   }
 
-  if (wordCount(spoken) > 90) {
-    return { ok: false, reason: "too_long", spoken };
+  if (selectedAction === "emergency_escalation") {
+    return { ok: true, reason: "ok", spoken: spoken || "", selectedAction };
+  }
+
+  if (selectedAction === "persist_and_close") {
+    if (!options.actionable) {
+      return {
+        ok: false,
+        reason: "close_before_actionable",
+        spoken,
+        selectedAction,
+      };
+    }
+    // Closing speech is composed after persistence; empty spoken is ok here.
+    return { ok: true, reason: "ok", spoken, selectedAction };
+  }
+
+  if (!spoken) {
+    return { ok: false, reason: "empty_speech", spoken: "", selectedAction };
+  }
+
+  if (wordCount(spoken) > 95) {
+    return { ok: false, reason: "too_long", spoken, selectedAction };
   }
 
   if (/\[(?:emotion|tone|pause|laugh|sigh)[^\]]*\]/i.test(spoken)) {
-    return { ok: false, reason: "emotion_tags", spoken };
+    return { ok: false, reason: "emotion_tags", spoken, selectedAction };
   }
 
   if (/<\/?speak|<\/?prosody|<say-as/i.test(spoken)) {
-    return { ok: false, reason: "ssml_forbidden", spoken };
+    return { ok: false, reason: "ssml_forbidden", spoken, selectedAction };
   }
 
   if (DIAGNOSIS_RE.test(spoken)) {
-    return { ok: false, reason: "diagnosis", spoken };
+    return { ok: false, reason: "diagnosis", spoken, selectedAction };
   }
-
   if (FALSE_REASSURANCE_RE.test(spoken)) {
-    return { ok: false, reason: "false_reassurance", spoken };
+    return { ok: false, reason: "false_reassurance", spoken, selectedAction };
   }
-
   if (GUARANTEED_APPT_RE.test(spoken)) {
-    return { ok: false, reason: "guaranteed_appointment", spoken };
+    return { ok: false, reason: "guaranteed_appointment", spoken, selectedAction };
   }
-
   if (INVENTED_AVAILABILITY_RE.test(spoken)) {
-    return { ok: false, reason: "invented_availability", spoken };
+    return { ok: false, reason: "invented_availability", spoken, selectedAction };
   }
-
   if (INSURANCE_VERIFIED_RE.test(spoken)) {
-    return { ok: false, reason: "insurance_verified_claim", spoken };
+    return { ok: false, reason: "insurance_verified_claim", spoken, selectedAction };
+  }
+  if (!meta.persisted && MESSAGE_SAVED_RE.test(spoken)) {
+    return { ok: false, reason: "saved_before_persist", spoken, selectedAction };
   }
 
-  if (!context.persisted && MESSAGE_SAVED_RE.test(spoken)) {
-    return { ok: false, reason: "saved_before_persist", spoken };
+  const qCount = countQuestions(spoken);
+  const combined = COMBINED_QUESTION_ACTIONS.has(selectedAction);
+  if (selectedAction === "acknowledge_and_recap") {
+    if (qCount > 0) {
+      return { ok: false, reason: "question_on_recap", spoken, selectedAction };
+    }
+  } else if (combined) {
+    // Combined conceptual questions may contain one '?' only (one spoken turn).
+    if (qCount !== 1) {
+      return { ok: false, reason: "not_one_question", spoken, selectedAction };
+    }
+  } else if (qCount !== 1) {
+    return { ok: false, reason: "not_one_question", spoken, selectedAction };
   }
 
-  if (context.mode === "ask") {
-    if (proposal.shouldClose) {
-      return { ok: false, reason: "close_not_allowed_in_ask", spoken };
-    }
-    if (!proposal.nextQuestion) {
-      return { ok: false, reason: "missing_question", spoken };
-    }
-    if (countQuestions(proposal.nextQuestion) !== 1) {
-      return { ok: false, reason: "not_one_question", spoken };
-    }
-    if (countQuestions(spoken) > 1) {
-      return { ok: false, reason: "multiple_questions", spoken };
-    }
-
-    const expected = expectedActionForField(context.requiredField);
-    if (
-      expected &&
-      proposal.proposedAction &&
-      proposal.proposedAction !== "other" &&
-      proposal.proposedAction !== expected &&
-      proposal.proposedAction !== "acknowledge"
-    ) {
-      return { ok: false, reason: "action_mismatch", spoken };
-    }
-
-    for (const rule of CONFIRMED_REASK) {
-      if (!rule.when(context)) continue;
-      // Allow the required field to ask its own topic.
-      if (
-        context.requiredField === "pain.swelling" &&
-        rule.reason === "reask_known_swelling"
-      ) {
-        continue;
-      }
-      if (
-        (context.requiredField === "caller.last_name_spell" ||
-          context.requiredField === "caller.last_name_confirm") &&
-        rule.reason === "reask_confirmed_last_name"
-      ) {
-        continue;
-      }
-      if (rule.pattern.test(proposal.nextQuestion)) {
-        return { ok: false, reason: rule.reason, spoken };
-      }
-    }
+  // Confirmed-fact re-ask checks (skip when the selected action intentionally asks that topic).
+  if (
+    options.factsConfirmed.lastName &&
+    selectedAction !== "ask_last_name_spelling" &&
+    selectedAction !== "confirm_last_name_spelling" &&
+    /\bspell(ing)? (your )?last name\b/i.test(spoken)
+  ) {
+    return { ok: false, reason: "reask_confirmed_last_name", spoken, selectedAction };
   }
 
-  if (context.mode === "close") {
-    if (!context.callActionable && !context.lifeThreatening) {
-      return { ok: false, reason: "close_before_actionable", spoken };
-    }
-    if (!proposal.shouldClose) {
-      return { ok: false, reason: "should_close_false", spoken };
-    }
-    if (countQuestions(spoken) > 0) {
-      return { ok: false, reason: "question_on_close", spoken };
-    }
-    if (context.lifeThreatening) {
-      if (!/911|emergency room|\bER\b/i.test(spoken)) {
-        return { ok: false, reason: "emergency_guidance_missing", spoken };
-      }
-    }
-    if (!context.persisted && MESSAGE_SAVED_RE.test(spoken)) {
-      return { ok: false, reason: "saved_before_persist", spoken };
-    }
+  if (
+    (options.factsConfirmed.location || options.factsCaptured.locationComplete) &&
+    selectedAction !== "ask_combined_tooth_location" &&
+    /\b(which|what) (tooth|side|area)|upper or lower|left or right|front or back\b/i.test(
+      spoken
+    )
+  ) {
+    return { ok: false, reason: "reask_confirmed_location", spoken, selectedAction };
   }
 
-  return { ok: true, reason: "ok", spoken };
+  if (
+    options.factsCaptured.swellingKnown &&
+    selectedAction !== "ask_swelling" &&
+    /\b(any |noticed )?swelling\b/i.test(spoken)
+  ) {
+    return { ok: false, reason: "reask_known_swelling", spoken, selectedAction };
+  }
+
+  return { ok: true, reason: "ok", spoken, selectedAction };
 }

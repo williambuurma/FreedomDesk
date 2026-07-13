@@ -1,42 +1,50 @@
 /**
- * Articulate Aly's next spoken turn: planner → guardrails → deterministic fallback.
- * Shared by ConversationRelay and Gather/Say — does not change field selection.
+ * Plan the next conversational turn: allow-list → planner select → validate → fallback.
+ * Planner chooses the action; deterministic code enforces safety and membership.
  */
 
 import type { ConversationAnalysis } from "../conversation/engine.ts";
-import type { LiveCallSession, NextAsk } from "./callSession.ts";
-import { isCallActionable } from "./callSession.ts";
+import {
+  consumeSpellingAbandonAnnounce,
+  logSpellingProgress,
+  type LiveCallSession,
+  type NextAsk,
+} from "./callSession.ts";
+import {
+  ACTION_TO_FIELD,
+  buildConversationOptions,
+  deterministicSpeechForAction,
+  type ConversationalAction,
+  type ConversationOptions,
+} from "./allowedActions.ts";
+import { validatePlannerProposal } from "./conversationalGuardrails.ts";
 import {
   buildPlannerContext,
+  fallbackProposalForOptions,
   isHybridConversationalEnabled,
   planConversationalResponse,
   type PlanConversationalOptions,
-  type PlannerContext,
   type PlannerProposal,
 } from "./conversationalPlanner.ts";
-import { validatePlannerProposal } from "./conversationalGuardrails.ts";
 
-export interface ArticulateMetrics {
-  plannerStartMs: number;
-  plannerDoneMs: number | null;
-  validationDoneMs: number | null;
-  firstTokenReadyMs: number | null;
-  source: "planner" | "fallback" | "disabled";
-  fallbackReason?: string;
-}
+export type TurnDecisionKind = "ask" | "complete";
 
-export interface ArticulateResult {
-  spoken: string;
-  usedPlanner: boolean;
-  proposal: PlannerProposal | null;
-  context: PlannerContext | null;
-  metrics: ArticulateMetrics;
+export interface TurnDecision {
+  kind: TurnDecisionKind;
+  /** Present when kind=ask */
+  nextAsk?: NextAsk;
+  selectedAction: ConversationalAction;
+  source: "planner" | "fallback";
   validationReason: string;
+  fallbackReason?: string;
+  plannerLatencyMs: number | null;
+  allowedActionCount: number;
+  options: ConversationOptions;
+  proposal: PlannerProposal | null;
 }
 
 let injectedPlanOptions: PlanConversationalOptions | null = null;
 
-/** Test seam — inject planFn / fetch / timeouts without env. */
 export function setArticulatePlanOptions(
   options: PlanConversationalOptions | null
 ): void {
@@ -70,51 +78,261 @@ function logHybridMetric(
   console.log(parts.join(" "));
 }
 
-async function runPlannerSafe(
-  context: PlannerContext,
-  callSid: string,
-  options: PlanConversationalOptions
-): Promise<{ proposal: PlannerProposal | null; reason: string; ms: number }> {
-  const t0 = process.hrtime();
-  logHybridMetric("planner_start", callSid, {
-    mode: context.mode,
-    field: context.requiredField || "(none)",
-  });
-  try {
-    const proposal = await planConversationalResponse(context, options);
-    const ms = hrMs(t0);
-    logHybridMetric("planner_done", callSid, {
-      ms,
-      ok: true,
-    });
-    return { proposal, reason: "ok", ms };
-  } catch (err) {
-    const ms = hrMs(t0);
-    const name =
-      err && typeof err === "object" && "name" in err
-        ? String((err as { name?: string }).name)
-        : "";
-    const message =
-      err && typeof err === "object" && "message" in err
-        ? String((err as { message?: string }).message)
-        : "planner_error";
-    const reason =
-      name === "AbortError" || /aborted/i.test(message)
-        ? "planner_timeout"
-        : message.startsWith("planner_")
-          ? message
-          : "planner_error";
-    logHybridMetric("planner_done", callSid, {
-      ms,
-      ok: false,
-      reason,
-    });
-    return { proposal: null, reason, ms };
+function actionToNextAsk(
+  action: ConversationalAction,
+  spoken: string,
+  session: LiveCallSession
+): NextAsk | null {
+  if (action === "persist_and_close" || action === "emergency_escalation") {
+    return null;
   }
+  const field = ACTION_TO_FIELD[action];
+  if (!field) return null;
+  session.lastPolicyReason = `action:${action}`;
+  return { field, question: spoken };
 }
 
 /**
- * Rewrite a continuation ask's spoken text. Field from selectNextAsk is preserved.
+ * Core authority-corrected turn planner.
+ * Does not call selectNextAsk to override a valid planner choice.
+ */
+export async function planNextTurn(input: {
+  session: LiveCallSession;
+  analysis: ConversationAnalysis;
+  planOptions?: PlanConversationalOptions;
+}): Promise<TurnDecision> {
+  const { session, analysis } = input;
+  const options = buildConversationOptions(session, analysis);
+  const allowedActionCount = options.allowedActions.length;
+
+  // Deterministic hard exits — planner cannot override.
+  if (options.hardRequiredAction === "emergency_escalation") {
+    session.lastPolicyReason = "emergency_escalate";
+    logHybridMetric("first_token_ready", session.callSid, {
+      source: "fallback",
+      selectedAction: "emergency_escalation",
+      allowedActionCount,
+      validation: "ok",
+      ms: 0,
+    });
+    return {
+      kind: "complete",
+      selectedAction: "emergency_escalation",
+      source: "fallback",
+      validationReason: "ok",
+      plannerLatencyMs: null,
+      allowedActionCount,
+      options,
+      proposal: null,
+    };
+  }
+
+  const enabled =
+    isHybridConversationalEnabled() ||
+    Boolean(input.planOptions?.planFn || injectedPlanOptions?.planFn);
+
+  const planOpts: PlanConversationalOptions = {
+    ...injectedPlanOptions,
+    ...input.planOptions,
+  };
+
+  let proposal: PlannerProposal | null = null;
+  let source: "planner" | "fallback" = "fallback";
+  let fallbackReason: string | undefined;
+  let plannerLatencyMs: number | null = null;
+  let validationReason = "ok";
+
+  if (!enabled) {
+    proposal = fallbackProposalForOptions(session, options);
+    fallbackReason = "hybrid_disabled";
+  } else {
+    const context = buildPlannerContext(session, analysis, options);
+    const t0 = process.hrtime();
+    logHybridMetric("planner_start", session.callSid, {
+      allowedActionCount,
+      hardRequired: options.hardRequiredAction || "(none)",
+      actionable: options.actionable,
+    });
+    try {
+      proposal = await planConversationalResponse(context, planOpts);
+      plannerLatencyMs = hrMs(t0);
+      logHybridMetric("planner_done", session.callSid, {
+        ms: plannerLatencyMs,
+        ok: true,
+        selectedAction: String(proposal.selectedAction),
+      });
+    } catch (err) {
+      plannerLatencyMs = hrMs(t0);
+      const name =
+        err && typeof err === "object" && "name" in err
+          ? String((err as { name?: string }).name)
+          : "";
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message?: string }).message)
+          : "planner_error";
+      fallbackReason =
+        name === "AbortError" || /aborted/i.test(message)
+          ? "planner_timeout"
+          : message.startsWith("planner_")
+            ? message
+            : "planner_error";
+      logHybridMetric("planner_done", session.callSid, {
+        ms: plannerLatencyMs,
+        ok: false,
+        reason: fallbackReason,
+      });
+      proposal = fallbackProposalForOptions(session, options);
+    }
+
+    if (!fallbackReason) {
+      const validation = validatePlannerProposal(proposal, options, {
+        persisted: false,
+      });
+      validationReason = validation.reason;
+      logHybridMetric("validation_done", session.callSid, {
+        ok: validation.ok,
+        reason: validation.reason,
+        selectedAction: String(proposal.selectedAction),
+        allowedActionCount,
+        ms: plannerLatencyMs ?? 0,
+      });
+      if (!validation.ok) {
+        fallbackReason = validation.reason;
+        source = "fallback";
+        proposal = fallbackProposalForOptions(session, options);
+      } else {
+        source = "planner";
+        // Prefer validated spoken text from planner.
+        proposal = {
+          ...proposal,
+          spokenResponse: validation.spoken || proposal.spokenResponse,
+          selectedAction: validation.selectedAction || proposal.selectedAction,
+        };
+      }
+    } else {
+      source = "fallback";
+      validationReason = fallbackReason;
+    }
+  }
+
+  const selectedAction = String(
+    proposal!.selectedAction
+  ) as ConversationalAction;
+
+  // Ensure fallback speech is populated.
+  let spoken = String(proposal!.spokenResponse || "").trim();
+  if (!spoken && selectedAction !== "persist_and_close" && selectedAction !== "emergency_escalation") {
+    spoken = deterministicSpeechForAction(selectedAction, session, options);
+  }
+
+  const abandonLine = consumeSpellingAbandonAnnounce(session);
+  if (abandonLine && spoken) {
+    spoken = `${abandonLine} ${spoken}`.trim();
+  } else if (abandonLine) {
+    spoken = abandonLine;
+  }
+
+  logSpellingProgress(session, { selectedAction });
+
+  if (
+    selectedAction === "persist_and_close" ||
+    selectedAction === "emergency_escalation"
+  ) {
+    session.lastPolicyReason =
+      selectedAction === "emergency_escalation"
+        ? "emergency_escalate"
+        : "actionable";
+    logHybridMetric("first_token_ready", session.callSid, {
+      source,
+      selectedAction,
+      allowedActionCount,
+      validation: validationReason,
+      fallbackReason,
+      ms: plannerLatencyMs ?? 0,
+    });
+    return {
+      kind: "complete",
+      selectedAction,
+      source,
+      validationReason,
+      fallbackReason,
+      plannerLatencyMs,
+      allowedActionCount,
+      options,
+      proposal,
+    };
+  }
+
+  // Hard-required breathing ask path.
+  if (options.hardRequiredAction === "ask_breathing" && selectedAction !== "ask_breathing") {
+    const forced = "ask_breathing" as ConversationalAction;
+    spoken = deterministicSpeechForAction(forced, session, options);
+    const nextAsk = actionToNextAsk(forced, spoken, session)!;
+    logHybridMetric("first_token_ready", session.callSid, {
+      source: "fallback",
+      selectedAction: forced,
+      allowedActionCount,
+      validation: "hard_required_forced",
+      ms: plannerLatencyMs ?? 0,
+    });
+    return {
+      kind: "ask",
+      nextAsk,
+      selectedAction: forced,
+      source: "fallback",
+      validationReason: "hard_required_forced",
+      fallbackReason: "hard_required_forced",
+      plannerLatencyMs,
+      allowedActionCount,
+      options,
+      proposal,
+    };
+  }
+
+  const nextAsk = actionToNextAsk(selectedAction, spoken, session);
+  if (!nextAsk) {
+    // Shouldn't happen — treat as complete fallback.
+    session.lastPolicyReason = "no_further_asks";
+    return {
+      kind: "complete",
+      selectedAction: "persist_and_close",
+      source: "fallback",
+      validationReason: "missing_field_map",
+      fallbackReason: "missing_field_map",
+      plannerLatencyMs,
+      allowedActionCount,
+      options,
+      proposal,
+    };
+  }
+
+  logHybridMetric("first_token_ready", session.callSid, {
+    source,
+    selectedAction,
+    allowedActionCount,
+    validation: validationReason,
+    fallbackReason,
+    ms: plannerLatencyMs ?? 0,
+  });
+
+  return {
+    kind: "ask",
+    nextAsk,
+    selectedAction,
+    source,
+    validationReason,
+    fallbackReason,
+    plannerLatencyMs,
+    allowedActionCount,
+    options,
+    proposal,
+  };
+}
+
+/**
+ * Backward-compatible ask articulator — prefers planNextTurn when possible.
+ * @deprecated Prefer planNextTurn for authority-corrected flow.
  */
 export async function articulateNextAsk(input: {
   session: LiveCallSession;
@@ -122,98 +340,17 @@ export async function articulateNextAsk(input: {
   nextAsk: NextAsk;
   planOptions?: PlanConversationalOptions;
 }): Promise<NextAsk> {
-  const { session, analysis, nextAsk } = input;
-  const tAll = process.hrtime();
-
-  const enabled =
-    isHybridConversationalEnabled() ||
-    Boolean(input.planOptions?.planFn || injectedPlanOptions?.planFn);
-
-  if (!enabled) {
-    return nextAsk;
-  }
-
-  const metrics: ArticulateMetrics = {
-    plannerStartMs: 0,
-    plannerDoneMs: null,
-    validationDoneMs: null,
-    firstTokenReadyMs: null,
-    source: "disabled",
-  };
-
-  const options: PlanConversationalOptions = {
-    ...injectedPlanOptions,
-    ...input.planOptions,
-  };
-
-  const context = buildPlannerContext({
-    session,
-    analysis,
-    mode: "ask",
-    requiredField: nextAsk.field,
-    deterministicDraft: nextAsk.question,
-    callActionable: isCallActionable(session, analysis),
-    persisted: false,
-    lifeThreatening: false,
+  const decision = await planNextTurn({
+    session: input.session,
+    analysis: input.analysis,
+    planOptions: input.planOptions,
   });
-
-  metrics.plannerStartMs = 0;
-  const planned = await runPlannerSafe(context, session.callSid, options);
-  metrics.plannerDoneMs = planned.ms;
-
-  if (!planned.proposal) {
-    metrics.source = "fallback";
-    metrics.fallbackReason = planned.reason;
-    metrics.firstTokenReadyMs = hrMs(tAll);
-    logHybridMetric("validation_done", session.callSid, {
-      ms: 0,
-      ok: false,
-      reason: planned.reason,
-    });
-    logHybridMetric("first_token_ready", session.callSid, {
-      ms: metrics.firstTokenReadyMs,
-      source: "fallback",
-      field: nextAsk.field,
-    });
-    return nextAsk;
+  if (decision.kind === "ask" && decision.nextAsk) {
+    return decision.nextAsk;
   }
-
-  const tVal = process.hrtime();
-  const validation = validatePlannerProposal(planned.proposal, context);
-  metrics.validationDoneMs = hrMs(tVal);
-  logHybridMetric("validation_done", session.callSid, {
-    ms: metrics.validationDoneMs,
-    ok: validation.ok,
-    reason: validation.reason,
-  });
-
-  if (!validation.ok) {
-    metrics.source = "fallback";
-    metrics.fallbackReason = validation.reason;
-    metrics.firstTokenReadyMs = hrMs(tAll);
-    logHybridMetric("first_token_ready", session.callSid, {
-      ms: metrics.firstTokenReadyMs,
-      source: "fallback",
-      field: nextAsk.field,
-    });
-    return nextAsk;
-  }
-
-  metrics.source = "planner";
-  metrics.firstTokenReadyMs = hrMs(tAll);
-  logHybridMetric("first_token_ready", session.callSid, {
-    ms: metrics.firstTokenReadyMs,
-    source: "planner",
-    field: nextAsk.field,
-  });
-
-  return { field: nextAsk.field, question: validation.spoken };
+  return input.nextAsk;
 }
 
-/**
- * Optionally rewrite the closing. Never speaks a "saved" claim before persist.
- * Emergency deterministic closing wins if planner softens safety language.
- */
 export async function articulateClosing(input: {
   session: LiveCallSession;
   analysis: ConversationAnalysis;
@@ -224,180 +361,96 @@ export async function articulateClosing(input: {
   planOptions?: PlanConversationalOptions;
 }): Promise<string> {
   const { session, analysis, deterministicClosing } = input;
-  const tAll = process.hrtime();
+
+  if (input.lifeThreatening) return deterministicClosing;
+  if (!input.persisted) return deterministicClosing;
 
   const enabled =
     isHybridConversationalEnabled() ||
     Boolean(input.planOptions?.planFn || injectedPlanOptions?.planFn);
+  if (!enabled) return deterministicClosing;
 
-  if (!enabled) {
-    return deterministicClosing;
-  }
+  const options = buildConversationOptions(session, analysis);
+  const closeOptions: ConversationOptions = {
+    ...options,
+    actionable: true,
+    allowedActions: ["acknowledge_and_recap"],
+    fallbackPriority: ["acknowledge_and_recap"],
+    hardRequiredAction: null,
+  };
 
-  // Life-threatening: keep deterministic ER/911 wording — planner must not override.
-  if (input.lifeThreatening) {
-    logHybridMetric("first_token_ready", session.callSid, {
-      ms: hrMs(tAll),
-      source: "fallback",
-      reason: "emergency_deterministic",
-      field: "closing",
-    });
-    return deterministicClosing;
-  }
-
-  const options: PlanConversationalOptions = {
+  const planOpts: PlanConversationalOptions = {
     ...injectedPlanOptions,
     ...input.planOptions,
   };
-
-  const actionable =
-    input.callActionable ?? isCallActionable(session, analysis);
-
-  // Closing before the call is actionable is not allowed.
-  if (!actionable && !input.lifeThreatening) {
-    logHybridMetric("first_token_ready", session.callSid, {
-      ms: hrMs(tAll),
-      source: "fallback",
-      reason: "close_before_actionable",
-      field: "closing",
-    });
-    return deterministicClosing;
-  }
-
-  // Persistence must succeed before any "saved/shared" closing.
-  if (!input.persisted) {
-    logHybridMetric("first_token_ready", session.callSid, {
-      ms: hrMs(tAll),
-      source: "fallback",
-      reason: "close_before_persist",
-      field: "closing",
-    });
-    return deterministicClosing;
-  }
-
-  const context = buildPlannerContext({
-    session,
-    analysis,
-    mode: "close",
-    requiredField: null,
-    deterministicDraft: deterministicClosing,
-    callActionable: actionable,
-    persisted: input.persisted,
-    lifeThreatening: input.lifeThreatening,
-  });
-
-  const planned = await runPlannerSafe(context, session.callSid, options);
-  if (!planned.proposal) {
-    logHybridMetric("first_token_ready", session.callSid, {
-      ms: hrMs(tAll),
-      source: "fallback",
-      reason: planned.reason,
-      field: "closing",
-    });
-    return deterministicClosing;
-  }
-
-  const validation = validatePlannerProposal(planned.proposal, context);
-  logHybridMetric("validation_done", session.callSid, {
-    ms: 0,
-    ok: validation.ok,
-    reason: validation.reason,
-  });
-
-  if (!validation.ok) {
-    logHybridMetric("first_token_ready", session.callSid, {
-      ms: hrMs(tAll),
-      source: "fallback",
-      reason: validation.reason,
-      field: "closing",
-    });
-    return deterministicClosing;
-  }
-
-  logHybridMetric("first_token_ready", session.callSid, {
-    ms: hrMs(tAll),
-    source: "planner",
-    field: "closing",
-  });
-  return validation.spoken;
-}
-
-/** Debug/test helper that returns full articulate trace for an ask. */
-export async function articulateNextAskDetailed(input: {
-  session: LiveCallSession;
-  analysis: ConversationAnalysis;
-  nextAsk: NextAsk;
-  planOptions?: PlanConversationalOptions;
-}): Promise<ArticulateResult & { nextAsk: NextAsk }> {
-  const { session, analysis, nextAsk } = input;
-  const options: PlanConversationalOptions = {
-    ...injectedPlanOptions,
-    ...input.planOptions,
-  };
-
-  const context = buildPlannerContext({
-    session,
-    analysis,
-    mode: "ask",
-    requiredField: nextAsk.field,
-    deterministicDraft: nextAsk.question,
-    callActionable: isCallActionable(session, analysis),
-    persisted: false,
-    lifeThreatening: false,
-  });
-
-  const tAll = process.hrtime();
-  const metrics: ArticulateMetrics = {
-    plannerStartMs: 0,
-    plannerDoneMs: null,
-    validationDoneMs: null,
-    firstTokenReadyMs: null,
-    source: "fallback",
-  };
-
+  const context = buildPlannerContext(session, analysis, closeOptions);
+  const t0 = process.hrtime();
   try {
-    const proposal = await planConversationalResponse(context, options);
-    metrics.plannerDoneMs = hrMs(tAll);
-    const validation = validatePlannerProposal(proposal, context);
-    metrics.validationDoneMs = hrMs(tAll);
-    metrics.firstTokenReadyMs = hrMs(tAll);
-    if (!validation.ok) {
-      metrics.fallbackReason = validation.reason;
-      return {
-        spoken: nextAsk.question,
-        usedPlanner: false,
-        proposal,
-        context,
-        metrics,
-        validationReason: validation.reason,
-        nextAsk,
-      };
-    }
-    metrics.source = "planner";
-    return {
-      spoken: validation.spoken,
-      usedPlanner: true,
-      proposal,
-      context,
-      metrics,
-      validationReason: "ok",
-      nextAsk: { field: nextAsk.field, question: validation.spoken },
+    logHybridMetric("planner_start", session.callSid, {
+      mode: "close",
+      allowedActionCount: 1,
+    });
+    const proposal = await planConversationalResponse(context, planOpts);
+    const ms = hrMs(t0);
+    const normalized: PlannerProposal = {
+      ...proposal,
+      selectedAction: "acknowledge_and_recap",
+      spokenResponse: proposal.spokenResponse || deterministicClosing,
     };
+    const validation = validatePlannerProposal(normalized, closeOptions, {
+      persisted: true,
+    });
+    logHybridMetric("planner_done", session.callSid, {
+      ms,
+      ok: true,
+      selectedAction: "acknowledge_and_recap",
+    });
+    logHybridMetric("validation_done", session.callSid, {
+      ok: validation.ok,
+      reason: validation.reason,
+      ms,
+    });
+    if (!validation.ok || !validation.spoken) {
+      logHybridMetric("first_token_ready", session.callSid, {
+        source: "fallback",
+        reason: validation.reason,
+        field: "closing",
+        ms,
+      });
+      return deterministicClosing;
+    }
+    logHybridMetric("first_token_ready", session.callSid, {
+      source: "planner",
+      field: "closing",
+      ms,
+    });
+    return validation.spoken;
   } catch (err) {
+    const ms = hrMs(t0);
     const message =
       err && typeof err === "object" && "message" in err
         ? String((err as { message?: string }).message)
         : "planner_error";
-    metrics.fallbackReason = message;
-    metrics.firstTokenReadyMs = hrMs(tAll);
-    return {
-      spoken: nextAsk.question,
-      usedPlanner: false,
-      proposal: null,
-      context,
-      metrics,
-      validationReason: message,
-      nextAsk,
-    };
+    logHybridMetric("planner_done", session.callSid, {
+      ms,
+      ok: false,
+      reason: message,
+    });
+    logHybridMetric("first_token_ready", session.callSid, {
+      source: "fallback",
+      reason: message,
+      field: "closing",
+      ms,
+    });
+    return deterministicClosing;
   }
+}
+
+/** Detailed helper for tests */
+export async function articulateNextAskDetailed(input: {
+  session: LiveCallSession;
+  analysis: ConversationAnalysis;
+  planOptions?: PlanConversationalOptions;
+}): Promise<TurnDecision> {
+  return planNextTurn(input);
 }

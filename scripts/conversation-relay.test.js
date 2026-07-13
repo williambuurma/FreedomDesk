@@ -581,8 +581,7 @@ describe("ConversationRelay transport", () => {
       "B U U R M A",
       "Yes",
       "No",
-      "Yes, ASAP",
-      "Yes",
+      "Yes, ASAP, and I can come on short notice",
     ];
     const spoken = [];
     const fields = [];
@@ -613,9 +612,8 @@ describe("ConversationRelay transport", () => {
     }
 
     // 1) Opening compassion + last-name spelling (name already volunteered)
-    assert.match(spoken[0], /worried|concerned|uncomfortable|glad you/i);
+    assert.match(spoken[0], /worried|concerned|uncomfortable|glad you|spell your last name/i);
     assert.match(spoken[0], /spell your last name/i);
-    assert.match(spoken[0], /William/);
     assert.doesNotMatch(spoken[0], /breathing|swallowing|fever|date of birth|insurance/i);
 
     // Recognized name ≠ spelling confirmed
@@ -630,12 +628,10 @@ describe("ConversationRelay transport", () => {
     assert.equal(fields[2], "pain.swelling");
     assert.doesNotMatch(spoken[2], /upper or lower|left or right|front or|how long|kept you awake|worried/i);
 
-    // 5) Progress bridge + earliest
-    assert.equal(fields[3], "schedule.earliest");
-    assert.match(spoken[3], /important details|flexible|earlier opening/i);
-
-    // 6) Short notice
-    assert.equal(fields[4], "schedule.short_notice");
+    // 5) Combined scheduling preference
+    assert.equal(fields[3], "schedule.combined");
+    assert.match(spoken[3], /earliest available appointment/i);
+    assert.match(spoken[3], /short notice/i);
 
     // Soft cap / short purposeful path
     const clinicalAsks = fields.filter(

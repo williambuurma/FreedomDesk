@@ -128,6 +128,8 @@ describe("telephony — compassionate routine pain intake", () => {
           ? "L E O"
           : ask.field === "caller.last_name_confirm"
             ? "Yes"
+            : ask.field === "schedule.combined"
+              ? "Yes, ASAP, and yes short notice"
             : ask.field === "schedule.earliest"
               ? "Yes"
               : ask.field === "schedule.short_notice"
@@ -191,11 +193,13 @@ describe("telephony — compassionate routine pain intake", () => {
         "caller.name": "Finn Leo",
         "caller.last_name_spell": "L E O",
         "caller.last_name_confirm": "Yes",
+        "pain.location.combined": "lower right back",
         "pain.location.vertical": "lower",
         "pain.location.side": "right",
         "pain.location.depth": "back",
         "pain.location.confirm": "Yes",
         "pain.swelling": "No",
+        "schedule.combined": "Yes, ASAP, and yes short notice",
         "schedule.earliest": "Yes",
         "schedule.short_notice": "Yes",
       }
@@ -286,24 +290,18 @@ describe("telephony — compassionate routine pain intake", () => {
       from: "+16155550111",
     });
     ask = selectNextAsk(session!, analyze(session!));
-    assert.equal(ask!.field, "schedule.earliest");
-    assert.match(ask!.question, /important details|flexible|earlier opening/i);
+    assert.equal(ask!.field, "schedule.combined");
+    assert.match(ask!.question, /earliest available appointment/i);
+    assert.match(ask!.question, /short notice/i);
     appendAlyAsk(session!, ask!);
 
     session = createOrUpdateSession({
       callSid: sid,
-      speechResult: "Yes, ASAP",
+      speechResult: "Yes, ASAP, and I can come on short notice",
       from: "+16155550111",
     });
-    ask = selectNextAsk(session!, analyze(session!));
-    assert.equal(ask!.field, "schedule.short_notice");
-    appendAlyAsk(session!, ask!);
-
-    session = createOrUpdateSession({
-      callSid: sid,
-      speechResult: "Yes",
-      from: "+16155550111",
-    });
+    assert.equal(session!.slots.wantsEarliest, true);
+    assert.equal(session!.slots.shortNoticeOk, true);
     assert.equal(isCallActionable(session!, analyze(session!)), true);
     assert.ok(session!.postIdentityAsks <= 3);
     assert.equal(selectNextAsk(session!, analyze(session!)), null);
@@ -414,11 +412,13 @@ describe("telephony — compassionate routine pain intake", () => {
       "caller.name": "Finn Leo",
       "caller.last_name_spell": "L E O",
       "caller.last_name_confirm": "Yes",
+      "pain.location.combined": "lower right back",
       "pain.location.vertical": "lower",
       "pain.location.side": "right",
       "pain.location.depth": "back",
       "pain.location.confirm": "Yes",
       "pain.swelling": "No",
+      "schedule.combined": "Yes, ASAP, and yes short notice",
       "schedule.earliest": "Yes",
       "schedule.short_notice": "Yes",
     });
@@ -432,17 +432,17 @@ describe("telephony — compassionate routine pain intake", () => {
       "caller.name": "Finn Leo",
       "caller.last_name_spell": "L E O",
       "caller.last_name_confirm": "Yes",
+      "pain.location.combined": "lower left back",
       "pain.location.vertical": "lower",
       "pain.location.side": "left",
       "pain.location.depth": "back",
       "pain.location.confirm": "Yes",
       "pain.swelling": "No",
+      "schedule.combined": "Earliest yes, short notice no",
       "schedule.earliest": "Yes",
       "schedule.short_notice": "No",
     });
     assert.equal(isCallActionable(session, analyze(session)), true);
-    // Identity (3) + location dims/confirm + swelling + earliest + short notice
-    // should stay well under the old sprawling interview.
     assert.ok(session.followUpsAsked <= 10);
     assert.ok(session.postIdentityAsks <= 8);
   });
@@ -503,11 +503,13 @@ describe("telephony — compassionate routine pain intake", () => {
       "caller.name": "Finn Leo",
       "caller.last_name_spell": "L E O",
       "caller.last_name_confirm": "Yes",
+      "pain.location.combined": "lower left back",
       "pain.location.vertical": "lower",
       "pain.location.side": "left",
       "pain.location.depth": "back",
       "pain.location.confirm": "Yes",
       "pain.swelling": "No",
+      "schedule.combined": "Yes, ASAP, and yes short notice",
       "schedule.earliest": "Yes",
       "schedule.short_notice": "Yes",
     });

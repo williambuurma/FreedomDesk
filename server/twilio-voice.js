@@ -239,23 +239,23 @@ async function handleGatherVoice(req, res, options = {}) {
       `[twilio-timing] CallSid=${callSid} analysis_ms=${msSince(tAnalyze)} turn=${turn}`
     );
 
-    const nextAskRaw = helpers.selectNextAsk(session, analysis);
+    let decision = null;
+    if (helpers.planNextTurn) {
+      decision = await helpers.planNextTurn({ session, analysis });
+    } else {
+      const nextAskRaw = helpers.selectNextAsk(session, analysis);
+      decision = nextAskRaw
+        ? { kind: "ask", nextAsk: nextAskRaw, selectedAction: nextAskRaw.field }
+        : { kind: "complete", selectedAction: "persist_and_close" };
+    }
 
-    if (nextAskRaw) {
-      // Hybrid Conversational Aly — shared articulate layer (same as Relay).
-      const nextAsk = helpers.articulateNextAsk
-        ? await helpers.articulateNextAsk({
-            session,
-            analysis,
-            nextAsk: nextAskRaw,
-          })
-        : nextAskRaw;
-      helpers.appendAlyAsk(session, nextAsk);
+    if (decision.kind === "ask" && decision.nextAsk) {
+      helpers.appendAlyAsk(session, decision.nextAsk);
       const gather = twiml.gather(gatherAttrs(helpers, gatherUrl));
-      say(gather, helpers, nextAsk.question);
+      say(gather, helpers, decision.nextAsk.question);
       sendTwiml(res, twiml);
       console.log(
-        `[twilio-timing] CallSid=${callSid} twiml_ms=${msSince(t0)} phase=ask field=${nextAsk.field}`
+        `[twilio-timing] CallSid=${callSid} twiml_ms=${msSince(t0)} phase=ask field=${decision.nextAsk.field} action=${decision.selectedAction || "(none)"} source=${decision.source || "deterministic"}`
       );
       return;
     }

@@ -360,24 +360,29 @@ async function handleFinalPrompt(ws, msg, helpers, options = {}) {
     transcript.turns,
     session.afterHours
   );
-  const nextAskRaw = helpers.selectNextAsk(session, analysis);
 
-  if (nextAskRaw) {
-    // Hybrid Conversational Aly — planner rephrases; field stays deterministic.
-    const nextAsk = helpers.articulateNextAsk
-      ? await helpers.articulateNextAsk({
-          session,
-          analysis,
-          nextAsk: nextAskRaw,
-        })
-      : nextAskRaw;
-    helpers.appendAlyAsk(session, nextAsk);
-    // Plain spoken text only — no Polly SSML.
-    sendTextToken(ws, nextAsk.question, { last: true });
+  // Hybrid Aly — planner selects among deterministic allowed actions.
+  let decision = null;
+  if (helpers.planNextTurn) {
+    decision = await helpers.planNextTurn({ session, analysis });
+  } else {
+    const nextAskRaw = helpers.selectNextAsk(session, analysis);
+    decision = nextAskRaw
+      ? { kind: "ask", nextAsk: nextAskRaw, selectedAction: nextAskRaw.field }
+      : {
+          kind: "complete",
+          selectedAction: "persist_and_close",
+          reason: session.lastPolicyReason,
+        };
+  }
+
+  if (decision.kind === "ask" && decision.nextAsk) {
+    helpers.appendAlyAsk(session, decision.nextAsk);
+    sendTextToken(ws, decision.nextAsk.question, { last: true });
     safeRelayLog(
       "ask",
       callSid,
-      `field=${nextAsk.field} tone=${session.tone} postIdentity=${session.postIdentityAsks} reason=${session.lastPolicyReason || "(none)"}`
+      `field=${decision.nextAsk.field} action=${decision.selectedAction || "(none)"} source=${decision.source || "deterministic"} tone=${session.tone} postIdentity=${session.postIdentityAsks} reason=${session.lastPolicyReason || "(none)"}`
     );
     return;
   }

@@ -232,5 +232,22 @@ export {
   type TurnDecision,
 } from "./articulateResponse.ts";
 
+export {
+  SPEECH_ENGINE_TRANSPORT,
+  AMBER_KING_VOICE_ID,
+  useSpeechEngineTransport,
+  createSpeechEngineSession,
+  runBrainTurn,
+  streamBrainTurn,
+  updateCallFacts,
+  checkEmergencySafety,
+  persistCompletedCall,
+  executeTool,
+  fallbackReply,
+  type SpeechEngineSessionState,
+  type StructuredCallFacts,
+  type TranscriptMessage,
+} from "./speechEngineBrain.ts";
+
 export { processCallTranscript } from "../conversation/processCall.ts";
 export { analyzeTranscriptTurns } from "../conversation/engine.ts";

@@ -7,6 +7,8 @@
  *
  * When PHONE_VOICE_TRANSPORT=conversation_relay, inbound returns Connect/
  * ConversationRelay TwiML instead of Gather/Say (Gather path retained).
+ * When PHONE_VOICE_TRANSPORT=elevenlabs_speech_engine, inbound returns
+ * Connect/Stream TwiML for the Speech Engine Media Streams bridge.
  */
 
 const twilio = require("twilio");
@@ -14,6 +16,7 @@ const {
   writeLatestActionableCall,
 } = require("./latest-call-store");
 const conversationRelay = require("./conversation-relay");
+const speechEngine = require("./speech-engine");
 
 const VoiceResponse = twilio.twiml.VoiceResponse;
 
@@ -132,6 +135,15 @@ async function handleInboundVoice(req, res) {
   }
 
   const helpers = await loadVoiceHelpers();
+
+  if (speechEngine.useSpeechEngine()) {
+    const twiml = speechEngine.buildSpeechEngineTwiml(req);
+    sendTwiml(res, twiml);
+    console.log(
+      `[twilio-timing] route=/api/twilio/voice/inbound twiml_ms=${msSince(t0)} transport=elevenlabs_speech_engine`
+    );
+    return;
+  }
 
   if (conversationRelay.useConversationRelay()) {
     const twiml = conversationRelay.buildConversationRelayTwiml(req, helpers);

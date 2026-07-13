@@ -778,7 +778,7 @@ function attachConversationRelayWebSocket(server, options = {}) {
   server.on("upgrade", (req, socket, head) => {
     const pathname = String(req.url || "").split("?")[0];
     if (pathname !== WS_PATH) {
-      socket.destroy();
+      // Do not destroy — other transports (Speech Engine media/brain) share this server.
       return;
     }
 

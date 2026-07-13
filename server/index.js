@@ -11,6 +11,10 @@ const {
   handleConversationStatus,
   useConversationRelay,
 } = require("./conversation-relay");
+const {
+  attachSpeechEngine,
+  useSpeechEngine,
+} = require("./speech-engine");
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -67,7 +71,8 @@ app.get("*", (req, res) => {
 const server = http.createServer(app);
 attachConversationRelayWebSocket(server);
 
-if (require.main === module) {
+async function start() {
+  await attachSpeechEngine(server);
   server.listen(PORT, () => {
     console.log(`FreedomDesk running at http://127.0.0.1:${PORT}`);
     console.log("Lead API: POST /api/leads");
@@ -79,7 +84,27 @@ if (require.main === module) {
         useConversationRelay() ? "on" : "off"
       })`
     );
+    console.log(
+      `Speech Engine media WS: wss://…/api/twilio/voice/media-stream (flag=${
+        useSpeechEngine() ? "on" : "off"
+      })`
+    );
+    console.log(
+      `Speech Engine brain WS: wss://…/api/speech-engine/ws (flag=${
+        useSpeechEngine() ? "on" : "off"
+      })`
+    );
     console.log(`Companion UI: http://127.0.0.1:${PORT}/app/#today`);
+  });
+}
+
+if (require.main === module) {
+  start().catch((err) => {
+    console.error(
+      "Server failed to start:",
+      err && err.message ? err.message : err
+    );
+    process.exit(1);
   });
 }
 

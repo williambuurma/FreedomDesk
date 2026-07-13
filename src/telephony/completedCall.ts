@@ -41,7 +41,11 @@ export interface TodayDecisionCard extends DecisionFirstProjection {
 export interface LatestActionableCall {
   schema: "latest-actionable-call/v1";
   generatedAt: string;
-  source: "twilio_inbound_gather" | "twilio_conversation_relay" | "local_test";
+  source:
+    | "twilio_inbound_gather"
+    | "twilio_conversation_relay"
+    | "twilio_speech_engine"
+    | "local_test";
   callId: string;
   practiceId: string;
   intent: string;

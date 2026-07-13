@@ -360,9 +360,17 @@ async function handleFinalPrompt(ws, msg, helpers, options = {}) {
     transcript.turns,
     session.afterHours
   );
-  const nextAsk = helpers.selectNextAsk(session, analysis);
+  const nextAskRaw = helpers.selectNextAsk(session, analysis);
 
-  if (nextAsk) {
+  if (nextAskRaw) {
+    // Hybrid Conversational Aly — planner rephrases; field stays deterministic.
+    const nextAsk = helpers.articulateNextAsk
+      ? await helpers.articulateNextAsk({
+          session,
+          analysis,
+          nextAsk: nextAskRaw,
+        })
+      : nextAskRaw;
     helpers.appendAlyAsk(session, nextAsk);
     // Plain spoken text only — no Polly SSML.
     sendTextToken(ws, nextAsk.question, { last: true });
@@ -410,7 +418,7 @@ async function handleFinalPrompt(ws, msg, helpers, options = {}) {
         .join(" ")
     ) || session.slots.breathingOk === false;
 
-  const closing = helpers.composeClosing({
+  const closingDraft = helpers.composeClosing({
     intent: artifact.intent,
     urgency: artifact.urgency,
     afterHours: Boolean(artifact.callSummary && artifact.callSummary.afterHours),
@@ -432,6 +440,17 @@ async function handleFinalPrompt(ws, msg, helpers, options = {}) {
     shortNoticeOk: session.slots.shortNoticeOk,
     persisted: true,
   });
+
+  const closing = helpers.articulateClosing
+    ? await helpers.articulateClosing({
+        session,
+        analysis,
+        deterministicClosing: closingDraft,
+        persisted: true,
+        lifeThreatening,
+        callActionable: true,
+      })
+    : closingDraft;
 
   sendTextToken(ws, closing, { last: true });
   sendEnd(ws, {

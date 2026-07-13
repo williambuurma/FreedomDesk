@@ -89,5 +89,31 @@ export {
   composePainFactSummary,
 } from "./alySpeech.ts";
 
+export {
+  buildPlannerContext,
+  buildMissingMaterialFacts,
+  isHybridConversationalEnabled,
+  parsePlannerProposal,
+  planConversationalResponse,
+  proposalForField,
+  renderPlannerSpeech,
+  type PlannerContext,
+  type PlannerProposal,
+  type PlanConversationalOptions,
+} from "./conversationalPlanner.ts";
+
+export {
+  validatePlannerProposal,
+  type GuardrailResult,
+} from "./conversationalGuardrails.ts";
+
+export {
+  articulateNextAsk,
+  articulateClosing,
+  articulateNextAskDetailed,
+  setArticulatePlanOptions,
+  getArticulatePlanOptions,
+} from "./articulateResponse.ts";
+
 export { processCallTranscript } from "../conversation/processCall.ts";
 export { analyzeTranscriptTurns } from "../conversation/engine.ts";

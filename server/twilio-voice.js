@@ -239,9 +239,17 @@ async function handleGatherVoice(req, res, options = {}) {
       `[twilio-timing] CallSid=${callSid} analysis_ms=${msSince(tAnalyze)} turn=${turn}`
     );
 
-    const nextAsk = helpers.selectNextAsk(session, analysis);
+    const nextAskRaw = helpers.selectNextAsk(session, analysis);
 
-    if (nextAsk) {
+    if (nextAskRaw) {
+      // Hybrid Conversational Aly — shared articulate layer (same as Relay).
+      const nextAsk = helpers.articulateNextAsk
+        ? await helpers.articulateNextAsk({
+            session,
+            analysis,
+            nextAsk: nextAskRaw,
+          })
+        : nextAskRaw;
       helpers.appendAlyAsk(session, nextAsk);
       const gather = twiml.gather(gatherAttrs(helpers, gatherUrl));
       say(gather, helpers, nextAsk.question);
@@ -294,7 +302,7 @@ async function handleGatherVoice(req, res, options = {}) {
           .join(" ")
       ) || session.slots.breathingOk === false;
 
-    const closing = helpers.composeClosing({
+    const closingDraft = helpers.composeClosing({
       intent: artifact.intent,
       urgency: artifact.urgency,
       afterHours: Boolean(artifact.callSummary && artifact.callSummary.afterHours),
@@ -316,6 +324,16 @@ async function handleGatherVoice(req, res, options = {}) {
       shortNoticeOk: session.slots.shortNoticeOk,
       persisted: true,
     });
+    const closing = helpers.articulateClosing
+      ? await helpers.articulateClosing({
+          session,
+          analysis,
+          deterministicClosing: closingDraft,
+          persisted: true,
+          lifeThreatening,
+          callActionable: true,
+        })
+      : closingDraft;
     say(twiml, helpers, closing);
     twiml.hangup();
     sendTwiml(res, twiml);

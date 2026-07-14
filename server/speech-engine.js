@@ -1013,6 +1013,20 @@ function buildEnsureSpeechEngineCreatePayload(options = {}) {
       voiceId: options.voiceId || amberVoiceId(),
       agentOutputAudioFormat: "ulaw_8000",
     },
+    // Controlled EOT experiment: eager finalizes turns sooner after silence.
+    // Preserve sibling turn fields so ensure/update does not reset timeouts.
+    turn: {
+      turnTimeout: 7,
+      silenceEndCallTimeout: -1,
+      turnEagerness: "eager",
+      spellingPatience: "auto",
+      speculativeTurn: false,
+      retranscribeOnTurnTimeout: false,
+      turnModel: "turn_v3",
+      interruptionIgnoreTerms: [],
+      interruptionIgnoreTermLanguages: [],
+      transcribeOnDisabledInterruptions: false,
+    },
   };
   return { ok: true, payload, wsUrl };
 }

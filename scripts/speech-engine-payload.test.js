@@ -82,6 +82,12 @@ describe("Speech Engine create payload construction", () => {
     assert.equal(built.payload.tts.modelId, "eleven_flash_v2");
     assert.equal(built.payload.tts.voiceId, "F89WkXaQbUlVyNvtlD3X");
     assert.equal(built.payload.overrides.firstMessage, true);
+    assert.equal(built.payload.turn.turnEagerness, "eager");
+    assert.equal(built.payload.turn.turnTimeout, 7);
+    assert.equal(built.payload.turn.silenceEndCallTimeout, -1);
+    assert.equal(built.payload.turn.turnModel, "turn_v3");
+    assert.equal(built.payload.turn.spellingPatience, "auto");
+    assert.equal(built.payload.turn.speculativeTurn, false);
     const wire = speechEngine.serializeCreatePayloadOrThrow(built.payload);
     assert.equal(wire.speech_engine.ws_url.endsWith("/api/speech-engine/ws"), true);
     assert.equal(wire.asr.user_input_audio_format, "ulaw_8000");
@@ -89,6 +95,9 @@ describe("Speech Engine create payload construction", () => {
     assert.equal(wire.tts.model_id, "eleven_flash_v2");
     assert.equal(wire.tts.voice_id, "F89WkXaQbUlVyNvtlD3X");
     assert.equal(wire.overrides.first_message, true);
+    assert.equal(wire.turn.turn_eagerness, "eager");
+    assert.equal(wire.turn.turn_timeout, 7);
+    assert.equal(wire.turn.silence_end_call_timeout, -1);
   });
 
   it("sanitize redacts request header secrets and host", () => {

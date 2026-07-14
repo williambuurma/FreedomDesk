@@ -87,6 +87,45 @@ const EXAMPLE_WORDS: Record<string, string> = {
   zebra: "Z",
 };
 
+/** Spoken letter names (ASR often writes these instead of B/U/R). */
+const SPOKEN_LETTER_NAMES: Record<string, string> = {
+  ay: "A",
+  aye: "A",
+  hey: "A",
+  bee: "B",
+  be: "B",
+  see: "C",
+  sea: "C",
+  dee: "D",
+  ee: "E",
+  ef: "F",
+  eff: "F",
+  gee: "G",
+  aitch: "H",
+  eye: "I",
+  jay: "J",
+  kay: "K",
+  el: "L",
+  ell: "L",
+  em: "M",
+  en: "N",
+  oh: "O",
+  pee: "P",
+  queue: "Q",
+  cue: "Q",
+  are: "R",
+  arr: "R",
+  ess: "S",
+  tee: "T",
+  you: "U",
+  yu: "U",
+  vee: "V",
+  ex: "X",
+  why: "Y",
+  zee: "Z",
+  zed: "Z",
+};
+
 /** Words that must never become spelling letters. */
 const IGNORE_WORDS = new Set([
   "yeah",
@@ -409,6 +448,15 @@ export function normalizeSpokenSpelling(raw: string): SpellingNormalizeResult {
       continue;
     }
 
+    // Spoken letter names BEFORE ignore list ("you" must mean U, not filler).
+    if (SPOKEN_LETTER_NAMES[lower]) {
+      letters.push(SPOKEN_LETTER_NAMES[lower]);
+      evidenceTokens.push(`spoken:${lower}`);
+      usedNato = true;
+      i += 1;
+      continue;
+    }
+
     // Explicit ignore list — never turn into letters
     if (IGNORE_WORDS.has(lower)) {
       i += 1;
@@ -452,6 +500,23 @@ export function normalizeSpokenSpelling(raw: string): SpellingNormalizeResult {
     return emptyResult(ignoredPrefix);
   }
 
+  // Reject weak mixes: ordinary speech + a couple of letter-like tokens
+  // (e.g. "I already told you" must not become "IU").
+  const ignoreTokenCount = tokens.filter((tok) => {
+    const lower = tok.toLowerCase().replace(/[^a-z]/g, "");
+    return IGNORE_WORDS.has(lower);
+  }).length;
+  const usedSpokenName = evidenceTokens.some((t) => t.startsWith("spoken:"));
+  if (
+    usedSpokenName &&
+    !usedHyphenRun &&
+    !usedAsIn &&
+    spelling.length < 4 &&
+    ignoreTokenCount >= 2
+  ) {
+    return emptyResult(ignoredPrefix);
+  }
+
   // Reject compact-only results that look like ordinary speech (≤3 letters).
   if (usedCompactRun && !usedHyphenRun && !usedAsIn && !usedNato && spelling.length < 4) {
     return emptyResult(ignoredPrefix);
@@ -471,8 +536,13 @@ export function normalizeSpokenSpelling(raw: string): SpellingNormalizeResult {
     confidenceScore += 0.35;
   }
   // Compact runs without hyphen/phonetic evidence stay at most medium-low.
+  // Reject low-confidence compact-only tokens that look like guessed surnames
+  // (e.g. ASR "Euurma" / "Burma") — require explicit letter evidence.
   if (usedCompactRun && !usedHyphenRun && !usedAsIn && !usedNato) {
     confidenceScore = Math.min(confidenceScore, 0.55);
+    if (confidenceScore < 0.6) {
+      return emptyResult(ignoredPrefix);
+    }
   }
   if (spelling.length >= 4 && (usedHyphenRun || usedAsIn || allExplicitSingles)) {
     confidenceScore += 0.05;

@@ -16,6 +16,7 @@ const { ElevenLabsClient } = require("@elevenlabs/elevenlabs-js");
 const crypto = require("crypto");
 const {
   writeLatestActionableCall,
+  writeLatestActionableCallIfCurrent,
 } = require("./latest-call-store");
 const {
   getCallLatencyCoord,
@@ -26,6 +27,54 @@ const MEDIA_STREAM_PATH = "/api/twilio/voice/media-stream";
 const BRAIN_WS_PATH = "/api/speech-engine/ws";
 const AMBER_KING_VOICE_ID = "F89WkXaQbUlVyNvtlD3X";
 const DEFAULT_TTS_MODEL = "eleven_flash_v2";
+
+function findBrainStateByCallSid(callSid) {
+  if (!callSid) return null;
+  for (const state of brainSessions.values()) {
+    if (state && state.callSid === callSid) return state;
+  }
+  return null;
+}
+
+function flushPersistOnClose(state, brain, reason) {
+  if (!state || !brain || typeof brain.persistOnCallClose !== "function") {
+    return { ok: false, skipped: true };
+  }
+  try {
+    const result = brain.persistOnCallClose(state);
+    if (result && result.ok && result.artifact) {
+      const write = writeLatestActionableCallIfCurrent(result.artifact);
+      if (write.written) {
+        safeLog(
+          "persisted",
+          `callSid=${state.callSid} reason=${reason} alreadyPersisted=${Boolean(result.alreadyPersisted)}`
+        );
+      } else {
+        safeLog(
+          "persist_skip_stale",
+          `callSid=${state.callSid} reason=${reason} skip=${write.reason || "unknown"}`
+        );
+      }
+    } else if (result && result.skipped) {
+      safeLog(
+        "persist_skipped",
+        `callSid=${state.callSid} reason=${reason} detail=${result.error || "empty"}`
+      );
+    } else if (result && !result.ok) {
+      safeLog(
+        "persist_failed",
+        `callSid=${state.callSid} reason=${reason} error=${result.error || "unknown"}`
+      );
+    }
+    return result || { ok: false };
+  } catch (err) {
+    safeLog(
+      "persist_close_error",
+      `callSid=${state && state.callSid ? state.callSid : "(none)"} reason=${reason} error=${err && err.message ? err.message : "unknown"}`
+    );
+    return { ok: false, error: "persist_close_error" };
+  }
+}
 
 /** @type {Map<string, object>} conversationId → session state */
 const brainSessions = new Map();
@@ -568,6 +617,18 @@ function handleMediaStream(twilioWs, req) {
       }
     }
     if (callSid) pendingCallsByStream.delete(callSid);
+    try {
+      const brain = await loadBrainModule();
+      const state = findBrainStateByCallSid(callSid);
+      if (state) {
+        flushPersistOnClose(state, brain, "media_close");
+      }
+    } catch (err) {
+      safeLog(
+        "media_close_persist_error",
+        `error=${err && err.message ? err.message : "unknown"}`
+      );
+    }
     if (latencyCoord) {
       latencyCoord.clear();
       latencyCoord = null;
@@ -792,8 +853,17 @@ function wireBrainSession(session, brain) {
               }
               if (state.persisted && state.persistArtifact) {
                 try {
-                  writeLatestActionableCall(state.persistArtifact);
-                  safeLog("persisted", `callSid=${state.callSid}`);
+                  const write = writeLatestActionableCallIfCurrent(
+                    state.persistArtifact
+                  );
+                  if (write.written) {
+                    safeLog("persisted", `callSid=${state.callSid}`);
+                  } else {
+                    safeLog(
+                      "persist_skip_stale",
+                      `callSid=${state.callSid} skip=${write.reason || "unknown"}`
+                    );
+                  }
                 } catch (err) {
                   safeLog(
                     "persist_store_failed",
@@ -859,6 +929,9 @@ function wireBrainSession(session, brain) {
   session.on("close", () => {
     const id = session.conversationId;
     const state = session._fdState;
+    if (state) {
+      flushPersistOnClose(state, brain, "brain_close");
+    }
     if (state && state.callSid) {
       const coord = getCallLatencyCoord(state.callSid, { log: safeLog });
       coord.clear();
@@ -870,6 +943,9 @@ function wireBrainSession(session, brain) {
   session.on("disconnected", () => {
     const id = session.conversationId;
     const state = session._fdState;
+    if (state) {
+      flushPersistOnClose(state, brain, "brain_disconnect");
+    }
     if (state && state.callSid) {
       const coord = getCallLatencyCoord(state.callSid, { log: safeLog });
       coord.clear();

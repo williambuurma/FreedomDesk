@@ -39,6 +39,30 @@ function writeLatestActionableCall(artifact, overridePath) {
   return filePath;
 }
 
+/**
+ * Write the latest call unless an existing artifact is newer and for a different call.
+ * Prevents a late close of a prior call from overwriting the newest record.
+ */
+function writeLatestActionableCallIfCurrent(artifact, overridePath) {
+  if (!artifact || artifact.schema !== "latest-actionable-call/v1") {
+    return { written: false, reason: "invalid_artifact" };
+  }
+  const existing = readLatestActionableCall(overridePath);
+  if (existing && existing.callId && existing.callId !== artifact.callId) {
+    const existingTs = Date.parse(String(existing.generatedAt || "")) || 0;
+    const nextTs = Date.parse(String(artifact.generatedAt || "")) || 0;
+    if (existingTs > nextTs) {
+      return {
+        written: false,
+        reason: "stale_older_than_existing",
+        existingCallId: existing.callId,
+      };
+    }
+  }
+  const filePath = writeLatestActionableCall(artifact, overridePath);
+  return { written: true, filePath, callId: artifact.callId };
+}
+
 function clearLatestActionableCall(overridePath) {
   const filePath = resolveStorePath(overridePath);
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
@@ -49,5 +73,6 @@ module.exports = {
   resolveStorePath,
   readLatestActionableCall,
   writeLatestActionableCall,
+  writeLatestActionableCallIfCurrent,
   clearLatestActionableCall,
 };

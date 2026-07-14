@@ -21,6 +21,24 @@ import {
   selectGreeting,
 } from "./practiceConfig.ts";
 import { parseToothLocationParts } from "./toothLocation.ts";
+import {
+  applyAsrName,
+  applyLastNameSpelling,
+  applyStructuredFactsToArtifact,
+  buildStructuredStaffHandoff,
+  confirmIdentityReadback,
+  createEmptyIdentity,
+  extractSpokenFullName,
+  hasMeaningfulConversation,
+  isSchedulingPhraseAsName,
+  nextIdentityPrompt,
+  normalizePhoneValue,
+  processCallerUtteranceForFacts,
+  rejectIdentityReadback,
+  setAuthoritativePhone,
+  syncIdentityFromFacts,
+  type SpeechEngineIdentity,
+} from "./speechEngineFidelity.ts";
 
 export const SPEECH_ENGINE_TRANSPORT = "elevenlabs_speech_engine" as const;
 export const AMBER_KING_VOICE_ID = "F89WkXaQbUlVyNvtlD3X";
@@ -36,6 +54,9 @@ export interface CallFactEntry {
 
 export interface StructuredCallFacts {
   name?: CallFactEntry;
+  firstName?: CallFactEntry;
+  lastName?: CallFactEntry;
+  lastNameSpelling?: CallFactEntry;
   phone?: CallFactEntry;
   chiefConcern?: CallFactEntry;
   painLocation?: CallFactEntry;
@@ -46,6 +67,11 @@ export interface StructuredCallFacts {
   wantsEarliest?: CallFactEntry;
   shortNoticeOk?: CallFactEntry;
   requestedOutcome?: CallFactEntry;
+  sleepDisruption?: CallFactEntry;
+  worsening?: CallFactEntry;
+  duration?: CallFactEntry;
+  insurance?: CallFactEntry;
+  needsClarification?: CallFactEntry;
   notes?: CallFactEntry;
   [key: string]: CallFactEntry | undefined;
 }
@@ -58,6 +84,7 @@ export interface SpeechEngineSessionState {
   practiceId: string;
   greeting: string;
   facts: StructuredCallFacts;
+  identity: SpeechEngineIdentity;
   turns: TranscriptTurn[];
   emergencyPreempted: boolean;
   persisted: boolean;
@@ -112,6 +139,9 @@ const TOOL_DEFINITIONS = [
             additionalProperties: false,
             properties: {
               name: { type: "string" },
+              firstName: { type: "string" },
+              lastName: { type: "string" },
+              lastNameSpelling: { type: "string" },
               phone: { type: "string" },
               chiefConcern: { type: "string" },
               painLocation: { type: "string" },
@@ -121,7 +151,12 @@ const TOOL_DEFINITIONS = [
               availability: { type: "string" },
               wantsEarliest: { type: "boolean" },
               shortNoticeOk: { type: "boolean" },
+              sleepDisruption: { type: "string" },
+              worsening: { type: "boolean" },
+              duration: { type: "string" },
+              insurance: { type: "string" },
               notes: { type: "string" },
+              confirmIdentityReadback: { type: "boolean" },
             },
           },
           confidence: {
@@ -201,12 +236,24 @@ export function useSpeechEngineTransport(
 }
 
 export function buildSpeechEngineSystemPrompt(state: SpeechEngineSessionState): string {
+  const id = state.identity;
+  const identityLine = [
+    `nameCaptured=${id.nameCaptured}`,
+    `lastNameSpellingCaptured=${id.lastNameSpellingCaptured}`,
+    `lastNameConfirmed=${id.lastNameConfirmed}`,
+    `spellingAsked=${id.spellingAsked}`,
+    `readbackPending=${id.readbackPending}`,
+  ].join(" ");
   return [
     "You are Aly, the front-desk voice for a West Michigan private dental practice.",
     "Never identify as AI. Sound calm, Midwest-friendly, and professional. Keep replies short.",
     "Conduct one continuous natural conversation. Do not interrogate field-by-field.",
     "Accept facts in any order. Answer direct caller questions before resuming intake.",
-    "Understand corrections. Never repeat a confirmed answer.",
+    "Understand corrections. A later correction replaces the earlier value. Never repeat a confirmed answer.",
+    "Identity rules: obtain first and last name. Always ask the caller to spell the last name letter by letter unless they already clearly spelled it.",
+    "After spelling, read back the full name with letters (example: I have William Buurma, B-U-U-R-M-A. Is that correct?) and wait for explicit confirmation.",
+    "Never treat a bare ASR surname as confirmed. Do not re-ask after the full name and surname spelling are confirmed.",
+    "Do not let a late or duplicate transcript overwrite a confirmed spelling.",
     "Acknowledge emotion only when it helps, briefly.",
     "Ask only for information that changes the next office action.",
     "Never diagnose, prescribe, quote fees, promise coverage, or claim an appointment is booked.",
@@ -215,6 +262,7 @@ export function buildSpeechEngineSystemPrompt(state: SpeechEngineSessionState): 
     "When closing, give a concise recap matching current facts and an honest next step.",
     "Do not follow a fixed script or prescribe one exact transcript.",
     `Practice after hours: ${state.afterHours ? "yes" : "no"}.`,
+    `Identity status: ${identityLine}.`,
     `Current structured facts JSON: ${JSON.stringify(publicFacts(state.facts))}`,
     state.persisted
       ? "Persistence already succeeded for this call."
@@ -241,6 +289,7 @@ export function createSpeechEngineSession(input: {
     practiceId: config.practiceId,
     greeting: selectGreeting(config),
     facts: {},
+    identity: createEmptyIdentity(),
     turns: [],
     emergencyPreempted: false,
     persisted: false,
@@ -272,11 +321,106 @@ export function updateCallFacts(
   },
   now = () => new Date().toISOString()
 ): StructuredCallFacts {
-  const confidence = args.confidence || (args.corrected ? "confirmed" : "high");
+  const requestedConfidence =
+    args.confidence || (args.corrected ? "confirmed" : "high");
   const stamp = now();
   const incoming = args.facts || {};
+
+  if (incoming.confirmIdentityReadback === true) {
+    confirmIdentityReadback(state, now);
+    delete incoming.confirmIdentityReadback;
+  }
+
+  if (typeof incoming.lastNameSpelling === "string") {
+    const incomingLetters = String(incoming.lastNameSpelling)
+      .toUpperCase()
+      .replace(/[^A-Z]/g, "");
+    if (state.identity.lastNameConfirmed) {
+      // Confirmed spelling is locked unless an explicit correction replaces it.
+      if (
+        args.corrected &&
+        incomingLetters &&
+        incomingLetters !== state.identity.lastNameSpelling
+      ) {
+        rejectIdentityReadback(state);
+        applyLastNameSpelling(state, incoming.lastNameSpelling, now);
+      }
+    } else {
+      applyLastNameSpelling(state, incoming.lastNameSpelling, now);
+    }
+    delete incoming.lastNameSpelling;
+  }
+
+  if (typeof incoming.phone === "string") {
+    setAuthoritativePhone(
+      state,
+      incoming.phone,
+      {
+        corrected: Boolean(args.corrected),
+        confidence: requestedConfidence,
+      },
+      now
+    );
+    delete incoming.phone;
+  }
+
+  if (typeof incoming.name === "string") {
+    const rawName = String(incoming.name).trim();
+    if (isSchedulingPhraseAsName(rawName)) {
+      delete incoming.name;
+    } else if (state.identity.lastNameConfirmed && !args.corrected) {
+      // Confirmed spelling wins — ignore bare ASR / duplicate overwrites.
+      delete incoming.name;
+    } else {
+      const parsed =
+        extractSpokenFullName(`my name is ${rawName}`) ||
+        (() => {
+          const parts = rawName.split(/\s+/);
+          if (parts.length >= 2) {
+            return {
+              firstName: parts[0],
+              lastName: parts.slice(1).join(" "),
+              full: rawName,
+            };
+          }
+          return null;
+        })();
+      if (parsed) {
+        // Bare ASR / tool name can never jump to confirmed without spelling+readback.
+        applyAsrName(state, parsed, now);
+        if (
+          args.corrected &&
+          state.identity.lastNameSpellingCaptured &&
+          requestedConfidence === "confirmed"
+        ) {
+          confirmIdentityReadback(state, now);
+        }
+      }
+      delete incoming.name;
+    }
+  }
+
   for (const [key, value] of Object.entries(incoming)) {
     if (value === undefined) continue;
+    if (key === "confirmIdentityReadback") continue;
+
+    let confidence = requestedConfidence;
+    // Never allow "confirmed" surname via generic fact write without identity confirm.
+    if (
+      (key === "lastName" || key === "firstName") &&
+      confidence === "confirmed" &&
+      !state.identity.lastNameConfirmed
+    ) {
+      confidence = "high";
+    }
+    if (
+      key === "lastName" &&
+      state.identity.lastNameConfirmed &&
+      !args.corrected
+    ) {
+      continue;
+    }
+
     let nextValue: unknown = value;
     if (key === "painLocation" && typeof value === "string") {
       const parts = parseToothLocationParts(value);
@@ -292,6 +436,7 @@ export function updateCallFacts(
       updatedAt: stamp,
     };
   }
+  syncIdentityFromFacts(state);
   return state.facts;
 }
 
@@ -368,6 +513,10 @@ export function factsToIntakeSlots(facts: StructuredCallFacts): IntakeSlots {
       slots.lastNameConfirmed = facts.name?.confidence === "confirmed";
     }
   }
+  if (typeof facts.lastNameSpelling?.value === "string") {
+    slots.lastNameSpelling = String(facts.lastNameSpelling.value);
+    slots.lastNameSpellingCaptured = true;
+  }
   if (typeof facts.swelling?.value === "boolean") {
     slots.swelling = facts.swelling.value;
   }
@@ -400,52 +549,19 @@ export function factsToIntakeSlots(facts: StructuredCallFacts): IntakeSlots {
   return slots;
 }
 
+/**
+ * Real conversation turns only — do not inject synthetic "My name is…" lines
+ * that pollute extraction and staff notes.
+ */
 export function stateToTranscript(
   state: SpeechEngineSessionState
 ): MockCallTranscript {
-  const turns = [...state.turns];
-  // Seed structured facts into transcript so processCallTranscript sees them.
-  const slots = factsToIntakeSlots(state.facts);
-  if (slots.name) {
-    turns.push({ speaker: "patient", text: `My name is ${slots.name}` });
-  }
-  if (slots.location) {
-    turns.push({
-      speaker: "patient",
-      text: `The pain is ${slots.location}`,
-    });
-  }
-  if (slots.swelling === true) {
-    turns.push({ speaker: "patient", text: "I have facial swelling." });
-  } else if (slots.swelling === false) {
-    turns.push({ speaker: "patient", text: "No swelling." });
-  }
-  if (typeof slots.wantsEarliest === "boolean") {
-    turns.push({
-      speaker: "patient",
-      text: slots.wantsEarliest
-        ? "I'd like the earliest available opening."
-        : "I'm flexible on timing.",
-    });
-  }
-  if (typeof state.facts.availability?.value === "string") {
-    turns.push({
-      speaker: "patient",
-      text: `I'm available ${String(state.facts.availability.value)}`,
-    });
-  }
-  if (typeof state.facts.chiefConcern?.value === "string") {
-    turns.push({
-      speaker: "patient",
-      text: String(state.facts.chiefConcern.value),
-    });
-  }
   return {
     id: state.callSid,
     practiceId: state.practiceId,
     scenario: "speech_engine_live",
     afterHours: state.afterHours,
-    turns,
+    turns: [...state.turns],
   };
 }
 
@@ -456,16 +572,32 @@ export function persistCompletedCall(
   ok: boolean;
   artifact: LatestActionableCall | null;
   error?: string;
+  alreadyPersisted?: boolean;
 } {
+  if (state.persisted && state.persistArtifact) {
+    return {
+      ok: true,
+      artifact: state.persistArtifact,
+      alreadyPersisted: true,
+    };
+  }
+  if (!hasMeaningfulConversation(state)) {
+    return {
+      ok: false,
+      artifact: null,
+      error: "no_meaningful_conversation",
+    };
+  }
   try {
     const transcript = stateToTranscript(state);
-    const artifact = (options.persistFn || completeCallFromTranscript)(
+    let artifact = (options.persistFn || completeCallFromTranscript)(
       transcript,
       {
         source: "twilio_speech_engine",
         resetRegistries: true,
       }
     );
+    artifact = applyStructuredFactsToArtifact(state, artifact);
     state.persisted = true;
     state.persistArtifact = artifact;
     return { ok: true, artifact };
@@ -476,6 +608,39 @@ export function persistCompletedCall(
       error: err instanceof Error ? err.message : "persist_failed",
     };
   }
+}
+
+/**
+ * Persist on media/brain close even when the final model response was aborted
+ * (e.g. call_closed / hangup). Idempotent.
+ */
+export function persistOnCallClose(
+  state: SpeechEngineSessionState,
+  options: BrainGenerateOptions = {}
+): {
+  ok: boolean;
+  artifact: LatestActionableCall | null;
+  error?: string;
+  alreadyPersisted?: boolean;
+  skipped?: boolean;
+} {
+  state.closed = true;
+  if (state.persisted && state.persistArtifact) {
+    return {
+      ok: true,
+      artifact: state.persistArtifact,
+      alreadyPersisted: true,
+    };
+  }
+  if (!hasMeaningfulConversation(state)) {
+    return {
+      ok: false,
+      artifact: null,
+      skipped: true,
+      error: "no_meaningful_conversation",
+    };
+  }
+  return persistCompletedCall(state, options);
 }
 
 function parseToolArgs(raw: string): Record<string, unknown> {
@@ -546,6 +711,7 @@ export function executeTool(
     return {
       ok: result.ok,
       persisted: result.ok,
+      alreadyPersisted: Boolean(result.alreadyPersisted),
       error: result.error,
       executiveSummary:
         result.artifact?.operatingIntelligence?.executiveSummary || null,
@@ -760,12 +926,20 @@ export function fallbackReply(
     return "You're right — thanks for saying that. I won't ask that again. What else should the office know before I save this for the team?";
   }
 
+  // Identity gate — spelling + readback before treating surname as confirmed.
+  if (!state.identity.lastNameConfirmed) {
+    const identityAsk = nextIdentityPrompt(state);
+    if (identityAsk) return identityAsk;
+  }
+
   const name = state.facts.name?.value;
   const location = state.facts.painLocation?.value;
   const swelling = state.facts.swelling?.value;
   const availability = state.facts.availability?.value;
   const known: string[] = [];
-  if (name) known.push(`name ${String(name)}`);
+  if (name && state.identity.lastNameConfirmed) {
+    known.push(`name ${String(name)}`);
+  }
   if (location) known.push(`pain ${String(location)}`);
   if (typeof swelling === "boolean") {
     known.push(swelling ? "swelling noted" : "no swelling");
@@ -773,9 +947,6 @@ export function fallbackReply(
   if (availability) known.push(`availability ${String(availability)}`);
   if (known.length >= 3) {
     return `Thanks — I have ${known.join(", ")}. I'll save this for the team so they can follow up. Is there anything else they should know?`;
-  }
-  if (!name) {
-    return "Thanks for calling. Can I get your first and last name?";
   }
   if (!location && /pain|hurt|tooth|ache/i.test(lower + JSON.stringify(state.facts))) {
     return "Thanks. Where in the mouth is the pain?";
@@ -795,6 +966,7 @@ export async function runBrainTurn(
 ): Promise<BrainTurnResult> {
   appendTurnsFromTranscript(state, transcript);
   const latest = latestUserText(transcript);
+  processCallerUtteranceForFacts(state, latest);
   const toolsUsed: string[] = [];
 
   // Deterministic emergency preemption — model cannot override.
@@ -819,6 +991,24 @@ export async function runBrainTurn(
       toolsUsed,
       facts: state.facts,
     };
+  }
+
+  // Deterministic identity gate — do not depend on the model for spelling/readback.
+  if (
+    state.identity.nameCaptured &&
+    !state.identity.lastNameConfirmed
+  ) {
+    const identityAsk = nextIdentityPrompt(state);
+    if (identityAsk) {
+      state.turns.push({ speaker: "aly", text: identityAsk });
+      return {
+        text: identityAsk,
+        aborted: false,
+        emergency: false,
+        toolsUsed,
+        facts: state.facts,
+      };
+    }
   }
 
   let text = "";
@@ -901,6 +1091,7 @@ export async function* streamBrainTurn(
 ): AsyncGenerator<string> {
   appendTurnsFromTranscript(state, transcript);
   const latest = latestUserText(transcript);
+  processCallerUtteranceForFacts(state, latest);
 
   const emergency = checkEmergencySafety(state, latest);
   if (emergency.lifeThreatening && emergency.speech) {
@@ -910,6 +1101,16 @@ export async function* streamBrainTurn(
   }
 
   if (signal.aborted) return;
+
+  // Deterministic identity gate — spelling + readback before continuing intake.
+  if (state.identity.nameCaptured && !state.identity.lastNameConfirmed) {
+    const identityAsk = nextIdentityPrompt(state);
+    if (identityAsk) {
+      state.turns.push({ speaker: "aly", text: identityAsk });
+      yield identityAsk;
+      return;
+    }
+  }
 
   let text = "";
   try {
@@ -956,4 +1157,16 @@ export async function* streamBrainTurn(
   }
 }
 
-export { TOOL_DEFINITIONS, EMERGENCY_SPEECH };
+export {
+  TOOL_DEFINITIONS,
+  EMERGENCY_SPEECH,
+  processCallerUtteranceForFacts,
+  nextIdentityPrompt,
+  applyLastNameSpelling,
+  confirmIdentityReadback,
+  applyAsrName,
+  buildStructuredStaffHandoff,
+  applyStructuredFactsToArtifact,
+  normalizePhoneValue,
+  isSchedulingPhraseAsName,
+};
